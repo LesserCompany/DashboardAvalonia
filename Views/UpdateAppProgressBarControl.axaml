@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels"
+             x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="100"
+             x:Class="LesserDashboardClient.Views.UpdateAppProgressBarControl">
+  <Grid RowDefinitions="Auto, Auto" RowSpacing="6">
+    <TextBlock Text="{Tr 'Updating system component, please wait...'}" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" /> 
+    <ProgressBar Grid.Row="1" Minimum="0" Maximum="100" Value="{Binding ProgressBarUpdanteComponents}" VerticalAlignment="Center"  />
+  </Grid>
+</UserControl>

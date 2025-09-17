@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels"
+              x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.HelpContactControl">
+  <Grid>
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Right" Orientation="Horizontal" >
+      <TextBlock FontSize="11" Text="{Tr 'Having problems?'}" Margin="0 0 4 0" FontWeight="SemiBold" VerticalAlignment="Center" />
+      <Button Height="25" HorizontalAlignment="Center" Background="{DynamicResource SystemChromeBlackMediumLowColor}" Command="{Binding OpenWhatsAppSuportCommand}" >
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="{Tr 'Support'}" FontSize="11" Foreground="White" VerticalAlignment="Center" Margin="2 0" />
+          <Grid Width="20" Height="20">
+            <Ellipse Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
+            <TextBlock Text="&#xE8F2;"
+               FontSize="11"
+               FontFamily="Segoe Fluent Icons"
+               Foreground="White"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Center"/>
+          </Grid>
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+             x:DataType="vm:CollectionsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Name="Root"
+             x:Class="LesserDashboardClient.Views.Collections.SelectProfessional">
+  <Grid RowDefinitions="*, Auto">
+    
+    <Grid Grid.Row="0" IsVisible="{Binding LoadProfessionalsIsRunning}">
+      <ui:ProgressRing IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding LoadProfessionalsIsRunning}" />
+    </Grid>
+
+    <ScrollViewer Margin="10" Grid.Row="0" IsVisible="{Binding !LoadProfessionalsIsRunning}">
+      <ListBox ItemsSource="{Binding Professionals}" SelectedItem="{Binding SelectedProfessional}">
+        <ListBox.ItemsPanel>
+          <ItemsPanelTemplate>
+            <!-- UniformGrid cria um layout uniforme em linhas/colunas -->
+            <UniformGrid Columns="2" />
+          </ItemsPanelTemplate>
+        </ListBox.ItemsPanel>
+
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+              <local:ProfessionalRepresentation VerticalAlignment="Center" HorizontalAlignment="Center" ProfessionalName="{Binding username}" />
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </ScrollViewer>
+    <StackPanel Grid.Row="1" Margin="10">
+      <Button VerticalAlignment="Center" HorizontalAlignment="Center" >
+        <StackPanel Orientation="Horizontal">
+          <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xe710;" VerticalAlignment="Center" />
+          <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Button> 
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:Class="LesserDashboardClient.Views.Collections.HdAndTreatmentCollection"
+             x:DataType="local:HdAndTreatmentCollection"
+             Padding="0">
+
+  <Border
+      CornerRadius="6"
+      BorderBrush="{DynamicResource AccentFillColorSecondaryBrush}"
+      BorderThickness="1"
+      Background="#383735"
+      BoxShadow="2 2 6 #40000000"
+      Padding="6"
+      HorizontalAlignment="Stretch"
+      VerticalAlignment="Stretch">
+
+    <Grid>
+      <!-- Ícone escalável -->
+      <Viewbox Stretch="Uniform">
+        <Image Source="avares://LesserDashboard/Assets/hd-icon.png"
+               Cursor="Help"
+               ToolTip.Tip="Essa turma possui Backup em HD e visualização de fotos online. As fotos ficam em nosso servidor por 5 anos a partir da data em que foram armazenadas."/>
+      </Viewbox>
+
+    </Grid>
+  </Border>
+</UserControl>

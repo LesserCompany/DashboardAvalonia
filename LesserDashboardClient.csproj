@@ -1,0 +1,115 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+        <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <ApplicationIcon>Assets\symbol.ico</ApplicationIcon>
+        <AssemblyName>LesserDashboard</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Desktop" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.4" />
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.4" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <PackageReference Include="Avalonia.Diagnostics" Version="11.3.4">
+            <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+            <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="CodingSeb.Localization.Avalonia" Version="1.4.1" />
+        <PackageReference Include="CodingSeb.Localization.JsonFileLoader" Version="1.4.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+        <PackageReference Include="EPPlus" Version="6.0.8" />
+        <PackageReference Include="EPPlus.Interfaces" Version="8.1.0" />
+        <PackageReference Include="EPPlus.System.Drawing" Version="6.0.0" />
+        <PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
+        <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
+        <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.4" />
+        <PackageReference Include="System.Reactive.Linq" Version="6.0.2" />
+        <PackageReference Include="WebView.Avalonia" Version="11.0.0.1" />
+        <PackageReference Include="WebView.Avalonia.Desktop" Version="11.0.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="Resources\Translations\configs.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Resources\Translations\configs.loc.json" />
+      <None Remove="Resources\Translations\logout.loc.json" />
+      <None Remove="Resources\Translations\update-component.loc.json" />
+      <Content Include="Assets\symbol.ico" />
+      <Content Include="Resources\Translations\configs.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Resources\Translations\general.loc.json" />
+      <Content Include="Resources\Translations\general.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <None Remove="Resources\Translations\collections.loc.json" />
+      <Content Include="Resources\Translations\collections.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\Translations\Auth.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\Translations\logout.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\Translations\update-component.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Resource Include="Assets\camera2.ico">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\SharedClientSide\SharedClientSideClassLibrary\SharedClientSideClassLibrary.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Update="Assets\addFolderIcon.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AvaloniaResource>
+      <AvaloniaResource Update="Assets\avalonia-logo.ico">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AvaloniaResource>
+      <AvaloniaResource Update="Assets\hd-icon.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AvaloniaResource>
+      <AvaloniaResource Update="Assets\hd-icon.svg">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </AvaloniaResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\Collections\Icons\HdAndTreatmentCollection.axaml.cs">
+        <DependentUpon>HdAndTreatmentCollection.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\Collections\SelectProfessional.axaml.cs">
+        <DependentUpon>SelectProfessional.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\UpdateAppProgressBarControl.axaml.cs">
+        <DependentUpon>UpdateAppProgressBarControl.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\AppVersionControl.axaml.cs">
+        <DependentUpon>AppVersionControl.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\icons\" />
+    </ItemGroup>
+</Project>

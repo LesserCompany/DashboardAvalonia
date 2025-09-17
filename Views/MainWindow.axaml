@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LesserDashboardClient.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:TabCollections="clr-namespace:LesserDashboardClient.Views.Collections"
+        xmlns:TabOptions="clr-namespace:LesserDashboardClient.Views.Options"
+        xmlns:TabInvoices="clr-namespace:LesserDashboardClient.Views.Invoices"
+        xmlns:TabSearchGraduate="clr-namespace:LesserDashboardClient.Views.SearchGraduate"
+        xmlns:local="clr-namespace:LesserDashboardClient.Views"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="LesserDashboardClient.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="LetsPick Lesser Client"
+        ExtendClientAreaToDecorationsHint="false"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="900"
+        >
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+    <Window.Resources>
+        <x:Double  x:Key="FontSizeHeaderTabs">14</x:Double>
+        <Thickness x:Key="MarginContent">25</Thickness>
+    </Window.Resources>
+    
+    
+    <!--TEMPLATE -->
+    <Grid RowDefinitions="Auto, *">
+        <Grid Grid.Row="0">
+          <!--SomeOne Content ... -->
+        </Grid>
+      
+        <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" >
+            <!-- Top -->
+            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                <!--content top -->
+            </Grid>
+
+            <!-- Content -->
+            <Border Grid.Row="1" Margin="{DynamicResource MarginContent}">
+              <Grid>
+                <TabControl VerticalAlignment="Stretch">
+                    <TabItem Header="{Tr 'Collections'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabCollections:CollectionsControl />
+                    </TabItem>
+                    
+                    <TabItem Header="{Tr 'User per CPF'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabItem.ContentTemplate>
+                        <DataTemplate>
+                          <TabSearchGraduate:SearchGraduateControl x:CompileBindings="True" x:Name="SearchGraduateTab" IsVisible="True" />
+                        </DataTemplate>
+                      </TabItem.ContentTemplate>
+                    </TabItem>
+                    
+                    <TabItem Header="{Tr 'Invoices'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabItem.ContentTemplate>
+                        <DataTemplate>
+                          <TabInvoices:InvoicesControl x:CompileBindings="True" x:Name="InvoicesTab" IsVisible="True" />
+                        </DataTemplate>
+                      </TabItem.ContentTemplate>
+                    </TabItem>
+                    
+                    <TabItem Header="{Tr 'Options'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabOptions:OptionsControl />
+                    </TabItem>
+                </TabControl>
+                <local:LogoutComponent Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" />
+              </Grid>
+            </Border>
+
+            <!-- Footer -->
+            <Grid  Grid.Row="2" RowDefinitions="Auto, Auto" Background="{DynamicResource SystemControlBackgroundListMediumBrush}">
+              <Grid Grid.Row="0" ColumnDefinitions="1*, 1*">
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4" Orientation="Horizontal">
+                  <local:AppVersionControl  />
+                  <Button Margin="4 0 0 0" Background="{DynamicResource SystemChromeBlackMediumLowColor}">
+                    <StackPanel Orientation="Horizontal" Spacing="4" >
+                      <TextBlock Foreground="{DynamicResource SystemAccentColor}" FontSize="10" FontFamily="Segoe Fluent Icons" Text="&#xe7ea;" VerticalAlignment="Center"  />
+                      <TextBlock FontSize="10" Foreground="White" Text="Voltar para versão anterior" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </StackPanel>
+                  
+                <local:HelpContactControl Grid.Column="1" VerticalAlignment="Center" Margin="4" HorizontalAlignment="Right" />
+              </Grid>  
+              <local:UpdateAppProgressBarControl Grid.Row="1" IsVisible="{Binding IsUpdateSomeOneComponent}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

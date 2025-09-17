@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             x:DataType="vm:CollectionsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Collections.ResumeSeparationFile"
+             Height="115"
+             >
+  <Grid ColumnDefinitions="Auto,Auto" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="10" ColumnSpacing="30" Height="115">
+    <!-- Barra 1 -->
+    <StackPanel Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+      <Grid>
+        <Rectangle Height="{Binding NotSeparatedRectHeight}"
+                   Width="45"
+                   Fill="Gray"
+                   VerticalAlignment="Bottom"
+                   >
+          <Rectangle.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Height" Duration="0:0:0.4" Easing="CircularEaseOut"/>
+            </Transitions>
+          </Rectangle.Transitions>
+          <Rectangle.Effect>
+            <DropShadowEffect Color="Black" Opacity="0.3" BlurRadius="6" />
+          </Rectangle.Effect>
+        </Rectangle>
+
+        <!-- Texto percentual dentro da barra -->
+        <TextBlock Text="{Binding LabelPercentNotSeparated}"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Grid>
+
+      <!-- Legenda abaixo -->
+      <TextBlock Text="Ainda não tagadas"
+                 FontSize="12"
+                 Margin="0,6,0,0"
+                 HorizontalAlignment="Center"/>
+    </StackPanel>
+
+    <!-- Barra 2 -->
+    <StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+      <Grid>
+        <Rectangle Height="{Binding SeparatedRectHeight}"
+                   Fill="{DynamicResource SystemAccentColor}"
+                   Width="45"
+                   VerticalAlignment="Bottom"
+                  >
+          <Rectangle.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Height" Duration="0:0:0.4" Easing="CircularEaseOut"/>
+            </Transitions>
+          </Rectangle.Transitions>
+          <Rectangle.Effect>
+            <DropShadowEffect Color="Black" Opacity="0.3" BlurRadius="6" />
+          </Rectangle.Effect>
+        </Rectangle>
+
+        <!-- Texto percentual dentro da barra -->
+        <TextBlock Text="{Binding LabelPercentSeparated}"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Grid>
+
+      <!-- Legenda abaixo -->
+      <TextBlock Text="Tagadas"
+                 FontSize="12"
+                 Margin="0,6,0,0"
+                 HorizontalAlignment="Center"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

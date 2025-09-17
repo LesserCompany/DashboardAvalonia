@@ -1,0 +1,188 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="vm:CollectionsViewModel"
+             IsEnabled="{Binding ComponentNewCollectionIsEnabled}"
+             x:Name="root"
+             x:Class="LesserDashboardClient.Views.Collections.NewCollectionPreConfigured">
+  <ScrollViewer Offset="{Binding ScrollComponentNewCollection}" >
+
+    <StackPanel Spacing="6" IsEnabled="{Binding !IsCreatingCollection}">
+      <!-- Title -->
+      <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
+        <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
+        <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
+      </StackPanel>
+      <!-- form -->
+      <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
+        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
+        <StackPanel Grid.Row="1" Grid.Column="1">
+          <TextBox  Text="{Binding TbEventFolder}" VerticalAlignment="Center" />
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="Diretório não encontrado" Foreground="Red" />
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center"  />
+        <StackPanel Grid.Row="2"  Grid.Column="1">
+          <TextBox  Text="{Binding TbRecFolder}" VerticalAlignment="Center" />
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="Diretório não encontrado" Foreground="Red" />
+        </StackPanel>
+        
+        <StackPanel Margin="0 4 0 0 " Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" IsVisible="{Binding CbEnablePhotoSales}">
+          <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
+          <NumericUpDown Minimum="0"
+              Margin="0 4 0 0 "
+              HorizontalAlignment="Left"
+              Maximum="99999"
+              Increment="0.01"
+              FormatString="C"
+              Value="{Binding TbPricePerPhotoForSellingOnline}"
+              Width="150"/>
+        </StackPanel>
+
+        <Grid Grid.Row="5"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
+          <StackPanel  Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Separador:" VerticalAlignment="Center" />
+            <Button Command="{Binding OpenSelectProfessionalViewCommand}" VerticalAlignment="Center">
+              <local:ProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Grid>
+      
+      <Expander Header="{Tr 'Graduates'}" IsExpanded="True" Margin="30"  HorizontalAlignment="Stretch">
+        <StackPanel Spacing="6">
+          <Button Command="{Binding InsertDataBasedOnRecFolderCommand}" Content="{Tr 'Insert graduates names based on the recognitions folder'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          <Button Command="{Binding GenerateExcelBasedOnDataCommand}" Content="{Tr 'Edit data in excel'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          
+          <!-- Drop File -->
+          <Border Grid.Row="7"
+                  Height="100"
+                  BorderThickness="2"
+                  BorderBrush="{StaticResource AccentButtonBackground}"
+                  CornerRadius="6"
+                  Background="{StaticResource AccentButtonForegroundPointerOver}"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Center"
+                  Margin="10"
+                  DragDrop.AllowDrop="True"
+                            >
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="&#xE752;" FontSize="20" Foreground="{StaticResource AccentButtonBackground}" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center" HorizontalAlignment="Center"  />
+              <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <!-- Table -->
+          <Grid Grid.Row="8">
+            <DataGrid  Margin="20" ItemsSource="{Binding GraduatesData}"
+                      GridLinesVisibility="All"
+                      CanUserResizeColumns="True"
+                      BorderThickness="1" BorderBrush="Gray">
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="{Tr 'Photo'}"    Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
+                <DataGridTextColumn Header="{Tr 'CPF'}"  Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+                <DataGridTextColumn Header="{Tr 'Email'}"  Binding="{Binding Email}" FontSize="8" />
+                <DataGridTextColumn Header="{Tr 'Max photos'}"  Binding="{Binding MaxPhotos}" FontSize="8" />
+
+                <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
+                  <DataGridTextColumn.Header>
+                    <TextBlock Text="{Tr 'Max photos to enhancement'}"
+                               TextWrapping="Wrap"
+                               MaxWidth="100"
+                               TextAlignment="Center"/>
+                  </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+
+                <DataGridCheckBoxColumn Header="{Tr 'Blocked'}"  Binding="{Binding Blocked, TargetNullValue=False}" />
+                <DataGridTemplateColumn Header="{Tr 'Block type'}">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <!--BlockType-->
+                      <StackPanel>
+                        <TextBlock Text="{Tr 'None'}" IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
+                        <ComboBox
+                          IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                          ItemsSource="{Binding #root.DataContext.BlockTypeOptions}"
+                          SelectedItem="{Binding BlockType, Mode=TwoWay}"
+                          FontSize="10"  MaxDropDownHeight="100"
+                          Margin="4"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Center" >
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                              <ContentControl Content="{Binding .}">
+                                <ContentControl.ContentTemplate>
+                                  <DataTemplate>
+                                    <TextBlock Text="{Binding .}"/>
+                                  </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                              </ContentControl>
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </StackPanel>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+              </DataGrid.Columns>
+            </DataGrid>
+          </Grid>
+          
+        </StackPanel>
+      </Expander>
+
+      <!-- Options -->
+      <Expander Grid.Row="2" Margin="30" Header="{Tr 'Options'}" HorizontalAlignment="Stretch" IsExpanded="{Binding ExpanderAdvancedOptions}" IsEnabled="{Binding ExpanderAdvancedOptionsIsEnabled}" >
+        <StackPanel Spacing="6">
+
+          <!--
+            <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
+                <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}" />
+              </Button>
+            </StackPanel>
+            <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+
+              <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
+                <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
+              </Button>
+            </StackPanel>
+          -->
+          
+          <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
+            <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
+
+          </Grid>
+
+
+          <CheckBox Content="{Tr 'Backup HD photos to the cloud.'}" IsChecked="{Binding CbHDBackup, FallbackValue=False}" VerticalAlignment="Center" />
+          <CheckBox Content="{Tr 'Enable automatic enhancement.'}" IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" VerticalAlignment="Center" />
+          <CheckBox IsChecked="{Binding CbEnableAutoExclusion, FallbackValue=False}"  Content="{Tr 'Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)'}" />
+          <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" Content="{Tr 'The photos are already separated'}" />
+          <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
+          <CheckBox Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
+          <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
+
+
+
+        </StackPanel>
+      </Expander>
+
+      <!-- Button Create new Collection -->
+      <Button Grid.Row="3" HorizontalAlignment="Center" Height="50" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Command="{Binding CreateCollectionCommand}" IsEnabled="{Binding !IsCreatingCollection}" >
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
+          <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

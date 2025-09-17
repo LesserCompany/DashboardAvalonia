@@ -1,0 +1,38 @@
+{
+  "Do not have an account?": {
+    "en-US": "Don't have an account?",
+    "pt-BR": "Não tem uma conta?"
+  },
+  "Create an account here": {
+    "en-US": "Create an account here",
+    "pt-BR": "Crie uma conta aqui"
+  },
+  "Username": {
+    "en-US": "Username",
+    "pt-BR": "Nome de usuário"
+  },
+  "Enter your username": {
+    "en-US": "Enter your username",
+    "pt-BR": "Digite seu nome de usuário",
+  },
+  "Password": {
+    "en-US": "Password",
+    "pt-BR": "Senha"
+  },
+  "Enter your password": {
+    "en-US": "Enter your password",
+    "pt-BR": "Digite sua senha"
+  },
+  "Forgot your password?": {
+    "en-US": "Forgot your password?",
+    "pt-BR": "Esqueceu sua senha?"
+  },
+  "Log In": {
+    "en-US": "Log In",
+    "pt-BR": "Entrar"
+  },
+  "Incorrect credentials. Please try again.": {
+    "en-US": "Incorrect credentials. Please try again.",
+    "pt-BR": "Credenciais incorretas. Por favor, tente novamente."
+  }
+}

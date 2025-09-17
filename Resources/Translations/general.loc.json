@@ -1,0 +1,58 @@
+﻿{
+  "Collections": {
+    "en-US": "Collections",
+    "pt-BR": "Coleções"
+  },
+  "Invoices": {
+    "en-US": "Invoices",
+    "pt-BR": "Faturas"
+  },
+  "Opt-BRions": {
+    "en-US": "Opt-BRions",
+    "pt-BR": "Opções"
+  },
+  "User per CPF": {
+    "en-US": "User per CPF",
+    "pt-BR": "Usuário por CPF"
+  },
+  "Yes": {
+    "en-US": "Yes",
+    "pt-BR": "Sim"
+  },
+  "No": {
+    "en-US": "No",
+    "pt-BR": "Não"
+  },
+  "Having problems?": {
+    "en-US": "Having problems?",
+    "pt-BR": "Está com problemas?"
+  },
+  "Support": {
+    "en-US": "Support",
+    "pt-BR": "Suporte"
+  },
+  "Confirmation": {
+    "en-US": "Confirmation",
+    "pt-BR": "Confirmação"
+  },
+  "Your free trial period is valid until:": {
+    "en-US": "Your free trial period is valid until:",
+    "pt-BR": "Seu período de teste gratuito é válido até:"
+  },
+  "During this period, you can upload up to": {
+    "en-US": "During this period, you can upload up to",
+    "pt-BR": "Durante este períódo, você pode enviar até"
+  },
+  "photos for free.": {
+    "en-US": "photos for free.",
+    "pt-BR": "fotos gratuitamente."
+  },
+  "Company:": {
+    "en-US": "Company:",
+    "pt-BR": "Empresa:"
+  },
+  "None": {
+    "en-US": "None",
+    "pt-BR": "Nenhum"
+  }
+}

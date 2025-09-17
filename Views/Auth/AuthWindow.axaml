@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="560"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Auth"
+        x:DataType="vm:AuthViewModel"
+        x:Class="LesserDashboardClient.Views.AuthWindow"
+        xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+        SizeToContent="WidthAndHeight"
+        
+        WindowStartupLocation="CenterScreen"
+        Title="Lets Pick Lesser - LOGIN">
+  <Window.DataContext>
+    <vm:AuthViewModel/>
+  </Window.DataContext>
+  <Border Margin="20"
+          CornerRadius="12"
+          Padding="24"
+          Background="{DynamicResource LayerFillColorDefaultBrush}"
+          BoxShadow="0 4 16 #00000040">
+
+    <Grid IsEnabled="{Binding AuthWindowIsEnabled}">
+      <StackPanel VerticalAlignment="Center" Spacing="14">
+
+        <!-- Título -->
+        <Image Width="96" Height="96">
+          <SvgImage Source="{Binding PathLogo}" />
+        </Image>
+        <TextBlock Text="Login"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                   HorizontalAlignment="Center" />
+
+        <!-- Username -->
+        <TextBlock Text="{Tr 'Username'}"
+                   FontSize="13"
+                   Margin="5,0,5,2"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+        <TextBox Margin="5"
+                 Watermark="{Tr 'Enter your username'}"
+                 Text="{Binding TbUserName}" />
+
+        <!-- Password -->
+        <TextBlock Text="{Tr 'Password'}"
+                   FontSize="13"
+                   Margin="5,10,5,2"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+
+        <Grid ColumnDefinitions="*, Auto">
+          
+        <TextBox Grid.Column="0" Text="{Binding TbPassword}"
+                 Margin="5"
+                 PasswordChar="{Binding PasswordChar}"
+                 Watermark="{Tr 'Enter your password'}" />
+          
+         <Button Grid.Column="1" Command="{Binding ChangeVisibilityPassword}">
+           <TextBlock Text="{Binding IconEyes}" FontFamily="Segoe Fluent Icons" />
+         </Button>
+        </Grid>
+        
+        <!-- Forgot password -->
+        <Button Command="{Binding OpenForgotPasswordPageCommand}" Margin="5,5,0,5" Background="Transparent" Cursor="Hand" BorderThickness="0" >
+          <TextBlock
+            Text="{Tr 'Forgot your password?'}"
+            Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+            TextDecorations="Underline" />
+        </Button>
+
+
+        <!-- Erro -->
+        <TextBlock Foreground="Red"
+                   Margin="5"
+                   FontSize="11"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding IsIncorrectCredentials}"
+                   Text="{Binding ErroMessage}" />
+
+        <!-- Botão Login -->
+        <Button Command="{Binding LoginCommand}"
+                Margin="5"
+                Padding="10"
+                Height="42"
+                HorizontalAlignment="Stretch"
+                Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                Foreground="White"
+                CornerRadius="6">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <TextBlock Text="{Tr 'Log In'}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <ui:ProgressRing IsVisible="{Binding LoginIsRunning}"
+                             Width="5" Height="5"
+                             VerticalAlignment="Center"
+                             IsIndeterminate="True" />
+          </StackPanel>
+        </Button>
+        
+        
+
+        <!-- Criar conta -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,5,0,5">
+          <TextBlock Text="{Tr 'Do not have an account?'}"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          <Button Command="{Binding OpenRegisterPageCommand}"
+                  Margin="4,0,0,0"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Cursor="Hand">
+            <TextBlock Text="{Tr 'Create an account here'}"
+                       Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+                       TextDecorations="Underline" />
+          </Button>
+
+          
+        </StackPanel>
+
+
+
+
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

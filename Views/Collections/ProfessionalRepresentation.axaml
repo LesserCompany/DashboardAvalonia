@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Name="self"
+             x:Class="LesserDashboardClient.Views.Collections.ProfessionalRepresentation">
+  <Grid RowDefinitions="Auto, Auto" VerticalAlignment="Center" HorizontalAlignment="Center">
+
+    <!-- Avatar circular -->
+    <Grid Grid.Row="0" Width="30" Height="30">
+      <Ellipse Fill="{Binding AvatarColor, ElementName=self}" />
+      <TextBlock Text="{Binding Initials, ElementName=self}"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Center"
+                 FontWeight="Bold"
+                 FontSize="16"
+                 Foreground="White"/>
+    </Grid>
+
+    <!-- Nome -->
+    <TextBlock Text="{Binding ProfessionalName, ElementName=self}"
+               ToolTip.Tip="{Binding ProfessionalName, ElementName=self}"
+               Grid.Row="1"
+               FontSize="11"
+               HorizontalAlignment="Center"
+               TextAlignment="Center" />
+  </Grid>
+</UserControl>

@@ -1,0 +1,34 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="LesserDashboardClient.App"
+             xmlns:local="clr-namespace:LesserDashboardClient"
+             xmlns:converters="clr-namespace:LesserDashboardClient.Resources.Converters"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+    <Application.Resources>
+      <!-- 
+      -->
+      <converters:BoolToTextDecorationConverter x:Key="BoolToTextDecorationConverter" />
+      <converters:SumConverter x:Key="MultiBindingSumConverter" />
+      <converters:DateTimeToStringConverter x:Key="DateTimeToStringConverter" />
+      <converters:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
+      <converters:CollectionOptionsComboConverter x:Key="CollectionOptionsComboConverter" />
+    </Application.Resources>
+  
+    <Application.Styles>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Light" Accent="#FF9600" RegionColor="#F7F7F7" ErrorText="Red" />
+                <!-- Palette for Dark theme variant -->
+              <ColorPaletteResources x:Key="Dark" Accent="#ffff9600" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ff4c4a48" BaseMedium="#ffa6a5a4" BaseMediumHigh="#ffbdbcbb" BaseMediumLow="#ff797876" ChromeAltLow="#ffbdbcbb" ChromeBlackHigh="Black" ChromeBlackLow="#ffbdbcbb" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ff4c4a48" ChromeDisabledLow="#ffa6a5a4" ChromeGray="#ff908e8d" ChromeHigh="#ff908e8d" ChromeLow="#ff21201e" ChromeMedium="#ff2c2a29" ChromeMediumLow="#ff413f3e" ChromeWhite="White" ListLow="#ff2c2a29" ListMedium="#ff4c4a48" RegionColor="#ff1f1f1f" />
+
+            </FluentTheme.Palettes>
+        </FluentTheme>
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <StyleInclude Source="avares://FluentAvalonia.ProgressRing/Styling/Controls/ProgressRing.axaml" />
+    </Application.Styles>
+</Application>

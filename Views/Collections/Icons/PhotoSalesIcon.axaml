@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="local:PhotoSalesIcon"
+             x:Class="LesserDashboardClient.Views.Collections.PhotoSalesIcon">
+
+  <Viewbox Stretch="Uniform">
+    <TextBlock
+        Text="💲"
+        VerticalAlignment="Center"
+        HorizontalAlignment="Center"
+        Cursor="Help"
+        ToolTip.Tip="{Tr 'This class has photo sales enabled.'}" />
+  </Viewbox>
+</UserControl>

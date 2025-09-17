@@ -1,0 +1,39 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="vm:CollectionsViewModel"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+             x:Class="LesserDashboardClient.Views.Collections.CollectionsControl">
+    <UserControl.DataContext>
+        <vm:CollectionsViewModel />
+    </UserControl.DataContext>
+    <Grid RowDefinitions="Auto, *" ColumnDefinitions="1.2*, 2.8*" ColumnSpacing="5">
+      <local:CollectionList Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" />
+      <Grid Grid.Column="1" Grid.Row="0"  ColumnDefinitions="*, Auto" >
+        <TextBlock Grid.Column="0" Margin="5 0"  FontSize="10" IsVisible="{Binding AccountInPeriodFreeTrial}" VerticalAlignment="Center" HorizontalAlignment="Right">
+          <Run Text="{Tr 'Your free trial period is valid until:'}" />
+          <Run Text="{Binding FreeTrialExpiryDate}" Foreground="{DynamicResource SystemAccentColor}" />
+          <Run Text="." />
+          <Run Text="{Tr 'During this period, you can upload up to'}" />
+          <Run Text="{Binding FreePhotosRemainingInTrialPeriod}" Foreground="{DynamicResource SystemAccentColor}" />
+          <Run Text="{Tr 'photos for free.'}" />
+        </TextBlock>
+        <Button VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" Command="{Binding OpenQuickAccessViewCommand}">
+          <TextBlock Cursor="Hand" ToolTip.Tip="Voltar para página inicial" Foreground="{DynamicResource SystemAccentColor}" FontFamily="Segoe Fluent Icons" Text="&#xea8a;"  />
+        </Button>
+      </Grid>
+           
+      <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
+      <local:Banners Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentBannersIsVisible}" />
+      <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisible}" Margin="5" />
+      <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />
+      <local:NewCollectionPreConfigured Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionPreConfiguredIsVisible}"  Margin="5" />
+      <local:SelectProfessional Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentSelectProfessionalIsIsVisible}" />
+      <local:CancelBilling Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCancelBillingIsVisible}" />
+      <!--
+      -->
+    </Grid>
+</UserControl>

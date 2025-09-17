@@ -1,0 +1,49 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Options"
+             x:DataType="vm:OptionsControlViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Options.OptionsControl">
+    <UserControl.DataContext>
+        <vm:OptionsControlViewModel />
+    </UserControl.DataContext>
+    <ScrollViewer>
+        <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,*">
+            <StackPanel Spacing="16">
+                
+                <!-- AppTheme -->
+                <Grid RowDefinitions="Auto, Auto">
+                    <TextBlock Grid.Row="0" Text="{Tr 'Appearance'}" />
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+                        <RadioButton GroupName="AppTheme" Content="{Tr 'Dark mode'}" IsChecked="{Binding IsDarkMode, Mode=TwoWay}" />
+                        <RadioButton GroupName="AppTheme" Content="{Tr 'Light mode'}" IsChecked="{Binding !IsDarkMode, Mode=TwoWay}" />
+                    </StackPanel>
+                </Grid>
+                <Border Height="1" Background="#FFAAAAAA" Margin="0,10,0,10"/>
+
+                <!-- Language -->
+                <Grid RowDefinitions="Auto, Auto">
+                    <TextBlock Grid.Row="0" Text="{Tr 'Language'}" />
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
+                        <RadioButton GroupName="AppLanguage" Content="{Tr 'Portuguese'}" IsChecked="{Binding !IsLanguageEnglish, Mode=TwoWay}" />
+                        <RadioButton GroupName="AppLanguage" Content="{Tr 'English'}" IsChecked="{Binding IsLanguageEnglish, Mode=TwoWay}"/>
+                    </StackPanel>
+                </Grid>
+                <Border Height="1" Background="#FFAAAAAA" Margin="0,10,0,10"/>
+
+                <!-- Path de Config -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Tr 'Downloads Path'}" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DockPanel>
+                        <TextBox Text="{Binding PathToDownload, Mode=TwoWay}" Name="ConfigPathTextBox" Width="400" Watermark="{Tr 'Select path...'}" />
+                        <Button Content="..." Width="40" Margin="5,0,0,0" Name="SelectPathButton" HorizontalContentAlignment="Center" Click="OpenFolderDialog_Click"/>
+                    </DockPanel>
+                    <Button Content="{Tr 'Save path'}" Command="{Binding SavePathToDownloadCommand}" />
+                </StackPanel>
+                
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

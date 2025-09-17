@@ -1,0 +1,76 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="vm:CollectionsViewModel"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Collections.CollectionList">
+  
+    <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="6" >
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *" ColumnSpacing="6" >
+            <Image Width="64" Height="64" Source="{SvgImage /Assets/symbol.svg}" />
+            <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFilters}">
+                <TextBlock FontSize="12" Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
+                <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterClassCode" TextChanged="TextBox_TextChanged"/>
+                
+                <TextBlock FontSize="12" Grid.Row="1" Grid.Column="0" Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterProfessional" TextChanged="TextBox_TextChanged" />
+            </Grid>
+        </Grid>
+        <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" Grid.Row="1"  HorizontalAlignment="Stretch" Command="{Binding OpenNewCollectionViewCommand}" Background="Transparent" >
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
+                <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
+            <local:SkeletonList Grid.Row="2" IsVisible="{Binding CollectionsListIsLoading}" />
+            <!--
+            <ui:ProgressRing Grid.Row="2" IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" IsVisible="{Binding CollectionsListIsLoading}" />
+            -->      
+            <ListBox FontSize="11" Grid.Row="2" IsVisible="{Binding !CollectionsListIsLoading}"  ItemsSource="{Binding CollectionsListFiltered}" SelectedItem="{Binding SelectedCollection, Mode=TwoWay}">
+              <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="1*, 4*">
+                              <TextBlock Margin="4" Grid.Row="0" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" Grid.Column="0" FontWeight="Bold" Grid.ColumnSpan="3" Text="{Binding classCode}" HorizontalAlignment="Left" ToolTip.Tip="{Binding classCode}" FontSize="13" />
+                            <StackPanel  Grid.Row="1" Grid.Column="0" Spacing="5" Margin="2" VerticalAlignment="Center">
+
+                              <local:ProfessionalRepresentation ProfessionalName="{Binding professionalLogin}" />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="2">
+                              <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{Tr 'Total photos:'}" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" />
+                                <TextBlock TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
+                                  <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
+                                      <Binding Path="recognitionPhotos" />
+                                      <Binding Path="eventPhotos" />
+                                    </MultiBinding>
+                                  </TextBlock.Text>
+                                </TextBlock>
+                              </StackPanel>
+                                <TextBlock Text="{Tr 'Waiting for upload...'}" Foreground="Red" IsVisible="{Binding !UploadComplete}" />
+                              
+                                <TextBlock Text="{Binding CreationDate, Converter={StaticResource DateTimeToStringConverter}}" ToolTip.Tip="{Binding CreationDate}" FontSize="9"></TextBlock>
+                            </StackPanel>
+                            <WrapPanel Margin="4"  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal"  HorizontalAlignment="Right">
+                              <!--BackupHD-->
+                              <local:HdAndTreatmentCollection  Width="36" Height="36"   AutoTreatment="{Binding AutoTreatment, FallbackValue=False}" IsVisible="{Binding UploadHD}" />
+                              <!--AutoTreatment-->
+                              <local:AutoTreatmentIcon Width="36" Height="36" IsVisible="{Binding AutoTreatment, FallbackValue=False}" />
+                              <!--PhotoSales-->
+                              <local:PhotoSalesIcon Width="36" Height="36" IsVisible="{Binding EnablePhotosSales, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                              <!--OCR-->
+                              <local:OcrIcon Width="36" Height="36" IsVisible="{Binding OCR, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                              <!--
+                              <TextBlock Grid.Column="2" FontWeight="Bold" FontSize="10" Text="OCR" IsVisible="{Binding OCR, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" Cursor="Help" ToolTip.Tip="{Tr 'This class has OCR processing.'}"  />
+                              -->
+                            </WrapPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+    </Grid>
+</UserControl>

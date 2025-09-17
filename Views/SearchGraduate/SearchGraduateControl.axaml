@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.SearchGraduate"
+             x:DataType="vm:SearchGraduateViewModel"
+             x:Class="LesserDashboardClient.Views.SearchGraduate.SearchGraduateControl">
+  <UserControl.DataContext>
+    <vm:SearchGraduateViewModel />
+  </UserControl.DataContext>
+  <Grid>
+    <TabControl>
+      <TabItem Header="Busca de CPF" FontSize="14" FontWeight="Bold" >
+        <TabItem.ContentTemplate>
+          <DataTemplate>
+            <WebView  Url="{Binding $parent[UserControl].DataContext.UrlSearchCPF}"  MinWidth="100" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          </DataTemplate>
+        </TabItem.ContentTemplate>
+      </TabItem>
+      <TabItem Header="Revisão de fotos escolhidas pelos CPFs" FontSize="14" FontWeight="Bold" >
+        <TabItem.ContentTemplate>
+          <DataTemplate>
+            <WebView  Url="{Binding $parent[UserControl].DataContext.UrlReviewPhotos}"  MinWidth="100" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          </DataTemplate>
+        </TabItem.ContentTemplate>
+      </TabItem>
+      <TabItem Header="Fotos para tratamento manual" FontSize="14" FontWeight="Bold" >
+        <TabItem.ContentTemplate>
+          <DataTemplate>
+            <WebView  Url="{Binding $parent[UserControl].DataContext.UrlPhotosForTreatment}"  MinWidth="100" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" />
+          </DataTemplate>
+        </TabItem.ContentTemplate>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

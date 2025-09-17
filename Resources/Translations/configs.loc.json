@@ -1,0 +1,38 @@
+﻿{
+  "Appearance": {
+    "en-US": "Appearance",
+    "pt-BR": "Aparência"
+  },
+  "Dark mode": {
+    "en-US": "Dark mode",
+    "pt-BR": "Modo escuro"
+  },
+  "en-USglish": {
+    "en-US": "en-USglish",
+    "pt-BR": "Inglês"
+  },
+  "Light mode": {
+    "en-US": "Light mode",
+    "pt-BR": "Modo claro"
+  },
+  "Language": {
+    "en-US": "Language",
+    "pt-BR": "Idioma"
+  },
+  "Portuguese": {
+    "en-US": "Portuguese",
+    "pt-BR": "Português"
+  },
+  "Downloads Path": {
+    "en-US": "Downloads Path",
+    "pt-BR": "Diretório para downloads"
+  },
+  "Select path...": {
+    "en-US": "Select path...",
+    "pt-BR": "Selecione o caminho diretório..."
+  },
+  "Save path": {
+    "en-US": "Save path",
+    "pt-BR": "Salvar caminho"
+  }
+}

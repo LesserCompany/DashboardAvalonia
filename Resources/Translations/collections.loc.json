@@ -1,0 +1,274 @@
+﻿{
+  "Recognition on the server:": {
+    "en-US": "Recognition on the server:",
+    "pt-BR": "Reconhecimento no servidor:"
+  },
+  "Enhancement on the server:": {
+    "en-US": "Enhancement on the server:",
+    "pt-BR": "Tratamento no servidor:"
+  },
+  "Tag/Sort": {
+    "en-US": "Tag/Sort",
+    "pt-BR": "Tagar/Separar"
+  },
+  "Export": {
+    "en-US": "Export",
+    "pt-BR": "Exportar"
+  },
+  "Reports": {
+    "en-US": "Reports",
+    "pt-BR": "Relatórios"
+  },
+  "Download Backup HD": {
+    "en-US": "Download Backup HD",
+    "pt-BR": "Baixar backup HD"
+  },
+  "Reupload the class to the server": {
+    "en-US": "Reupload the class to the server",
+    "pt-BR": "Fazer upload novamente da turma para o servidor"
+  },
+  "Recognize again": {
+    "en-US": "Recognize again",
+    "pt-BR": "Reconhecer novamente"
+  },
+  "The photos will be re-queued for facial recognition": {
+    "en-US": "The photos will be re-queued for facial recognition",
+    "pt-BR": "As fotos serão colocadas novamente na fila para o reconhecimento facial"
+  },
+  "Request treatment of the entire collection": {
+    "en-US": "Request treatmenent of the entire collection",
+    "pt-BR": "Solicitar tratamento da coleção inteira"
+  },
+  "Cancel billing": {
+    "en-US": "Cancel billing",
+    "pt-BR": "Cancelar cobrança"
+  },
+  "Create new collection": {
+    "en-US": "Create new collection",
+    "pt-BR": "Criar nova coleção"
+  },
+  "Separator:": {
+    "en-US": "Separator:",
+    "pt-BR": "Separador:"
+  },
+  "ID collection:": {
+    "en-US": "ID collection:",
+    "pt-BR": "ID da coleção:"
+  },
+  "New Collection": {
+    "en-US": "New Collection",
+    "pt-BR": "Nova Coleção"
+  },
+  "Event Folder:": {
+    "en-US": "Event Folder:",
+    "pt-BR": "Pasta de Eventos:"
+  },
+  "Recognize Folder:": {
+    "en-US": "Recognize Folder:",
+    "pt-BR": "Pasta de Reconhecimentos:"
+  },
+  "Backup HD photos to the cloud.": {
+    "en-US": "Backup HD photos to the cloud.",
+    "pt-BR": "Faça backup de fotos em HD na nuvem."
+  },
+  "Prices and more information": {
+    "en-US": "Prices and more information",
+    "pt-BR": "Preços e mais informações"
+  },
+  "enable automatic enhancement.": {
+    "en-US": "enable automatic enhancement.",
+    "pt-BR": "Habilitar tratamento automático."
+  },
+  "Create Collection": {
+    "en-US": "Create Collection",
+    "pt-BR": "Criar Coleção"
+  },
+  "Activate photo sales (in development)": {
+    "en-US": "Activate photo sales (in development)",
+    "pt-BR": "Ativar venda de fotos (em desenvolvimento)"
+  },
+  "Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)": {
+    "en-US": "Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; doesn't work well with group photos yet.)",
+    "pt-BR": "Habilitar exclusão automática de faces desfocadas, no fundo de má qualidade. (Recurso em desenvolvimento, ainda não funciona bem com fotos de grupos.)"
+  },
+  "The photos are already separated": {
+    "en-US": "The photos are already separated",
+    "pt-BR": "As fotos já estão separadas"
+  },
+  "Allow photos to be found by anyone": {
+    "en-US": "Allow photos to be found by anyone",
+    "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
+  },
+  "Insert graduates names based on the recognitions folder": {
+    "en-US": "Insert graduates' names based on the recognitions folder",
+    "pt-BR": "Inserir nome dos formandos com base na pasta de reconhecimento"
+  },
+  "Edit data in excel": {
+    "en-US": "Edit data in excel",
+    "pt-BR": "Editar dados no excel"
+  },
+  "Drop your excel file here": {
+    "en-US": "Drop your excel file here",
+    "pt-BR": "Solte aqui o seu arquivo excel"
+  },
+  "Photo": {
+    "en-US": "Photo",
+    "pt-BR": "Foto"
+  },
+  "CPF": {
+    "en-US": "CPF",
+    "pt-BR": "CPF"
+  },
+  "Email": {
+    "en-US": "Email",
+    "pt-BR": "Email"
+  },
+  "Max photos": {
+    "en-US": "Max photos",
+    "pt-BR": "Max fotos"
+  },
+  "Max photos to enhancement": {
+    "en-US": "Max photos to enhancement",
+    "pt-BR": "Max de fotos p/ tratar:"
+  },
+  "Blocked": {
+    "en-US": "Blocked",
+    "pt-BR": "Bloqueado"
+  },
+  "Block type": {
+    "en-US": "Block type",
+    "pt-BR": "Tipo de bloqueio"
+  },
+  "Total photos:": {
+    "en-US": "Total photos:",
+    "pt-BR": "Total de fotos:"
+  },
+  "Upload incomplete ...": {
+    "en-US": "The upload is incomplete. Please wait for the upload to complete. If the upload program is closed, the internet may have been down during the upload, causing some photos to be missing. Click Advanced/Reupload and reupload if necessary.",
+    "pt-BR": "O upload está incompleto. Aguarde o upload acabar. Se o programa de upload estiver fechado, pode ser que a internet tenha tido uma queda durante o upload, de forma que podem ter faltado algumas fotos. Clique em Avançado/Reupload e faça o reupload se for o caso."
+  },
+  "Loading selected collection ...": {
+    "en-US": "Loading selected collection ...",
+    "pt-BR": "Carregando coleção selecionada..."
+  },
+  "User:": {
+    "en-US": "User:",
+    "pt-BR": "Usuário:"
+  },
+  "Local:": {
+    "en-US": "Local:",
+    "pt-BR": "Local:"
+  },
+  "Last modified date:": {
+    "en-US": "Last modified date:",
+    "pt-BR": "Data da última modificação:"
+  },
+  "Choose the separation file you want to work with:": {
+    "en-US": "Choose the separation file you want to work with:",
+    "pt-BR": "Escolha o arquivo de separação com o qual deseja trabalhar:"
+  },
+  "This class has OCR processing.": {
+    "en-US": "This class has OCR processing.",
+    "pt-BR": "Essa turma possui processamento OCR."
+  },
+  "This class has photo sales enabled.": {
+    "en-US": "This class has photo sales enabled.",
+    "pt-BR": "Essa turma possui venda de fotos habilitada."
+  },
+  "OCR processing (In development)": {
+    "en-US": "OCR processing (In development)",
+    "pt-BR": "Processamento OCR (Em desenvolvimento)"
+  },
+  "Price per photo for online sale:": {
+    "en-US": "Price per photo for online sale:",
+    "pt-BR": "Preço por foto para venda online:"
+  },
+  "OCR on the server:": {
+    "en-US": "OCR on the server:",
+    "pt-BR": "OCR no servidor:"
+  },
+  "The class code can only contain letters and numbers": {
+    "en-US": "The class code can only contain letters and numbers",
+    "pt-BR": "O código da turma só pode conter letras e números"
+  },
+  "Events folder not found": {
+    "en-US": "Events folder not found",
+    "pt-BR": "Pasta de eventos não encontrada"
+  },
+  "Acknowledgments folder not found": {
+    "en-US": "Acknowledgments folder not found",
+    "pt-BR": "Pasta de reconhecimentos não encontrada"
+  },
+  "This class is already being created in the system.": {
+    "en-US": "This class is already being created in the system.",
+    "pt-BR": "Esta turma já está sendo criada no sistema."
+  },
+  "This contract name already exists...": {
+    "en-US": "This contract name already exists. Do you wish to REUPLOAD it?\nThis may render the collection inaccessible if used inappropriately.\nContact suppor through contato@lesser.biz or Whatsapp +55 16 996-1234-34.\nPress YES if you are sure and if you didn't change anything in the root folder.\nand you wish to make a new attempt to upload the same photos, with no addition or removal\nand without alteration of the extension of any file of change in the name of any folder or file.",
+    "pt-BR": "Esta turma já existe. Deseja fazer REUPLOAD?\nIsso pode tornar a coleção inutilizável se utilizado de maneira inapropriada.\nentre em contato com o suporte - lucas@lesser.biz ou Whatsapp (16) 996-1234-34.\nAperte SIM se tiver certeza e apenas se não tiver feito alterações na pasta onde estão as fotos\ne esteja desejando fazer nova tentativa de upload com as mesmas fotos, sem adição de nenhuma\ne nem alteração de extensão ou tipo de arquivo ou alteração de nome de pasta nem de arquivo."
+  },
+  "": {
+    "en-US": "",
+    "pt-BR": ""
+  },
+  "Waiting for upload...": {
+    "en-US": "Waiting for upload...",
+    "pt-BR": "Aguardando upload..."
+  },
+  "You're about to open a file from the cloud...": {
+    "en-US": "You're about to open a file from the cloud. Opening it will upload your local file to the class backup folder on this computer. Do you want to continue?",
+    "pt-BR": "Você está prestes a abrir um arquivo que está na nuvem. Ao abri-lo, o seu arquivo local será enviado para a pasta de backup da turma neste computador. Deseja continuar?"
+  },
+  "Recognition folder dosent exist": {
+    "en-US": "Recognition folder dosent exist",
+    "pt-BR": "Pasta de reconhecimento não existe"
+  },
+  "Allow deleted production photos to be found by anyone": {
+    "en-US": "Allow deleted production photos to be found by anyone",
+    "pt-BR": "Permitir que fotos de produção-excluídas sejam encontradas por qualquer pessoa"
+  },
+  "WATERMARK": {
+    "en-US": "WATERMARK",
+    "pt-BR": "MARCA D'AGUA"
+  },
+  "ACCESS DENIED": {
+    "en-US": "ACCESS DENIED",
+    "pt-BR": "ACESSO NEGADO"
+  },
+  "Request cancellation of the contract:": {
+    "en-US": "Request cancellation of the contract:",
+    "pt-BR": "Solicitar cancelamento do contrato:"
+  },
+  "Select the contract below that repeats this one:": {
+    "en-US": "Select the contract below that repeats this one:",
+    "pt-BR": "Selecione abaixo o contrato que se repete com este:"
+  },
+  "Send": {
+    "en-US": "Send",
+    "pt-BR": "Enviar"
+  },
+  "Advanced": {
+    "en-US": "Advanced",
+    "pt-BR": "Avançado"
+  },
+  "General Report": {
+    "en-US": "General report",
+    "pt-BR": "Relatório geral"
+  },
+  "General per Graduate": {
+    "en-US": "General per graduate",
+    "pt-BR": "Geral por formando"
+  },
+  "Approved": {
+    "en-US": "Approved",
+    "pt-BR": "Aprovado"
+  },
+  "Rejected": {
+    "en-US": "Rejected",
+    "pt-BR": "Rejeitado"
+  },
+  "Name": {
+    "en-US": "Name",
+    "pt-BR": "Nome"
+  }
+}
