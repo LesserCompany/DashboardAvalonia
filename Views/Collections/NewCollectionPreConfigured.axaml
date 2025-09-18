@@ -10,7 +10,7 @@
              IsEnabled="{Binding ComponentNewCollectionIsEnabled}"
              x:Name="root"
              x:Class="LesserDashboardClient.Views.Collections.NewCollectionPreConfigured">
-  <ScrollViewer Offset="{Binding ScrollComponentNewCollection}" >
+  <ScrollViewer Offset="{Binding ScrollComponentNewCollection}" Padding="30" >
 
     <StackPanel Spacing="6" IsEnabled="{Binding !IsCreatingCollection}">
       <!-- Title -->

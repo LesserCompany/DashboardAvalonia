@@ -11,11 +11,13 @@ using MsBox.Avalonia;
 using Newtonsoft.Json;
 using SharedClientSide.Helpers;
 using SharedClientSide.ServerInteraction;
+using SharedClientSide.ServerInteraction.Users.Login;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using SharedClientSide.ServerInteraction.Users;
 
 namespace LesserDashboardClient;
 
@@ -35,13 +37,13 @@ public class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            DisableAvaloniaDataAnnotationValidation();
+             DisableAvaloniaDataAnnotationValidation();
 
+            
 
-            //App.loginWindow = new LoginWindow(lfc);
             var lr = LesserFunctionClient.loginFileResult;
 
-            if (lr == null || lr.loginFailed == true || lr.success == false || DateTime.Now > lr.User.loginTokenExpirationDate)
+            if (lr == null || lr.loginFailed == true || lr.success == false || DateTime.Now > lr.User.loginTokenExpirationDate || GlobalAppStateViewModel.lfc.loginResult == null)
             {
                 AuthWindowInstance = new AuthWindow();
                 AuthWindowInstance.Show();

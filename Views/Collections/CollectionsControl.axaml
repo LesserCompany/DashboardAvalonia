@@ -25,8 +25,11 @@
           <TextBlock Cursor="Hand" ToolTip.Tip="Voltar para página inicial" Foreground="{DynamicResource SystemAccentColor}" FontFamily="Segoe Fluent Icons" Text="&#xea8a;"  />
         </Button>
       </Grid>
-           
+
+      <!--
       <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
+      -->
+      <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" />
       <local:Banners Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentBannersIsVisible}" />
       <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisible}" Margin="5" />
       <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />

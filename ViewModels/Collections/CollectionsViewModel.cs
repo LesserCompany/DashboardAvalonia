@@ -243,31 +243,6 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool generatingGeneralReport = false;
     [ObservableProperty] public bool generatingReportPerGraduate = false;
 
-    public CollectionComboOptions NewCollection_Combo0 { get; } = new CollectionComboOptions();
-    public  CollectionComboOptions NewCollection_Combo1 { get; } = new CollectionComboOptions
-    {
-        BackupHd = true,
-    };
-    public CollectionComboOptions NewCollection_Combo2 { get; } = new CollectionComboOptions
-    {
-        BackupHd = true,
-        AutoTreatment = true
-    };
-    public CollectionComboOptions NewCollection_Combo3 { get; } = new CollectionComboOptions
-    {
-        BackupHd = true,
-        AutoTreatment = true,
-        EnablePhotoSales = true,
-        AllowCPFsToSeeAllPhotos = true
-    };
-    public CollectionComboOptions NewCollection_Combo4 { get; } = new CollectionComboOptions
-    {
-        BackupHd = true,
-        AutoTreatment = true,
-        EnablePhotoSales = true,
-        AllowCPFsToSeeAllPhotos = true,
-        Ocr = true
-    };
 
 
 

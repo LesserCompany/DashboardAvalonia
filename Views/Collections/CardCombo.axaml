@@ -1,0 +1,91 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="local:CardCombo"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Collections.CardCombo"
+             Name="Host">
+  <UserControl.Resources>
+    <x:Double x:Key="DefaultWidth">320</x:Double>
+    <x:Double x:Key="DefaultHeightCard">220</x:Double>
+    <x:Double x:Key="DefaultSizeIcons">30</x:Double>
+  </UserControl.Resources>
+  <Border 
+          Name="MainBorder"
+          CornerRadius="12"
+          Width="{DynamicResource DefaultWidth}"
+          Height="{DynamicResource DefaultHeightCard}"
+          Padding="16" Margin="8"
+          BorderThickness="2"
+          BorderBrush="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          HorizontalAlignment="Stretch">
+    <!--
+    <Border.BorderBrush>
+      <LinearGradientBrush Name="gradientBorder" StartPoint="0%,0%" EndPoint="100%,0%">
+        <GradientStop  Color="Red" Offset="0.0" />
+        <GradientStop x:Name="color2" Color="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" Offset="1.0" />
+      </LinearGradientBrush>
+    </Border.BorderBrush>
+    -->
+
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <!-- Header -->
+        <RowDefinition Height="*"/>
+        <!-- Espaço flexível -->
+        <RowDefinition Height="Auto"/>
+        <!-- Botão -->
+      </Grid.RowDefinitions>
+
+      <!-- Header -->
+      <StackPanel Spacing="8" Grid.Row="0">
+        <!-- Título -->
+        <TextBlock FontWeight="Bold"
+                   TextWrapping="Wrap"
+                   Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                   Text="{Binding CollectionCombo.ComboTitle, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
+
+        <!-- Descrição -->
+        <TextBlock Text="Saiba mais"
+                   ToolTip.Tip="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                   Foreground="Gray"
+                   FontSize="12"/>
+
+        <!-- Preço -->
+        <TextBlock FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                   >
+          <Run Text="R$ " />
+          <Run Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
+          <Run Text="/" />
+          <Run Text="por foto" />
+        </TextBlock>
+
+        <!-- Ícones -->
+        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+          <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                         Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
+          <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                                Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
+          <local:AutoTreatmentIcon IsVisible="{Binding CollectionCombo.AutoTreatment, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                                   Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
+          <local:HdAndTreatmentCollection IsVisible="{Binding CollectionCombo.BackupHd, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                                          Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Botão -->
+      <Button Grid.Row="2"
+              Background="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+              Foreground="White"
+              Content="Selecionar"
+              HorizontalAlignment="Right"
+              Command="{Binding Command, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+              CommandParameter="{Binding CollectionCombo, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
+    </Grid>
+  </Border>
+</UserControl>
