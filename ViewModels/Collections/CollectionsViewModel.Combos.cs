@@ -37,41 +37,45 @@ public partial class CollectionsViewModel : ViewModelBase
 {
     public CollectionComboOptions NewCollection_Combo0 { get; } = new CollectionComboOptions
     {
-        ComboTitle = "Básico",
+        ComboTitle = "Reconhecimento facial",
         ComboDescription = "Nenhum recurso adicional habilitado. Apenas armazenamento local padrão.",
         ComboColorAccent = "#B0B0B0", // cinza neutro
-        ComboPrice = 0.0,
         BackupHd = false,
         AutoTreatment = false,
         EnablePhotoSales = false,
         AllowCPFsToSeeAllPhotos = false,
-        Ocr = false
+        AllowDeletedProductionToBeFoundAnyone = false,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = false
     };
-
     public CollectionComboOptions NewCollection_Combo1 { get; } = new CollectionComboOptions
     {
-        ComboTitle = "Backup HD",
+        ComboTitle = "Reconhecimento facial + Visualização Online",
         ComboDescription = "Inclui backup automático em HD, garantindo segurança das fotos contra perda de dados.",
         ComboColorAccent = "#6495ED", // azul claro
-        ComboPrice = 0.01,
         BackupHd = true,
         AutoTreatment = false,
         EnablePhotoSales = false,
         AllowCPFsToSeeAllPhotos = false,
-        Ocr = false
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = false
+
     };
 
     public CollectionComboOptions NewCollection_Combo2 { get; } = new CollectionComboOptions
     {
-        ComboTitle = "Reconhecimento facial + BackupHD + Tratamento com IA",
+        ComboTitle = "Reconhecimento facial + Visualização online + Tratamento com IA",
         ComboDescription = "Detecta rostos automaticamente, faz backup das fotos em HD e aplica ajustes automáticos de brilho e saturação usando IA.",
         ComboColorAccent = "#FF8C00", // laranja
-        ComboPrice = 0.03,
         BackupHd = true,
         AutoTreatment = true,
         EnablePhotoSales = false,
         AllowCPFsToSeeAllPhotos = false,
-        Ocr = false
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = false
+        
     };
 
     public CollectionComboOptions NewCollection_Combo3 { get; } = new CollectionComboOptions
@@ -79,12 +83,14 @@ public partial class CollectionsViewModel : ViewModelBase
         ComboTitle = "Tratamento avançado + Venda de fotos",
         ComboDescription = "Aplica tratamento automático nas fotos e habilita a venda de fotos, permitindo que CPFs específicos vejam todas as imagens.",
         ComboColorAccent = "#32CD32", // verde
-        ComboPrice = 0.05,
         BackupHd = true,
         AutoTreatment = true,
         EnablePhotoSales = true,
         AllowCPFsToSeeAllPhotos = true,
-        Ocr = false
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = false
+        
     };
 
     public CollectionComboOptions NewCollection_Combo4 { get; } = new CollectionComboOptions
@@ -92,14 +98,40 @@ public partial class CollectionsViewModel : ViewModelBase
         ComboTitle = "Completo: OCR + IA + Backup + Venda",
         ComboDescription = "Inclui todos os recursos: backup em HD, tratamento automático com IA, reconhecimento de texto (OCR), venda de fotos e acesso completo para CPFs autorizados.",
         ComboColorAccent = "#8A2BE2", // roxo
-        ComboPrice = 0.08,
         BackupHd = true,
         AutoTreatment = true,
         EnablePhotoSales = true,
         AllowCPFsToSeeAllPhotos = true,
-        Ocr = true
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = true,
+        UploadedPhotosAreAlreadySorted = false
     };
-
+    public CollectionComboOptions NewCollection_Combo5 { get; } = new CollectionComboOptions
+    {
+        ComboTitle = "Apenas tratamento com IA",
+        ComboDescription = "Inclui todos os recursos: backup em HD, tratamento automático com IA, reconhecimento de texto (OCR), venda de fotos e acesso completo para CPFs autorizados.",
+        ComboColorAccent = "Orange", 
+        BackupHd = true,
+        AutoTreatment = false,
+        EnablePhotoSales = false,
+        AllowCPFsToSeeAllPhotos = false,
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = true
+    };
+    public CollectionComboOptions NewCollection_Combo6 { get; } = new CollectionComboOptions
+    {
+        ComboTitle = "Disponibilizar gratuitamente online",
+        ComboDescription = "",
+        ComboColorAccent = "Pink",
+        BackupHd = true,
+        AutoTreatment = false,
+        EnablePhotoSales = false,
+        AllowCPFsToSeeAllPhotos = false,
+        AllowDeletedProductionToBeFoundAnyone = true,
+        Ocr = false,
+        UploadedPhotosAreAlreadySorted = false
+    };
 }
     
           

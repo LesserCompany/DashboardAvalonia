@@ -27,9 +27,9 @@
       </Grid>
 
       <!--
-      <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
-      -->
       <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" />
+      -->
+      <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
       <local:Banners Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentBannersIsVisible}" />
       <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisible}" Margin="5" />
       <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />

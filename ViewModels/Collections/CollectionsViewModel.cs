@@ -125,6 +125,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public int? totalPhotosForOCR;
     [ObservableProperty] public int? totalPhotosForOCRDone;
     [ObservableProperty] public bool? cbUploadOnTestSystem;
+    [ObservableProperty] public bool? cbAllowDeletedProductionToBeFoundAnyone;
 
     //ProfessionalTask Props
     [ObservableProperty] public string tbCollectionName;
@@ -803,7 +804,7 @@ public partial class CollectionsViewModel : ViewModelBase
         SeparatedRectHeight = totalGraphRectHeight * (1 - percentNotSeparated);
 
     }
-    private void UpdateGraduateDataFromFile(FileInfo f)
+    public void UpdateGraduateDataFromFile(FileInfo f)
     {
         GraduatesData.Clear();
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
@@ -1007,11 +1008,10 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
-
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
-        CbUploadedPhotosAreAlreadySorted = false;
+        CbUploadedPhotosAreAlreadySorted = options.UploadedPhotosAreAlreadySorted;
         CbAllowCPFsToSeeAllPhotos = options.AllowCPFsToSeeAllPhotos;
         CbHDBackup = options.BackupHd;
         CbEnableAutoExclusion = true;
@@ -1020,6 +1020,7 @@ public partial class CollectionsViewModel : ViewModelBase
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
+        CbAllowDeletedProductionToBeFoundAnyone = options.AllowDeletedProductionToBeFoundAnyone;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1052,6 +1053,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
         AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
         CbOcr = SelectedCollection.OCR ?? false;
+        CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
         LoadGraduatesData(SelectedCollection);
     }
     [RelayCommand]
@@ -1126,6 +1128,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 EnablePhotosSales = CbEnablePhotoSales,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 OCR = CbOcr,
+                AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
                 
             };
             if (CbEnableAutoTreatment == true)
@@ -1163,12 +1166,19 @@ public partial class CollectionsViewModel : ViewModelBase
 
             if (AccountInPeriodFreeTrial)
             {
+
+
+
+
+
+
                 int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
                 bool tryParseOk = int.TryParse(FreePhotosRemainingInTrialPeriod, out int remainingPhotosFreeTrial);
                 if(tryParseOk)
                 {
                     if (totalCollectionPhotos > remainingPhotosFreeTrial)
                     {
+                        await GlobalAppStateViewModel.lfc.PipeDrive_FullQuotaFreeTrialReached();
                         var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
                         if (dialog != true)
                             return;
@@ -1201,6 +1211,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(AccountInPeriodFreeTrial == true)
                     GetInfosAboutFreeTrialPeriod();
 
+
             }
             else
             {
@@ -1211,9 +1222,11 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch(Exception ex)
         {
-            var bbox = MessageBoxManager
-                .GetMessageBoxStandard("", $"{ex.Message} | {ex.StackTrace}");
-            var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+            //var bbox = MessageBoxManager
+            //    .GetMessageBoxStandard("", $"{ex.Message} | {ex.StackTrace}");
+            //var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"{ex.Message}");
         }
         finally
         {

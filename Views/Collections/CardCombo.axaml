@@ -59,10 +59,25 @@
                    FontWeight="SemiBold"
                    Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
                    >
-          <Run Text="R$ " />
-          <Run Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
-          <Run Text="/" />
-          <Run Text="por foto" />
+          <!-- Símbolo da moeda mais discreto -->
+          <Run Text="R$"
+               FontSize="16"
+               Foreground="{DynamicResource card3Solid}" />
+
+          <!-- Preço em destaque -->
+          <Run Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+               FontSize="24"
+               FontWeight="Bold"
+               Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
+
+          <!-- Barra e descrição mais suaves -->
+          <Run Text=" / "
+               FontSize="16"
+               Foreground="Gray" />
+
+          <Run Text="por foto"
+               FontSize="14"
+               Foreground="Gray" />
         </TextBlock>
 
         <!-- Ícones -->
