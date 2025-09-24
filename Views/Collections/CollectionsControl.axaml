@@ -13,12 +13,12 @@
     <Grid RowDefinitions="Auto, *" ColumnDefinitions="1.2*, 2.8*" ColumnSpacing="5">
       <local:CollectionList Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" />
       <Grid Grid.Column="1" Grid.Row="0"  ColumnDefinitions="*, Auto" >
-        <TextBlock Grid.Column="0" Margin="5 0"  FontSize="10" IsVisible="{Binding AccountInPeriodFreeTrial}" VerticalAlignment="Center" HorizontalAlignment="Right">
+        <TextBlock Grid.Column="0" Margin="5 0"  FontSize="10" IsVisible="{Binding RemainingFreeTrialPhotosResult.IsFreeTrialActive}" VerticalAlignment="Center" HorizontalAlignment="Right">
           <Run Text="{Tr 'Your free trial period is valid until:'}" />
-          <Run Text="{Binding FreeTrialExpiryDate}" Foreground="{DynamicResource SystemAccentColor}" />
+          <Run Text="{Binding RemainingFreeTrialPhotosResult.FreeTrialExpiryDate}" Foreground="{DynamicResource SystemAccentColor}" />
           <Run Text="." />
           <Run Text="{Tr 'During this period, you can upload up to'}" />
-          <Run Text="{Binding FreePhotosRemainingInTrialPeriod}" Foreground="{DynamicResource SystemAccentColor}" />
+          <Run Text="{Binding RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}" Foreground="{DynamicResource SystemAccentColor}" />
           <Run Text="{Tr 'photos for free.'}" />
         </TextBlock>
         <Button VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" Command="{Binding OpenQuickAccessViewCommand}">

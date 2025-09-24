@@ -29,6 +29,7 @@ using System.Reactive.Concurrency;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SharedClientSide.ServerInteraction.Users.Requests;
 
 
 namespace LesserDashboardClient.ViewModels.Collections;
@@ -219,9 +220,13 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     [ObservableProperty] public string currentProfessionalName;
 
-    [ObservableProperty] public bool accountInPeriodFreeTrial = false;
-    [ObservableProperty] public string? freePhotosRemainingInTrialPeriod;
-    [ObservableProperty] public string freeTrialExpiryDate = "N/A";
+    //FREE TRIAL PROPERTIES
+    //[ObservableProperty] public bool accountInPeriodFreeTrial = false;
+    //[ObservableProperty] public string? freePhotosRemainingInTrialPeriod;
+    //[ObservableProperty] public double currentPercentagePhotosFreeTrialRemaining;
+    //[ObservableProperty] public string freeTrialExpiryDate = "N/A";
+    //[ObservableProperty] public bool isFirstUse = false;
+    [ObservableProperty] public RemainingFreeTrialPhotosResult remainingFreeTrialPhotosResult = new RemainingFreeTrialPhotosResult { IsFreeTrialActive = false };
 
 
     //PPP
@@ -917,21 +922,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             if (GlobalAppStateViewModel.lfc != null)
             {
-                var r = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos();
-                if (r == null)
-                    return;
-                var remainingFreeTrialPhotos = r.Content;
-                FreePhotosRemainingInTrialPeriod = remainingFreeTrialPhotos;
-
-                DateTime currentDate = DateTime.Now;
-                var s = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
-                DateTime? freeTrialExpiryDate = s.Content.FreeTrialExpiryDate;
-                FreeTrialExpiryDate = freeTrialExpiryDate?.ToString("d", CultureInfo.CurrentCulture) ?? "Data inválida";
-
-                if (currentDate > freeTrialExpiryDate || remainingFreeTrialPhotos == "0")
-                    AccountInPeriodFreeTrial = false;
-                else
-                    AccountInPeriodFreeTrial = true;
+                RemainingFreeTrialPhotosResult = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos2();
             }
             return;
         }
@@ -1164,25 +1155,27 @@ public partial class CollectionsViewModel : ViewModelBase
             var eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(pt.originalEventsFolder.Length)).ToList();
             var recFilesShortPaths = recFiles.Select(x => x.FullName.Substring(pt.originalRecFolder.Length)).ToList();
 
-            if (AccountInPeriodFreeTrial)
+            bool shouldNotifyPipedriveAboutFirstUse = false;
+            bool shouldNotifyPipedriveAboutFreeTrial50PercentReached = false;
+            bool shouldNotifyPipedriveAboutFreeTrialLimitReached = false;
+            if (RemainingFreeTrialPhotosResult.IsFreeTrialActive)
             {
-
-
-
-
-
+                //VERIFICA SE É O PRIMEIRO USO DO SISTEMA
+                if(RemainingFreeTrialPhotosResult.IsFirstUse)
+                    shouldNotifyPipedriveAboutFirstUse = true;
 
                 int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
-                bool tryParseOk = int.TryParse(FreePhotosRemainingInTrialPeriod, out int remainingPhotosFreeTrial);
-                if(tryParseOk)
+                //VERIFICA SE A QUOTA DE TESTE ESTÁ PASSANDO DE 50%
+                if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
+                    shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
+
+                //VERIFICA SE A QUOTA DE TESTE ESTÁ SENDO EXCEDIDA
+                if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
-                    if (totalCollectionPhotos > remainingPhotosFreeTrial)
-                    {
-                        await GlobalAppStateViewModel.lfc.PipeDrive_FullQuotaFreeTrialReached();
-                        var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
-                        if (dialog != true)
-                            return;
-                    }
+                    shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
+                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
+                    if (dialog != true)
+                        return;
                 }
             }
 
@@ -1208,15 +1201,27 @@ public partial class CollectionsViewModel : ViewModelBase
                     SelectedCollection = currentPt;
                 ActiveComponent = ActiveViews.CollectionView;
 
-                if(AccountInPeriodFreeTrial == true)
+                if(RemainingFreeTrialPhotosResult.IsFreeTrialActive == true)
                     GetInfosAboutFreeTrialPeriod();
-
 
             }
             else
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(r.message);
+            }
 
+            try
+            {
+                if (shouldNotifyPipedriveAboutFirstUse == true)
+                if(shouldNotifyPipedriveAboutFreeTrial50PercentReached == true)
+                    await GlobalAppStateViewModel.lfc.PipeDrive_NotifySystemFirstUse();
+                    await GlobalAppStateViewModel.lfc.PipeDrive_HalfQuotaFreeTrialReached();
+                if(shouldNotifyPipedriveAboutFreeTrialLimitReached == true)
+                    await GlobalAppStateViewModel.lfc.PipeDrive_FullQuotaFreeTrialReached();
+            }
+            catch
+            {
+                return;
             }
 
         }
