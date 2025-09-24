@@ -1213,8 +1213,8 @@ public partial class CollectionsViewModel : ViewModelBase
             try
             {
                 if (shouldNotifyPipedriveAboutFirstUse == true)
-                if(shouldNotifyPipedriveAboutFreeTrial50PercentReached == true)
                     await GlobalAppStateViewModel.lfc.PipeDrive_NotifySystemFirstUse();
+                if(shouldNotifyPipedriveAboutFreeTrial50PercentReached == true)
                     await GlobalAppStateViewModel.lfc.PipeDrive_HalfQuotaFreeTrialReached();
                 if(shouldNotifyPipedriveAboutFreeTrialLimitReached == true)
                     await GlobalAppStateViewModel.lfc.PipeDrive_FullQuotaFreeTrialReached();
