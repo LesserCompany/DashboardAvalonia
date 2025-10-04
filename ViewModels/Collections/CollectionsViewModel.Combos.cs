@@ -122,7 +122,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public CollectionComboOptions NewCollection_Combo6 { get; } = new CollectionComboOptions
     {
         ComboTitle = "Disponibilizar gratuitamente online",
-        ComboDescription = "",
+        ComboDescription = "Faz backup das fotos em HD e disponibiliza gratuitamente para visualização online, sem custos adicionais para os usuários.",
         ComboColorAccent = "Pink",
         BackupHd = true,
         AutoTreatment = false,

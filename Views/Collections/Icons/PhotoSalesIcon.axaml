@@ -8,11 +8,17 @@
              x:Class="LesserDashboardClient.Views.Collections.PhotoSalesIcon">
 
   <Viewbox Stretch="Uniform">
-    <TextBlock
-        Text="💲"
-        VerticalAlignment="Center"
-        HorizontalAlignment="Center"
-        Cursor="Help"
-        ToolTip.Tip="{Tr 'This class has photo sales enabled.'}" />
+    <Border Background="#383735"
+            CornerRadius="6"
+            BorderBrush="#E2DFDC"
+            BorderThickness="1"
+            Padding="6">
+      <TextBlock
+          Text="💲"
+          VerticalAlignment="Center"
+          HorizontalAlignment="Center"
+          Cursor="Help"
+          ToolTip.Tip="{Tr 'This class has photo sales enabled.'}" />
+    </Border>
   </Viewbox>
 </UserControl>

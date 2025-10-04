@@ -17,6 +17,7 @@ using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Companies.Requests;
 using SharedClientSide.ServerInteraction.Users.Graduate;
 using SharedClientSide.ServerInteraction.Users.Professionals;
+using SharedClientSide.ServerInteraction.Users.Requests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,7 +30,7 @@ using System.Reactive.Concurrency;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using SharedClientSide.ServerInteraction.Users.Requests;
+using LesserDashboardClient.Services;
 
 
 namespace LesserDashboardClient.ViewModels.Collections;
@@ -257,6 +258,7 @@ public partial class CollectionsViewModel : ViewModelBase
         LoadProfessionalTasks();
         Task.Run(()=>LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
+        LoadDynamicPrices();
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>
@@ -1695,6 +1697,94 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch { }
     }
+    #endregion
+
+    #region Dynamic Pricing
+
+    /// <summary>
+    /// Carrega preços dinâmicos para todos os combos
+    /// </summary>
+    private async void LoadDynamicPrices()
+    {
+        try
+        {
+            Console.WriteLine("CollectionsViewModel: Iniciando LoadDynamicPrices");
+            
+            // Verificar se o cliente está inicializado
+            if (GlobalAppStateViewModel.lfc == null)
+            {
+                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc não está inicializado, aguardando...");
+                // Aguardar um pouco e tentar novamente
+                await Task.Delay(2000);
+                if (GlobalAppStateViewModel.lfc == null)
+                {
+                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda não está inicializado, usando preços estáticos");
+                    return;
+                }
+            }
+            
+            // Array com todos os combos disponíveis
+            var combos = new[]
+            {
+                NewCollection_Combo0,
+                NewCollection_Combo1,
+                NewCollection_Combo2,
+                NewCollection_Combo3,
+                NewCollection_Combo4,
+                NewCollection_Combo5,
+                NewCollection_Combo6
+            };
+
+            Console.WriteLine($"CollectionsViewModel: Carregando preços para {combos.Length} combos");
+            
+            // Log dos preços antes do carregamento
+            foreach (var combo in combos)
+            {
+                Console.WriteLine($"CollectionsViewModel: Preço ANTES do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
+            }
+
+            // Carregar preços dinâmicos
+            await ComboPriceService.UpdateCombosWithDynamicPricesAsync(combos);
+            
+            // Log dos preços depois do carregamento
+            foreach (var combo in combos)
+            {
+                Console.WriteLine($"CollectionsViewModel: Preço DEPOIS do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
+            }
+            
+            // Notificar mudanças na UI thread
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Console.WriteLine("CollectionsViewModel: Notificando mudanças na UI");
+                // Forçar atualização das propriedades de preço
+                OnPropertyChanged(nameof(NewCollection_Combo0));
+                OnPropertyChanged(nameof(NewCollection_Combo1));
+                OnPropertyChanged(nameof(NewCollection_Combo2));
+                OnPropertyChanged(nameof(NewCollection_Combo3));
+                OnPropertyChanged(nameof(NewCollection_Combo4));
+                OnPropertyChanged(nameof(NewCollection_Combo5));
+                OnPropertyChanged(nameof(NewCollection_Combo6));
+                Console.WriteLine("CollectionsViewModel: Mudanças notificadas na UI");
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar preços dinâmicos: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            // Em caso de erro, os combos continuarão usando os preços estáticos
+        }
+    }
+
+    /// <summary>
+    /// Recarrega os preços dinâmicos (útil para refresh manual)
+    /// </summary>
+    [RelayCommand]
+    public void RefreshPrices()
+    {
+        ComboPriceService.ClearCache();
+        LoadDynamicPrices();
+    }
+
     #endregion
 }
 

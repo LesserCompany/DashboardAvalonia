@@ -6,16 +6,15 @@
              x:Class="LesserDashboardClient.Views.Collections.AutoTreatmentIcon">
   <Grid>
     <Viewbox Stretch="Uniform" >
-      <Border Background="{DynamicResource SystemBackgroundColor}"
-                    CornerRadius="6"
-      BorderBrush="{DynamicResource AccentFillColorSecondaryBrush}"
-      BorderThickness="1"
-      Padding="6"
-      HorizontalAlignment="Stretch"
-      VerticalAlignment="Stretch"
-              >
+      <Border Background="#383735"
+              CornerRadius="6"
+              BorderBrush="#E2DFDC"
+              BorderThickness="1"
+              Padding="6"
+              HorizontalAlignment="Stretch"
+              VerticalAlignment="Stretch">
         <Svg Path="/Assets/icons/treatment_simbol3.svg" Cursor="Help" ToolTip.Tip="Essa turma possui Tratamento Automático." />
       </Border>
-      </Viewbox>
+    </Viewbox>
   </Grid>
 </UserControl>

@@ -30,47 +30,117 @@
             <!--
             <ui:ProgressRing Grid.Row="2" IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" IsVisible="{Binding CollectionsListIsLoading}" />
             -->      
-            <ListBox FontSize="11" Grid.Row="2" IsVisible="{Binding !CollectionsListIsLoading}"  ItemsSource="{Binding CollectionsListFiltered}" SelectedItem="{Binding SelectedCollection, Mode=TwoWay}">
-              <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="1*, 4*">
-                              <TextBlock Margin="4" Grid.Row="0" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" Grid.Column="0" FontWeight="Bold" Grid.ColumnSpan="3" Text="{Binding classCode}" HorizontalAlignment="Left" ToolTip.Tip="{Binding classCode}" FontSize="13" />
-                            <StackPanel  Grid.Row="1" Grid.Column="0" Spacing="5" Margin="2" VerticalAlignment="Center">
-
-                              <local:ProfessionalRepresentation ProfessionalName="{Binding professionalLogin}" />
-                            </StackPanel>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5" Margin="2">
-                              <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{Tr 'Total photos:'}" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" />
-                                <TextBlock TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
-                                  <TextBlock.Text>
-                                    <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
-                                      <Binding Path="recognitionPhotos" />
-                                      <Binding Path="eventPhotos" />
-                                    </MultiBinding>
-                                  </TextBlock.Text>
-                                </TextBlock>
-                              </StackPanel>
-                                <TextBlock Text="{Tr 'Waiting for upload...'}" Foreground="Red" IsVisible="{Binding !UploadComplete}" />
-                              
-                                <TextBlock Text="{Binding CreationDate, Converter={StaticResource DateTimeToStringConverter}}" ToolTip.Tip="{Binding CreationDate}" FontSize="9"></TextBlock>
-                            </StackPanel>
-                            <WrapPanel Margin="4"  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal"  HorizontalAlignment="Right">
-                              <!--BackupHD-->
-                              <local:HdAndTreatmentCollection  Width="36" Height="36"   AutoTreatment="{Binding AutoTreatment, FallbackValue=False}" IsVisible="{Binding UploadHD}" />
-                              <!--AutoTreatment-->
-                              <local:AutoTreatmentIcon Width="36" Height="36" IsVisible="{Binding AutoTreatment, FallbackValue=False}" />
-                              <!--PhotoSales-->
-                              <local:PhotoSalesIcon Width="36" Height="36" IsVisible="{Binding EnablePhotosSales, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                              <!--OCR-->
-                              <local:OcrIcon Width="36" Height="36" IsVisible="{Binding OCR, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                              <!--
-                              <TextBlock Grid.Column="2" FontWeight="Bold" FontSize="10" Text="OCR" IsVisible="{Binding OCR, FallbackValue=False}" VerticalAlignment="Center" HorizontalAlignment="Center" Cursor="Help" ToolTip.Tip="{Tr 'This class has OCR processing.'}"  />
-                              -->
-                            </WrapPanel>
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <ScrollViewer Grid.Row="2" IsVisible="{Binding !CollectionsListIsLoading}">
+              <ItemsControl ItemsSource="{Binding CollectionsListFiltered}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="12" Margin="8" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <!-- Card Container -->
+                    <Border CornerRadius="12"
+                            BorderThickness="1"
+                            BorderBrush="Black"
+                            BoxShadow="0 2 8 #15000000"
+                            Padding="16"
+                            Margin="4"
+                            Cursor="Hand"
+                            Name="CardBorder"
+                            Tapped="CardBorder_Tapped">
+                      <Border.Background>
+                        <!-- Fundo condicional: laranja para turmas ativas, cinza claro para concluídas -->
+                        <Binding Path="UploadComplete" Converter="{StaticResource UploadCompleteToBackgroundConverter}" />
+                      </Border.Background>
+                      
+                      <!-- Detectar clique no card -->
+                      <Border.Tag>
+                        <Binding Path="." />
+                      </Border.Tag>
+                      
+                      <!-- Conteúdo do Card -->
+                      <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *, Auto" RowSpacing="8">
+                        
+                        <!-- Linha 1: Código da Turma -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                                  Text="{Binding classCode}" 
+                                  FontWeight="Bold" 
+                                  FontSize="16"
+                                  TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
+                                  ToolTip.Tip="{Binding classCode}"
+                                  HorizontalAlignment="Left" />
+                        
+                        <!-- Linha 2: Representação do Profissional e Informações -->
+                        <local:ProfessionalRepresentation Grid.Row="1" Grid.Column="0" 
+                                                         ProfessionalName="{Binding professionalLogin}" 
+                                                         VerticalAlignment="Center" 
+                                                         Margin="0,0,12,0" />
+                        
+                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                          <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{Tr 'Total photos:'}" 
+                                      FontSize="12"
+                                      TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" />
+                            <TextBlock FontSize="12" FontWeight="SemiBold"
+                                      TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
+                              <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
+                                  <Binding Path="recognitionPhotos" />
+                                  <Binding Path="eventPhotos" />
+                                </MultiBinding>
+                              </TextBlock.Text>
+                            </TextBlock>
+                          </StackPanel>
+                          
+                          <!-- Status de Upload -->
+                          <TextBlock Text="{Tr 'Waiting for upload...'}" 
+                                    Foreground="#FF5722" 
+                                    FontSize="11"
+                                    FontWeight="Medium"
+                                    IsVisible="{Binding !UploadComplete}" />
+                          
+                          <!-- Data de Criação -->
+                          <TextBlock Text="{Binding CreationDate, Converter={StaticResource DateTimeToStringConverter}}" 
+                                    ToolTip.Tip="{Binding CreationDate}" 
+                                    FontSize="11"
+                                    FontWeight="Medium"
+                                    Foreground="White" />
+                        </StackPanel>
+                        
+                        <!-- Linha 3: Ícones de Funcionalidades -->
+                        <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" 
+                                  Orientation="Horizontal" 
+                                  HorizontalAlignment="Right"
+                                  Margin="0,8,0,0">
+                          <!--BackupHD-->
+                          <local:HdAndTreatmentCollection Width="32" Height="32" 
+                                                        AutoTreatment="{Binding AutoTreatment, FallbackValue=False}" 
+                                                        IsVisible="{Binding UploadHD}"
+                                                        Margin="0,0,4,0" />
+                          <!--AutoTreatment-->
+                          <local:AutoTreatmentIcon Width="32" Height="32" 
+                                                  IsVisible="{Binding AutoTreatment, FallbackValue=False}"
+                                                  Margin="0,0,4,0" />
+                          <!--PhotoSales-->
+                          <local:PhotoSalesIcon Width="32" Height="32" 
+                                               IsVisible="{Binding EnablePhotosSales, FallbackValue=False}" 
+                                               VerticalAlignment="Center" 
+                                               HorizontalAlignment="Center"
+                                               Margin="0,0,4,0" />
+                          <!--OCR-->
+                          <local:OcrIcon Width="32" Height="32" 
+                                        IsVisible="{Binding OCR, FallbackValue=False}" 
+                                        VerticalAlignment="Center" 
+                                        HorizontalAlignment="Center"
+                                        Margin="0,0,4,0" />
+                        </WrapPanel>
+                        
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
     </Grid>
 </UserControl>

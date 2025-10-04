@@ -8,18 +8,19 @@
              x:Class="LesserDashboardClient.Views.Collections.CardCombo"
              Name="Host">
   <UserControl.Resources>
-    <x:Double x:Key="DefaultWidth">320</x:Double>
-    <x:Double x:Key="DefaultHeightCard">220</x:Double>
+    <x:Double x:Key="DefaultWidth">360</x:Double>
+    <x:Double x:Key="DefaultHeightCard">280</x:Double>
     <x:Double x:Key="DefaultSizeIcons">30</x:Double>
   </UserControl.Resources>
   <Border 
           Name="MainBorder"
-          CornerRadius="12"
+          CornerRadius="8"
           Width="{DynamicResource DefaultWidth}"
           Height="{DynamicResource DefaultHeightCard}"
-          Padding="16" Margin="8"
+          Padding="20" Margin="8"
           BorderThickness="2"
-          BorderBrush="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          BorderBrush="Black"
+          Background="#383735"
           HorizontalAlignment="Stretch">
     <!--
     <Border.BorderBrush>
@@ -33,55 +34,31 @@
     <Grid>
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
-        <!-- Header -->
+        <!-- Título e descrição -->
         <RowDefinition Height="*"/>
         <!-- Espaço flexível -->
         <RowDefinition Height="Auto"/>
-        <!-- Botão -->
+        <!-- Preço e botão -->
       </Grid.RowDefinitions>
 
-      <!-- Header -->
+      <!-- Título e Descrição -->
       <StackPanel Spacing="8" Grid.Row="0">
         <!-- Título -->
         <TextBlock FontWeight="Bold"
                    TextWrapping="Wrap"
-                   Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                   Foreground="#FFFFFF"
+                   FontSize="18"
                    Text="{Binding CollectionCombo.ComboTitle, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
         <!-- Descrição -->
-        <TextBlock Text="Saiba mais"
+        <TextBlock TextWrapping="Wrap"
                    ToolTip.Tip="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-                   Foreground="Gray"
-                   FontSize="12"/>
-
-        <!-- Preço -->
-        <TextBlock FontSize="20"
-                   FontWeight="SemiBold"
-                   Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-                   >
-          <!-- Símbolo da moeda mais discreto -->
-          <Run Text="R$"
-               FontSize="16"
-               Foreground="{DynamicResource card3Solid}" />
-
-          <!-- Preço em destaque -->
-          <Run Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-               FontSize="24"
-               FontWeight="Bold"
-               Foreground="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
-
-          <!-- Barra e descrição mais suaves -->
-          <Run Text=" / "
-               FontSize="16"
-               Foreground="Gray" />
-
-          <Run Text="por foto"
-               FontSize="14"
-               Foreground="Gray" />
-        </TextBlock>
+                   Foreground="#E2DFDC"
+                   FontSize="12"
+                   Text="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
         <!-- Ícones -->
-        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
           <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
                          Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
           <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
@@ -93,14 +70,47 @@
         </StackPanel>
       </StackPanel>
 
-      <!-- Botão -->
-      <Button Grid.Row="2"
-              Background="{Binding CollectionCombo.ComboColorAccent, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-              Foreground="White"
-              Content="Selecionar"
-              HorizontalAlignment="Right"
-              Command="{Binding Command, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-              CommandParameter="{Binding CollectionCombo, RelativeSource={RelativeSource AncestorType=local:CardCombo}}" />
+      <!-- Preço e Botão -->
+      <Grid Grid.Row="3" Margin="0,20,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Preço -->
+        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+          <TextBlock Text="Preço de 1000 fotos"
+                     Foreground="#E2DFDC"
+                     FontSize="12"
+                     Margin="0,0,0,4"/>
+          <TextBlock FontSize="24"
+                     FontWeight="Bold"
+                     Foreground="#ff9600"
+                     Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}, StringFormat='R$ {0:0.00}'}"/>
+        </StackPanel>
+
+        <!-- Botão -->
+        <Button Grid.Column="1"
+                Background="Transparent"
+                Foreground="#ff9600"
+                BorderBrush="#ff9600"
+                BorderThickness="1"
+                CornerRadius="4"
+                Content="Selecionar"
+                Padding="16,8"
+                VerticalAlignment="Bottom"
+                Cursor="Hand"
+                Command="{Binding Command, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+                CommandParameter="{Binding CollectionCombo, RelativeSource={RelativeSource AncestorType=local:CardCombo}}">
+          <Button.Styles>
+            <Style Selector="Button:pointerover">
+              <Setter Property="Background" Value="#ff9600"/>
+              <Setter Property="Foreground" Value="#FFFFFF"/>
+              <Setter Property="BorderBrush" Value="#ff9600"/>
+            </Style>
+          </Button.Styles>
+        </Button>
+      </Grid>
     </Grid>
   </Border>
 </UserControl>

@@ -7,7 +7,7 @@
 
   <Border
       CornerRadius="6"
-      BorderBrush="{DynamicResource AccentFillColorSecondaryBrush}"
+      BorderBrush="#E2DFDC"
       BorderThickness="1"
       Background="#383735"
       BoxShadow="2 2 6 #40000000"

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace LesserDashboardClient.Models
 {
-    public class CollectionComboOptions
+    public class CollectionComboOptions : INotifyPropertyChanged
     {
         public bool BackupHd { get; set; }
         public bool AutoTreatment { get; set; }
@@ -23,16 +24,48 @@ namespace LesserDashboardClient.Models
         public double ComboPrice
         {
             get {
+                // Se temos um preço dinâmico, usar ele
+                if (_dynamicPrice.HasValue)
+                {
+                    Console.WriteLine($"CollectionComboOptions: Usando preço dinâmico para '{ComboTitle}': {_dynamicPrice.Value:F4}");
+                    return _dynamicPrice.Value;
+                }
+                
+                // Fallback para cálculo estático (valores antigos)
                 double total = 0;
                 total += Price_facialRec;
                 if (BackupHd) total += Price_backupHd;
                 if (AutoTreatment) total += Price_AutoTreatment;
                 if (Ocr) total += Price_Ocr;
+                Console.WriteLine($"CollectionComboOptions: Usando preço estático para '{ComboTitle}': {total:F4}");
                 return total;
             }
         }
 
+        private double? _dynamicPrice = null;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Define o preço dinâmico calculado pelo serviço
+        /// </summary>
+        public void SetDynamicPrice(double price)
+        {
+            Console.WriteLine($"CollectionComboOptions: SetDynamicPrice chamado para '{ComboTitle}': R$ {price:F4}");
+            _dynamicPrice = price;
+            // Notificar que o preço mudou
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComboPrice)));
+        }
+
+        /// <summary>
+        /// Limpa o preço dinâmico para voltar ao cálculo estático
+        /// </summary>
+        public void ClearDynamicPrice()
+        {
+            _dynamicPrice = null;
+        }
+
+        // Valores estáticos mantidos como fallback
         private double Price_facialRec = 0.03530;
         private double Price_backupHd = 0.0107;
         private double Price_AutoTreatment = 0.0287;

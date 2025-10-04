@@ -5,13 +5,19 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.OcrIcon">
   <Viewbox Stretch="Uniform">
-    <TextBlock
-        Text="OCR"
-        Foreground="{DynamicResource SystemAccentColor}"
-        FontWeight="Bold"
-        VerticalAlignment="Center"
-        HorizontalAlignment="Center"
-        Cursor="Help"
-        ToolTip.Tip="{Tr 'Collection have Optical Reconition Charactere'}" />
+    <Border Background="#383735"
+            CornerRadius="6"
+            BorderBrush="#E2DFDC"
+            BorderThickness="1"
+            Padding="6">
+      <TextBlock
+          Text="OCR"
+          Foreground="#E2DFDC"
+          FontWeight="Bold"
+          VerticalAlignment="Center"
+          HorizontalAlignment="Center"
+          Cursor="Help"
+          ToolTip.Tip="{Tr 'Collection have Optical Reconition Charactere'}" />
+    </Border>
   </Viewbox>
 </UserControl>

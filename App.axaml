@@ -17,6 +17,8 @@
       <converters:DateTimeToStringConverter x:Key="DateTimeToStringConverter" />
       <converters:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
       <converters:CollectionOptionsComboConverter x:Key="CollectionOptionsComboConverter" />
+      <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
+      <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
     </Application.Resources>
   
     <Application.Styles>
