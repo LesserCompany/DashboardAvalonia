@@ -105,7 +105,7 @@
                             DragDrop.DragOver="Border_OnDragOver"
                             >
                         <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="&#xE752;" FontSize="20" Foreground="{StaticResource AccentButtonBackground}" FontFamily="Segoe Fluent Icons" VerticalAlignment="Center" HorizontalAlignment="Center"  />
+                            <Svg Path="/Assets/icons/upload-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
                             <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" />
                         </StackPanel>
                     </Border>

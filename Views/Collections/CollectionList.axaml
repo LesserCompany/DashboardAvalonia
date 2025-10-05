@@ -20,7 +20,7 @@
                 <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterProfessional" TextChanged="TextBox_TextChanged" />
             </Grid>
         </Grid>
-        <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" Grid.Row="1"  HorizontalAlignment="Stretch" Command="{Binding OpenNewCollectionViewCommand}" Background="Transparent" >
+        <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" Grid.Row="1"  HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
                 <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
                 <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />

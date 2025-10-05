@@ -34,7 +34,7 @@
     <StackPanel Grid.Row="1" Margin="10">
       <Button VerticalAlignment="Center" HorizontalAlignment="Center" >
         <StackPanel Orientation="Horizontal">
-          <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xe710;" VerticalAlignment="Center" />
+          <Svg Path="/Assets/icons/person-add.svg" Width="16" Height="16" VerticalAlignment="Center" />
           <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center" />
         </StackPanel>
       </Button> 

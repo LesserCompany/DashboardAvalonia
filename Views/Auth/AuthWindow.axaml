@@ -56,7 +56,7 @@
                  Watermark="{Tr 'Enter your password'}" />
           
          <Button Grid.Column="1" Command="{Binding ChangeVisibilityPassword}">
-           <TextBlock Text="{Binding IconEyes}" FontFamily="Segoe Fluent Icons" />
+           <Svg Path="{Binding IconEyes}" Width="16" Height="16" />
          </Button>
         </Grid>
         

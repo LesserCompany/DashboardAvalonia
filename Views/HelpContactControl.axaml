@@ -14,12 +14,7 @@
           <TextBlock Text="{Tr 'Support'}" FontSize="11" Foreground="White" VerticalAlignment="Center" Margin="2 0" />
           <Grid Width="20" Height="20">
             <Ellipse Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
-            <TextBlock Text="&#xE8F2;"
-               FontSize="11"
-               FontFamily="Segoe Fluent Icons"
-               Foreground="White"
-               VerticalAlignment="Center"
-               HorizontalAlignment="Center"/>
+            <Svg Path="/Assets/icons/whatsapp.svg" Width="11" Height="11" VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Grid>
         </StackPanel>
       </Button>

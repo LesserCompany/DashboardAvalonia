@@ -9,15 +9,126 @@
              x:Class="LesserDashboardClient.Views.Collections.QuickAccess">
 
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <WrapPanel Orientation="Horizontal" Margin="20"  HorizontalAlignment="Center">
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo0}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo1}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo2}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo3}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo4}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo5}" />
-      <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo6}" />
-    </WrapPanel>
+    <StackPanel Margin="20" Spacing="30">
+      
+      <!-- Seção Coleção Personalizada -->
+      <StackPanel>
+        <TextBlock Text="Coleção personalizada" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="#FFFFFF" 
+                   HorizontalAlignment="Left"
+                   Margin="0,0,0,20"/>
+        
+        <Border 
+            CornerRadius="8"
+            Width="360"
+            Height="280"
+            Padding="20" 
+            Margin="8"
+            BorderThickness="2"
+            BorderBrush="Black"
+            Background="#383735"
+            HorizontalAlignment="Left">
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Título e Descrição -->
+            <StackPanel Spacing="8" Grid.Row="0">
+              <!-- Título -->
+              <TextBlock FontWeight="Bold"
+                         TextWrapping="Wrap"
+                         Foreground="#FFFFFF"
+                         FontSize="18"
+                         Text="Coleção personalizada"/>
+
+              <!-- Descrição -->
+              <TextBlock TextWrapping="Wrap"
+                         Foreground="#E2DFDC"
+                         FontSize="12"
+                         Text="Crie uma coleção personalizada com configurações específicas para suas necessidades."/>
+
+              <!-- Ícone personalizado -->
+              <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
+                <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" 
+                        Fill="#ff9600" 
+                        Width="30" 
+                        Height="30"/>
+              </StackPanel>
+            </StackPanel>
+
+            <!-- Preço e Botão -->
+            <Grid Grid.Row="2" Margin="0,20,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              
+              <!-- Preço -->
+              <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                <TextBlock Text="Configuração personalizada"
+                           Foreground="#E2DFDC"
+                           FontSize="12"
+                           Margin="0,0,0,4"/>
+                <TextBlock FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#ff9600"
+                           Text="Sob consulta"/>
+              </StackPanel>
+
+              <!-- Botão -->
+              <Button Grid.Column="1"
+                      Background="Transparent"
+                      Foreground="#ff9600"
+                      BorderBrush="#ff9600"
+                      BorderThickness="1"
+                      CornerRadius="4"
+                      Content="Selecionar"
+                      Padding="16,8"
+                      VerticalAlignment="Bottom"
+                      Cursor="Hand"
+                      Command="{Binding OpenNewCollectionViewCommand}">
+                <Button.Styles>
+                  <Style Selector="Button:pointerover">
+                    <Setter Property="Background" Value="#ff9600"/>
+                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                    <Setter Property="BorderBrush" Value="#ff9600"/>
+                  </Style>
+                </Button.Styles>
+              </Button>
+            </Grid>
+          </Grid>
+        </Border>
+      </StackPanel>
+
+      <!-- Separador -->
+      <Border Height="1" Background="#666666" Margin="0,10,0,10"/>
+
+      <!-- Seção Combos -->
+      <StackPanel>
+        <TextBlock Text="Combos" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="#E2DFDC" 
+                   HorizontalAlignment="Left"
+                   Margin="0,0,0,20"/>
+        
+        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo0}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo1}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo2}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo3}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo4}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo5}" />
+          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo6}" />
+        </WrapPanel>
+      </StackPanel>
+      
+    </StackPanel>
   </ScrollViewer>
 
 </UserControl>

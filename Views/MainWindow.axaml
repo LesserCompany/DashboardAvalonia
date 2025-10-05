@@ -79,7 +79,7 @@
                   <local:AppVersionControl  />
                   <Button Margin="4 0 0 0" Background="{DynamicResource SystemChromeBlackMediumLowColor}">
                     <StackPanel Orientation="Horizontal" Spacing="4" >
-                      <TextBlock Foreground="{DynamicResource SystemAccentColor}" FontSize="10" FontFamily="Segoe Fluent Icons" Text="&#xe7ea;" VerticalAlignment="Center"  />
+                      <Svg Path="/Assets/icons/arrow-back.svg" Width="12" Height="12" VerticalAlignment="Center" />
                       <TextBlock FontSize="10" Foreground="White" Text="Voltar para versão anterior" VerticalAlignment="Center" />
                     </StackPanel>
                   </Button>

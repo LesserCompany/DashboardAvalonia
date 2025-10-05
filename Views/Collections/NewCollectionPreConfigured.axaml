@@ -12,7 +12,7 @@
              x:Class="LesserDashboardClient.Views.Collections.NewCollectionPreConfigured">
   <ScrollViewer Offset="{Binding ScrollComponentNewCollection}" Padding="30" >
 
-    <StackPanel Spacing="6" IsEnabled="{Binding !IsCreatingCollection}">
+    <StackPanel Spacing="6">
       <!-- Title -->
       <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
         <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
@@ -75,11 +75,7 @@
                   DragDrop.Drop="Border_OnDrop"
                   DragDrop.DragOver="Border_OnDragOver">
             <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="&#xE752;" FontSize="20"
-                         Foreground="{StaticResource AccentButtonBackground}"
-                         FontFamily="Segoe Fluent Icons"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Center" />
+              <Svg Path="/Assets/icons/upload-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
               <TextBlock Text="{Tr 'Drop your excel file here'}"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Center" />
@@ -167,12 +163,21 @@
       </Expander>
 
       <!-- Button Create new Collection -->
-      <Button Height="50" HorizontalContentAlignment="Center" Command="{Binding CreateCollectionCommand}" IsEnabled="{Binding !IsCreatingCollection}" >
+      <Button Height="50" 
+              Margin="30" 
+              HorizontalAlignment="Center" 
+              VerticalContentAlignment="Center"
+              HorizontalContentAlignment="Center" 
+              Command="{Binding CreateCollectionCommand}" 
+              IsEnabled="{Binding !IsCreatingCollection}">
         <StackPanel Orientation="Horizontal" Spacing="6">
           <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
           <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />
         </StackPanel>
       </Button>
+      
+      <!-- Extra space to ensure button is visible -->
+      <StackPanel Height="50" />
       
     </StackPanel>
     

@@ -22,7 +22,7 @@
           <Run Text="{Tr 'photos for free.'}" />
         </TextBlock>
         <Button VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" Command="{Binding OpenQuickAccessViewCommand}">
-          <TextBlock Cursor="Hand" ToolTip.Tip="Voltar para página inicial" Foreground="{DynamicResource SystemAccentColor}" FontFamily="Segoe Fluent Icons" Text="&#xea8a;"  />
+          <Svg Path="/Assets/icons/home.svg" Width="16" Height="16" Cursor="Hand" ToolTip.Tip="Voltar para página inicial" />
         </Button>
       </Grid>
 

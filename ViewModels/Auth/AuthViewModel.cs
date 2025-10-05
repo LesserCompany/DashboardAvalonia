@@ -85,8 +85,8 @@ namespace LesserDashboardClient.ViewModels.Auth
         [ObservableProperty] public bool loginIsRunning = false;
         [ObservableProperty] public bool isIncorrectCredentials = false;
         [ObservableProperty] public string erroMessage = "";
-        const string eyeOpen = "\uE7B3";
-        const string eyeClosed = "\uED1A";
+        const string eyeOpen = "/Assets/icons/eye.svg";
+        const string eyeClosed = "/Assets/icons/eye-off.svg";
         [ObservableProperty] public string iconEyes = eyeClosed;
         [ObservableProperty] public bool showPassword = false;
         [ObservableProperty] public string passwordChar = "*";
@@ -94,12 +94,12 @@ namespace LesserDashboardClient.ViewModels.Auth
         {
             if (newValue)
             {
-                IconEyes = eyeOpen;
+                IconEyes = eyeClosed; // Quando senha está visível, mostra ícone de ocultar
                 PasswordChar = "";
             }
             else
             {
-                IconEyes = eyeClosed;
+                IconEyes = eyeOpen; // Quando senha está oculta, mostra ícone de mostrar
                 PasswordChar = "*";
             }
         }
