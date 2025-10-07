@@ -1,0 +1,172 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             x:DataType="vm:CollectionsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Collections.NewsView">
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="20" Spacing="30">
+      
+      <!-- Banner Promocional -->
+      <local:Banners />
+      
+      <!-- Seção Novidades -->
+      <StackPanel>
+        <TextBlock Text="{Tr 'News'}" 
+                   FontSize="30" 
+                   FontWeight="Bold" 
+                   Foreground="#FFFFFF" 
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,20"/>
+        
+        <StackPanel Spacing="20">
+          
+          <!-- Notícia 01/01/25 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="01/01/25" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Conforme a política estabelecida nos Termos de Uso, a partir de 01/01/24, todos os valores sofrem hoje reajuste de acordo com a inflação medida de 11/23 até 11/24 conforme a calculadora do Banco Central.
+                Para mais informações, acesse o site: https://www.lesser.biz/lesser-system-helpers/pricing-page/index.html (copie e cole no navegador).
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 07/12/23 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="07/12/23" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Dê acesso aos formandos para que vejam as próprias fotos separadas online! Ofereça tratamento apenas para as fotos que os formandos solicitarem, e, se quiser,
+                forneça produtos como estojo personalizado e fotos impressas sob demanda.
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14" Margin="0,8,0,0">
+                Veja o site online para entender como funciona: https://visualizador.lesser.biz (copie e cole no navegador). Utilize o CPF 123456 para entrar.
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14" Margin="0,8,0,0">
+                Para mais informações, contate nosso suporte: +55 18 99688-0201.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 07/12/23 - Reajuste -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="07/12/23" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                A partir de 01/01/24, haverá reajuste nos valores em 4,61%, de acordo com a inflação em 2023 medida pelo IPCA. O valor por foto para separação passará
+                de 3.16 para 3.30 centavos por foto.
+                Não se trata de um aumento de preços, e sim de um reajuste de acordo com o aumento dos preços que ocorrem todos os anos em nosso país.
+                Somos uma equipe e, assim como nossos clientes, compramos leite, arroz e feijão, e por isso precisamos acompanhar os preços brasileiros.
+                Recomendamos aos nossos clientes, em especial aos microempreendedores, que também reajustem seus valores.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 24/02/23 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="24/02/23" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Conforme solicitações, foi adicionada a partir da versão 320 a opção de simplesmente não tagar as faces com má qualidade (fora de foco/em segundo plano/parcialmente encobertas).
+                Ainda é possível mantê-las como vermelhas ou simplesmente desabilitar a função e tagar todas as fotos.
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14" Margin="0,8,0,0">
+                Também, agora, ao pressionar ENTER, somente as faces com boa qualidade são tagadas. Pressione ENTER novamente para tagar todas, independente da qualidade.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 11/02/23 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="11/02/23" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Agora há o recurso de exclusão automática. Está disponível para novos uploads a partir de 11/02/23. O recurso está em suas fases iniciais
+                e ainda não funciona bem para fotos de grupos. Será mantido como gratuito para testar até 01/03/23, e a partir de então será adicionado uma taxa extra
+                visto que há aumento dos custos de processamento em nuvem. Feedback sobre o funcionamento e sobre casos em que não funciona bem são bem-vindos.
+              </TextBlock>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14" Margin="0,8,0,0">
+                Nas turmas em que o recurso estiver habilitado, o cliente deve perceber uma melhora significativa na precisão do reconhecimento, especialmente
+                naquelas turmas grandes nas quais o sistema acaba confundindo um com o outro. Isso ocorre porque faces de má qualidade são detectadas e ficam de fora do algoritmo
+                de reconhecimento facial.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 01/02/23 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="01/02/23" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Todos os valores de uso do software foram reajustados conforme o IPCA de 2022 em 5.79%. O valor de fotos individuais sem contratação de outros serviços passou de 3 para 3.16 centavos.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 03/01/22 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="03/01/22" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Melhoramos a capacidade de detecção do sistema, agora faces menores são reconhecidas.
+                Também, agora você não tem mais que esperar além do tempo do upload. O processamento das fotos será feito sempre em tempo real, instantaneamente.
+                Quanto mais rápida a internet, mais rápido o processo de reconhecimento.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 02/11/22 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="02/11/22" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                A partir da versão 307, o sistema passa a mostrar o formulário de Autotag logo que o sistema abre, a fim de incentivar o uso pelos clientes
+                que ainda não conhecem essa função.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 28/09/22 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="28/09/22" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Havia um bug que impedia o uso do botão "Reconhecer novamente usando a face selecionada acima". Isto foi corrigido a partir da versão 305.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 07/09/22 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="07/09/22" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                A partir da versão 302, é possível fazer reupload com a inclusão de novas fotos. Por exemplo, se você esqueceu de
+                incluir uma foto em um arquivo, agora é possível fazer o reupload com as fotos faltantes mesmo depois de abrir para separar.
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Notícia 05/09/22 -->
+          <Border CornerRadius="8" Padding="20" Background="#383735" BorderThickness="1" BorderBrush="#666666">
+            <StackPanel Spacing="8">
+              <TextBlock Text="05/09/22" FontWeight="Bold" FontSize="16" Foreground="#FFFFFF"/>
+              <TextBlock TextWrapping="Wrap" Foreground="#E2DFDC" FontSize="14">
+                Precisa separar fotos no sistema e precisa de alguém para fazer isso para você? Agora você pode contratar
+                um separador profissional para fazer isso por você. Para mais informações, entre em contato com o suporte: (18) 99688-0201
+              </TextBlock>
+            </StackPanel>
+          </Border>
+          
+        </StackPanel>
+      </StackPanel>
+      
+    </StackPanel>
+  </ScrollViewer>
+
+</UserControl>

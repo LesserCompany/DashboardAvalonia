@@ -54,5 +54,25 @@
   "None": {
     "en-US": "None",
     "pt-BR": "Nenhum"
+  },
+  "News": {
+    "en-US": "News",
+    "pt-BR": "Novidades"
+  },
+  "Refer Lesser and earn": {
+    "en-US": "Refer Lesser and earn",
+    "pt-BR": "Indique a Lesser e ganhe"
+  },
+  "10% commission": {
+    "en-US": "10% commission",
+    "pt-BR": "10% de comissão"
+  },
+  "on the use of clients you bring for 2 years!": {
+    "en-US": "on the use of clients you bring for 2 years!",
+    "pt-BR": "sobre o uso dos clientes que trouxer por 2 anos!"
+  },
+  "Your code:": {
+    "en-US": "Your code:",
+    "pt-BR": "Seu código:"
   }
 }

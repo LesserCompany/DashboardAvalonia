@@ -19,8 +19,8 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             get => LesserFunctionClient.loginFileResult.User.loginToken;
         }
 
-        private string baseUrl = "http://localhost:5173";
-        //private string baseUrl = "https://graduates-explorer.lesser.biz/search-graduates/";
+        //private string baseUrl = "http://localhost:5173";
+        private string baseUrl = "https://graduates-explorer.lesser.biz/";
         private string _urlSearchCPF = "";
         public string UrlSearchCPF
         {

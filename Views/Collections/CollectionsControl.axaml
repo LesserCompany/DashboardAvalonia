@@ -21,8 +21,8 @@
           <Run Text="{Binding RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}" Foreground="{DynamicResource SystemAccentColor}" />
           <Run Text="{Tr 'photos for free.'}" />
         </TextBlock>
-        <Button VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" Command="{Binding OpenQuickAccessViewCommand}">
-          <Svg Path="/Assets/icons/home.svg" Width="16" Height="16" Cursor="Hand" ToolTip.Tip="Voltar para página inicial" />
+        <Button VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="1" Command="{Binding ShowNewsCommand}">
+          <Svg Path="/Assets/icons/home.svg" Width="16" Height="16" Cursor="Hand" ToolTip.Tip="Voltar para novidades" />
         </Button>
       </Grid>
 
@@ -31,6 +31,7 @@
       -->
       <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
       <local:Banners Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentBannersIsVisible}" />
+      <local:NewsView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewsViewIsVisible}" />
       <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisible}" Margin="5" />
       <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />
       <local:NewCollectionPreConfigured Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionPreConfiguredIsVisible}"  Margin="5" />

@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
-             xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              x:DataType="vm:CollectionsViewModel"
              x:Class="LesserDashboardClient.Views.Collections.Banners">
   <Border
@@ -22,14 +21,12 @@
       </LinearGradientBrush>
     </Border.Background>
 
-
     <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="16" VerticalAlignment="Center">
       <!-- Badge / Icon Circle -->
       <Border Grid.RowSpan="2" Width="48" Height="48" CornerRadius="999"
       Background="#1FFFFFFF" HorizontalAlignment="Left" VerticalAlignment="Top">
         <TextBlock Text="★" FontSize="24" HorizontalAlignment="Center" VerticalAlignment="Center"/>
       </Border>
-
 
       <!-- Headline -->
       <TextBlock Grid.Column="1"
@@ -39,12 +36,11 @@
       FontWeight="Bold"
       Foreground="White"
       TextAlignment="Center"
-      Text="Indique a Lesser e ganhe 10% de comissão sobre o uso dos clientes que trouxer por 2 anos!"/>
-
+      Text="{Tr 'Refer Lesser and earn'} {Tr '10% commission'} {Tr 'on the use of clients you bring for 2 years!'}"/>
 
       <!-- Code Row -->
       <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
-        <TextBlock Text="Seu código:" FontSize="30" FontWeight="SemiBold" Foreground="#F0F0F0" VerticalAlignment="Center"/>
+        <TextBlock Text="{Tr 'Your code:'}" FontSize="30" FontWeight="SemiBold" Foreground="#F0F0F0" VerticalAlignment="Center"/>
         <Border Background="#1AFFFFFF" CornerRadius="8" Padding="10,6">
           <SelectableTextBlock Text="test112024" FontSize="30" FontFamily="Consolas, Menlo, Monaco, 'Cascadia Code'" Foreground="White" VerticalAlignment="Center"/>
         </Border>

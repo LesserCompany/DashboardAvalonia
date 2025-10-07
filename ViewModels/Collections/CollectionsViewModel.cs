@@ -1,4 +1,4 @@
-﻿using Avalonia.Interactivity;
+using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -82,6 +82,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         QuickAccess,
         Banners,
+        NewsView,
         NewCollection,
         NewCollectionPreConfigured,
         CollectionView,
@@ -89,13 +90,14 @@ public partial class CollectionsViewModel : ViewModelBase
         CancelBilling
     }
     [ObservableProperty]
-    private ActiveViews activeComponent = ActiveViews.QuickAccess;
+    private ActiveViews activeComponent = ActiveViews.NewsView;
     private ActiveViews lastActiveComponent;
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
 
         OnPropertyChanged(nameof(ComponentBannersIsVisible));
+        OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
         OnPropertyChanged(nameof(ComponentSelectProfessionalIsIsVisible));
@@ -105,6 +107,7 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     public bool ComponentQuickAccessIsVisible => ActiveComponent == ActiveViews.QuickAccess;
     public bool ComponentBannersIsVisible => ActiveComponent == ActiveViews.Banners;
+    public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
     public bool ComponentNewCollectionIsVisible => ActiveComponent == ActiveViews.NewCollection;
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
@@ -212,9 +215,16 @@ public partial class CollectionsViewModel : ViewModelBase
 
     [ObservableProperty] public List<Professional> professionals = new();
     [ObservableProperty] public Professional selectedProfessional;
+    private bool isFirstProfessionalSelection = true;
     partial void OnSelectedProfessionalChanged(Professional value)
     {
-        BackLasViewCommand();
+        // N�o volta para a �ltima view na primeira sele��o autom�tica
+        if (!isFirstProfessionalSelection)
+        {
+            BackLasViewCommand();
+        }
+        isFirstProfessionalSelection = false;
+        
         if(SelectedCollection != null)
             SelectedCollection.professionalLogin = SelectedProfessional.username;
         CurrentProfessionalName = SelectedProfessional.username;
@@ -577,13 +587,13 @@ public partial class CollectionsViewModel : ViewModelBase
         (bool isThereFilepathTooLong, string firstFilepathTooLong) = FileHelper.FileListHasFilepathsLargerThan(files, 200);
 
         if (isThereFilepathTooLong)
-            return (false, "O caminho do arquivo " + firstFilepathTooLong + " é muito longo, por isso o Windows não permite ao programa acessá-lo. O máximo permitido são 200 caracteres.");
+            return (false, "O caminho do arquivo " + firstFilepathTooLong + " � muito longo, por isso o Windows n�o permite ao programa acess�-lo. O m�ximo permitido s�o 200 caracteres.");
 
         (bool isThereFilepathWithProhibitedCharacter, string firstFilepathWithProhibitedCharacter, string prohibitedCharacterFound)
             = FileHelper.FileListHasFilepathWithProhibitedCharacter(files, new string[] { "&", ";" });
 
         if (isThereFilepathWithProhibitedCharacter)
-            return (false, "O caminho " + firstFilepathWithProhibitedCharacter + " possui o caracter " + prohibitedCharacterFound + ", que não é permitido.");
+            return (false, "O caminho " + firstFilepathWithProhibitedCharacter + " possui o caracter " + prohibitedCharacterFound + ", que n�o � permitido.");
 
         foreach (FileInfo c in files)
         {
@@ -598,7 +608,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         break;
                     }
                 }
-                return (false, $"Não é permitido utilizar o caractere '{chBlocked}' no nome do arquivo \"{c.FullName}\".\nRenomeie o arquivo e tente novamente.");
+                return (false, $"N�o � permitido utilizar o caractere '{chBlocked}' no nome do arquivo \"{c.FullName}\".\nRenomeie o arquivo e tente novamente.");
             }
         }
 
@@ -612,7 +622,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (p == null)
         {
-            Console.WriteLine("O processo é nulo");
+            Console.WriteLine("O processo � nulo");
             return;
         }
         try
@@ -767,10 +777,10 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                //Redundancia  necessária pois ha casos em que alternar rapidamente entre turmas faz com que haja um erro dentro do LesserFunctionClient.General.cs, arquivo que não é recomendável alterar por enquanto.
-                //Acredito que o erro seja ocasionado porque a response chega depois que o objeto já foi destruído, ou seja, o objeto que chama o método já não existe mais.
-                //Colocar qualquer tipo de trava para aguardar uma chamada acontecer prejudica a experiência do usuário para esse caso.
-                //Para conservar a boa experiência do usuário, o melhor é tratar o erro internamente e deixar o programa seguir sem problemas ou avisos.
+                //Redundancia  necess�ria pois ha casos em que alternar rapidamente entre turmas faz com que haja um erro dentro do LesserFunctionClient.General.cs, arquivo que n�o � recomend�vel alterar por enquanto.
+                //Acredito que o erro seja ocasionado porque a response chega depois que o objeto j� foi destru�do, ou seja, o objeto que chama o m�todo j� n�o existe mais.
+                //Colocar qualquer tipo de trava para aguardar uma chamada acontecer prejudica a experi�ncia do usu�rio para esse caso.
+                //Para conservar a boa experi�ncia do usu�rio, o melhor � tratar o erro internamente e deixar o programa seguir sem problemas ou avisos.
                 try
                 {
                     if (GlobalAppStateViewModel.lfc == null || SelectedCollection == null || SelectedSeparationFile == null)
@@ -785,7 +795,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 catch (Exception ex)
                 {
                     SeparationProgressValue = null;
-                    Console.WriteLine("Erro ao obter progresso de separação: " + ex.Message);
+                    Console.WriteLine("Erro ao obter progresso de separa��o: " + ex.Message);
                 }
             }
         }
@@ -838,7 +848,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 photoPath.Replace(recFolder, "");
             if (!File.Exists(recFolder + "/" + photoPath))
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " não existe.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " n�o existe.");
                 break;
             }
             gradByCPF.ShortPath = photoPath;
@@ -875,7 +885,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         };
                     var falseValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                         {
-                            "não","nao", "no", "not", "n", "false","f","ñ","falso","0"
+                            "n�o","nao", "no", "not", "n", "false","f","�","falso","0"
                         };
                     if (trueValues.Contains(blockedCell))
                     {
@@ -903,7 +913,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         };
                     var falseValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                         {
-                            "acesso negado","acesso_negado","negado","access denied","access_denied","não", "no", "not", "n","nao", "false","f","ñ","falso","0"
+                            "acesso negado","acesso_negado","negado","access denied","access_denied","n�o", "no", "not", "n","nao", "false","f","�","falso","0"
                         };
                     if (trueValues.Contains(blockTypeCell))
                     {
@@ -924,7 +934,11 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             if (GlobalAppStateViewModel.lfc != null)
             {
-                RemainingFreeTrialPhotosResult = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos2();
+                var result = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos2();
+                if (result.success)
+                {
+                    RemainingFreeTrialPhotosResult = result.Content;
+                }
             }
             return;
         }
@@ -942,7 +956,15 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenQuickAccessViewCommand()
     {
+        // Sempre mostra os combos (QuickAccess) para criar nova cole��o
         ActiveComponent = ActiveViews.QuickAccess;
+    }
+    
+    [RelayCommand]
+    public void ShowNewsCommand()
+    {
+        // Sempre mostra as novidades (usado pelo bot�o Home)
+        ActiveComponent = ActiveViews.NewsView;
     }
 
     [RelayCommand]
@@ -951,7 +973,7 @@ public partial class CollectionsViewModel : ViewModelBase
         IsReupload = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
-        ActiveComponent = ActiveViews.NewCollection;
+        ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova cole��o personalizada
 
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
@@ -1162,20 +1184,20 @@ public partial class CollectionsViewModel : ViewModelBase
             bool shouldNotifyPipedriveAboutFreeTrialLimitReached = false;
             if (RemainingFreeTrialPhotosResult.IsFreeTrialActive)
             {
-                //VERIFICA SE É O PRIMEIRO USO DO SISTEMA
+                //VERIFICA SE � O PRIMEIRO USO DO SISTEMA
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
                 int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
-                //VERIFICA SE A QUOTA DE TESTE ESTÁ PASSANDO DE 50%
+                //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
                 if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
 
-                //VERIFICA SE A QUOTA DE TESTE ESTÁ SENDO EXCEDIDA
+                //VERIFICA SE A QUOTA DE TESTE EST� SENDO EXCEDIDA
                 if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
+                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Voc� esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estar�o sujeitas a cobran�a.", "Limite m�ximo de fotos gratuitas atingido.");
                     if (dialog != true)
                         return;
                 }
@@ -1318,8 +1340,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk("Não foi possível preencher os dados automaticamente. " +
-                "Será necessário inserir manualmente o nome da pasta e inserir o arquivo separacao.hermes no local correto manualmente.");
+            GlobalAppStateViewModel.Instance.ShowDialogOk("N�o foi poss�vel preencher os dados automaticamente. " +
+                "Ser� necess�rio inserir manualmente o nome da pasta e inserir o arquivo separacao.hermes no local correto manualmente.");
         }
         finally
         {
@@ -1384,7 +1406,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             BtRequestManualTreatmentAllCollectionIsEnabled = false;
             BtRequestManualTreatmentAllCollectionIsRunning = true;
-            bool dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Tem certeza que deseja solicitar o tratamento manual de todas as imagens da sua coleção? \n Ação Irreversível", "Atenção");
+            bool dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Tem certeza que deseja solicitar o tratamento manual de todas as imagens da sua cole��o? \n A��o Irrevers�vel", "Aten��o");
 
             if (dialog == true)
             {
@@ -1406,7 +1428,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (Directory.Exists(TbRecFolder) == false)
         {
-            //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
+            //MessageBox.Show("A pasta de reconhecimentos especificada n�o existe.");
             return;
         }
         var gradPhotos = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
@@ -1491,7 +1513,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
                 catch
                 {
-                    GlobalAppStateViewModel.Instance.ShowDialogOk("A pasta " + excelFile.Directory.FullName + "näo pôde ser criada. Verifique se está acessível.");
+                    GlobalAppStateViewModel.Instance.ShowDialogOk("A pasta " + excelFile.Directory.FullName + "n�o p�de ser criada. Verifique se est� acess�vel.");
                     return;
                 }
                 excel.SaveAs(excelFile);
@@ -1502,7 +1524,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 p.StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = excelFile.ToString(),
-                    UseShellExecute = true // <- necessário para abrir com o aplicativo padrão
+                    UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
                 };
                 p.Start();
 
@@ -1548,7 +1570,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(SelectedCollection.classCode);
                 SelectedCollectionForCancelBilling.BillingCancelled = pt.BillingCancelled;
                 FilterProfessionalTasks("","");
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Cobrança do contrato cancelada com sucesso.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Cobran�a do contrato cancelada com sucesso.");
                 await OpenSelectProfessionalViewCommand();
             }
 
@@ -1566,11 +1588,11 @@ public partial class CollectionsViewModel : ViewModelBase
             GeneratingGeneralReport = true;
             if (SeparationProgressValue == null)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Não foram encontrados dados no servidor sobre esta turma, ou houve problema na conexão. O profissional já separou esta turma?");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("N�o foram encontrados dados no servidor sobre esta turma, ou houve problema na conex�o. O profissional j� separou esta turma?");
                 return;
             }
             var photographers = SeparationProgressValue.photographers;
-            var stringList = new List<string>() { "Dados sobre a turma " + SeparationProgressValue.code, "Fotógrafo,Total de fotos,Fotos aproveitadas" };
+            var stringList = new List<string>() { "Dados sobre a turma " + SeparationProgressValue.code, "Fot�grafo,Total de fotos,Fotos aproveitadas" };
             foreach (Photographer p in photographers)
             {
                 stringList.Add(p.name + ";" + p.totalPhotos + ";" + p.totalPhotosUtilized);
@@ -1586,7 +1608,7 @@ public partial class CollectionsViewModel : ViewModelBase
             proc.StartInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = fileName,
-                UseShellExecute = true // <- necessário para abrir com o aplicativo padrão
+                UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
             };
             proc.Start();
         }
@@ -1666,7 +1688,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         p.StartInfo = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = file.FullName,
-                            UseShellExecute = true // <- necessário para abrir com o aplicativo padrão
+                            UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
                         };
                         p.Start();
                     }
@@ -1691,7 +1713,7 @@ public partial class CollectionsViewModel : ViewModelBase
             p.StartInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "https://www.lesser.biz/lesser-system-helpers/pricing-page/index.html",
-                UseShellExecute = true // <- necessário para abrir com o aplicativo padrão
+                UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
             };
             p.Start();
         }
@@ -1702,7 +1724,7 @@ public partial class CollectionsViewModel : ViewModelBase
     #region Dynamic Pricing
 
     /// <summary>
-    /// Carrega preços dinâmicos para todos os combos
+    /// Carrega pre�os din�micos para todos os combos
     /// </summary>
     private async void LoadDynamicPrices()
     {
@@ -1710,20 +1732,20 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             Console.WriteLine("CollectionsViewModel: Iniciando LoadDynamicPrices");
             
-            // Verificar se o cliente está inicializado
+            // Verificar se o cliente est� inicializado
             if (GlobalAppStateViewModel.lfc == null)
             {
-                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc não está inicializado, aguardando...");
+                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc n�o est� inicializado, aguardando...");
                 // Aguardar um pouco e tentar novamente
                 await Task.Delay(2000);
                 if (GlobalAppStateViewModel.lfc == null)
                 {
-                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda não está inicializado, usando preços estáticos");
+                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda n�o est� inicializado, usando pre�os est�ticos");
                     return;
                 }
             }
             
-            // Array com todos os combos disponíveis
+            // Array com todos os combos dispon�veis
             var combos = new[]
             {
                 NewCollection_Combo0,
@@ -1735,28 +1757,28 @@ public partial class CollectionsViewModel : ViewModelBase
                 NewCollection_Combo6
             };
 
-            Console.WriteLine($"CollectionsViewModel: Carregando preços para {combos.Length} combos");
+            Console.WriteLine($"CollectionsViewModel: Carregando pre�os para {combos.Length} combos");
             
-            // Log dos preços antes do carregamento
+            // Log dos pre�os antes do carregamento
             foreach (var combo in combos)
             {
-                Console.WriteLine($"CollectionsViewModel: Preço ANTES do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
+                Console.WriteLine($"CollectionsViewModel: Pre�o ANTES do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
             }
 
-            // Carregar preços dinâmicos
+            // Carregar pre�os din�micos
             await ComboPriceService.UpdateCombosWithDynamicPricesAsync(combos);
             
-            // Log dos preços depois do carregamento
+            // Log dos pre�os depois do carregamento
             foreach (var combo in combos)
             {
-                Console.WriteLine($"CollectionsViewModel: Preço DEPOIS do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
+                Console.WriteLine($"CollectionsViewModel: Pre�o DEPOIS do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
             }
             
-            // Notificar mudanças na UI thread
+            // Notificar mudan�as na UI thread
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Console.WriteLine("CollectionsViewModel: Notificando mudanças na UI");
-                // Forçar atualização das propriedades de preço
+                Console.WriteLine("CollectionsViewModel: Notificando mudan�as na UI");
+                // For�ar atualiza��o das propriedades de pre�o
                 OnPropertyChanged(nameof(NewCollection_Combo0));
                 OnPropertyChanged(nameof(NewCollection_Combo1));
                 OnPropertyChanged(nameof(NewCollection_Combo2));
@@ -1764,19 +1786,19 @@ public partial class CollectionsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(NewCollection_Combo4));
                 OnPropertyChanged(nameof(NewCollection_Combo5));
                 OnPropertyChanged(nameof(NewCollection_Combo6));
-                Console.WriteLine("CollectionsViewModel: Mudanças notificadas na UI");
+                Console.WriteLine("CollectionsViewModel: Mudan�as notificadas na UI");
             });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar preços dinâmicos: {ex.Message}");
+            Console.WriteLine($"Erro ao carregar pre�os din�micos: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            // Em caso de erro, os combos continuarão usando os preços estáticos
+            // Em caso de erro, os combos continuar�o usando os pre�os est�ticos
         }
     }
 
     /// <summary>
-    /// Recarrega os preços dinâmicos (útil para refresh manual)
+    /// Recarrega os pre�os din�micos (�til para refresh manual)
     /// </summary>
     [RelayCommand]
     public void RefreshPrices()

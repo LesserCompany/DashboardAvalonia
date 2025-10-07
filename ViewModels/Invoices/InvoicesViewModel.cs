@@ -20,8 +20,8 @@ namespace LesserDashboardClient.ViewModels.Invoices
             get => LesserFunctionClient.loginFileResult.User.loginToken;
         }
 
-        private string baseUrl = "http://localhost:5173/invoices/";
-        //private string baseUrl = "https://graduates-explorer.lesser.biz/invoices/";
+        //private string baseUrl = "http://localhost:5173/invoices/";
+        private string baseUrl = "https://graduates-explorer.lesser.biz/invoices/";
         private string _url = "";
         public string Url
         {
