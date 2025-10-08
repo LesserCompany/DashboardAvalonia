@@ -4,17 +4,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.AutoTreatmentIcon">
-  <Grid>
-    <Viewbox Stretch="Uniform" >
-      <Border Background="#383735"
-              CornerRadius="6"
-              BorderBrush="#E2DFDC"
-              BorderThickness="1"
-              Padding="6"
-              HorizontalAlignment="Stretch"
-              VerticalAlignment="Stretch">
-        <Svg Path="/Assets/icons/treatment_simbol3.svg" Cursor="Help" ToolTip.Tip="Essa turma possui Tratamento Automático." />
-      </Border>
-    </Viewbox>
-  </Grid>
+  <Viewbox Stretch="Uniform">
+    <Border Background="#383735"
+            CornerRadius="6"
+            BorderBrush="#E2DFDC"
+            BorderThickness="1"
+            Padding="6">
+      <TextBlock
+          Text="✨"
+          FontSize="16"
+          VerticalAlignment="Center"
+          HorizontalAlignment="Center"
+          Cursor="Help"
+          ToolTip.Tip="Essa turma possui Tratamento Automático." />
+    </Border>
+  </Viewbox>
 </UserControl>

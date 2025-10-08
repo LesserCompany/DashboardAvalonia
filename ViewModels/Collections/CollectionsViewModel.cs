@@ -265,10 +265,10 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public CollectionsViewModel()
     {
-        LoadProfessionalTasks();
-        Task.Run(()=>LoadProfessionals());
-        GetInfosAboutFreeTrialPeriod();
-        LoadDynamicPrices();
+        _ = LoadProfessionalTasks();
+        _ = LoadProfessionals();
+        //GetInfosAboutFreeTrialPeriod();
+       // LoadDynamicPrices();
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>
@@ -281,34 +281,62 @@ public partial class CollectionsViewModel : ViewModelBase
         timerUpdateView.Start();
     }
 
-
-    public async void LoadProfessionalTasks()
+    public async Task LoadProfessionalTasks()
     {
         try
         {
-            CollectionsListIsLoading = true;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                CollectionsListIsLoading = true;
+                IsEnabledFilters = false;
+            });
+
             var r = await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks();
 
             if (r != null)
             {
-                CollectionsList = new ObservableCollection<ProfessionalTask>(r
-                    //r.OrderBy(x => x.CreationDate).Reverse()
-                );
-                CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
-                //CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList.OrderBy(x => x.CreationDate).Reverse());
+                // Limpar listas existentes na UI thread
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    CollectionsList.Clear();
+                    CollectionsListFiltered.Clear();
+                });
+
+                // Carregar em batches para não travar a UI
+                const int batchSize = 10; // Ajuste este valor conforme necessário
+                for (int i = 0; i < r.Count; i += batchSize)
+                {
+                    var batch = r.Skip(i).Take(batchSize).ToList();
+                    
+                    // Adicionar batch na UI thread
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        foreach (var task in batch)
+                        {
+                            CollectionsList.Add(task);
+                            CollectionsListFiltered.Add(task);
+                        }
+                    });
+                    
+                    // Pequeno delay para permitir que a UI renderize
+                    await Task.Delay(1);
+                }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            return;
         }
         finally
         {
-            CollectionsListIsLoading = false;
-            IsEnabledFilters = true;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                CollectionsListIsLoading = false;
+                IsEnabledFilters = true;
+            });
         }
     }
+
     public async Task UpdateProfessionalTasksList(ProfessionalTask pt = null)
     {
         try

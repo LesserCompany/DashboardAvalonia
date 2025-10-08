@@ -59,13 +59,13 @@
 
         <!-- Ícones -->
         <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
-          <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
                          Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
                                 Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:AutoTreatmentIcon IsVisible="{Binding CollectionCombo.AutoTreatment, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          <local:AutoTreatmentIcon IsVisible="{Binding CollectionCombo.AutoTreatment, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
                                    Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:HdAndTreatmentCollection IsVisible="{Binding CollectionCombo.BackupHd, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
+          <local:HdAndTreatmentCollection IsVisible="{Binding CollectionCombo.BackupHd, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
                                           Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
         </StackPanel>
       </StackPanel>

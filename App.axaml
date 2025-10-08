@@ -19,6 +19,7 @@
       <converters:CollectionOptionsComboConverter x:Key="CollectionOptionsComboConverter" />
       <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
       <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
+      <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
     </Application.Resources>
   
     <Application.Styles>

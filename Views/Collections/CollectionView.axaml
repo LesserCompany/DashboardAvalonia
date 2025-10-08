@@ -44,13 +44,13 @@
               <ProgressBar  IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Maximum="{Binding TotalPhotosForRecognition}" Value="{Binding TotalPhotosForRecognitionDone}" Grid.Column="1" Height="35"  ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
 
               <!-- Row 2 -->
-              <Grid Grid.Row="1" Grid.Column="0"  Grid.ColumnSpan="2" IsVisible="{Binding SelectedCollection.AutoTreatment, FallbackValue=False}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
+              <Grid Grid.Row="1" Grid.Column="0"  Grid.ColumnSpan="2" IsVisible="{Binding SelectedCollection.AutoTreatment, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right"  Text="{Tr 'Enhancement on the server:'}" />
                 <ProgressBar  IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Grid.Column="1" Maximum="{Binding TotalPhotosForAutoTreatment}" Value="{Binding TotalPhotosForAutoTreatmentDone}" Height="35" ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
               </Grid>
 
               <!-- Row 3 -->
-              <Grid Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" IsVisible="{Binding SelectedCollection.OCR, FallbackValue=False}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
+              <Grid Grid.Row="2" Grid.Column="0"  Grid.ColumnSpan="2" IsVisible="{Binding SelectedCollection.OCR, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right"  Text="{Tr 'OCR on the server:'}" />
                 <ProgressBar  IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Grid.Column="1" Maximum="{Binding TotalPhotosForOCR}" Value="{Binding TotalPhotosForOCRDone}" Height="35" ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
               </Grid>
