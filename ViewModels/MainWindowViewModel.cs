@@ -13,6 +13,7 @@ using SharedClientSide.ServerInteraction;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LesserDashboardClient.ViewModels;
@@ -132,6 +133,93 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             App.StartAuthWindow();
         });
+    }
+
+    [RelayCommand]
+    public async Task GoBackToPreviousVersionCommand()
+    {
+        try
+        {
+            // Mostrar confirmação antes de fechar
+            var messageBox = MessageBoxManager.GetMessageBoxStandard(
+                "Confirmação", 
+                "Deseja realmente voltar para a versão anterior do dashboard? A aplicação atual será fechada.",
+                MsBox.Avalonia.Enums.ButtonEnum.YesNo,
+                MsBox.Avalonia.Enums.Icon.Question);
+
+            var result = await messageBox.ShowWindowDialogAsync(MainWindow.instance);
+            
+            if (result == MsBox.Avalonia.Enums.ButtonResult.Yes)
+            {
+                // Tentar abrir a versão anterior do LesserDashboard (WPF)
+                await StartPreviousVersionDashboard();
+                
+                // Fechar a aplicação atual
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                    {
+                        desktop.Shutdown();
+                    }
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            var errorBox = MessageBoxManager.GetMessageBoxStandard(
+                "Erro", 
+                $"Erro ao tentar abrir a versão anterior: {ex.Message}",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error);
+            await errorBox.ShowWindowDialogAsync(MainWindow.instance);
+        }
+    }
+
+    private async Task StartPreviousVersionDashboard()
+    {
+        try
+        {
+            // Caminho para as versões do LesserDashboard (WPF) conforme informado pelo usuário
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string appVersionsPath = Path.Combine(documentsPath, "Separacao", "apps", "LesserDashboard", "v");
+            
+            string previousVersionPath = "";
+            
+            if (Directory.Exists(appVersionsPath))
+            {
+                // Buscar todas as versões disponíveis, excluindo a versão atual
+                var versionDirs = Directory.GetDirectories(appVersionsPath)
+                    .Where(d => !d.EndsWith(GetParentFolderName())) // Excluir a versão atual
+                    .OrderByDescending(d => d) // Ordenar por nome (versão mais recente primeiro)
+                    .ToArray();
+                
+                if (versionDirs.Length > 0)
+                {
+                    // Pegar a versão mais recente disponível (que não seja a atual)
+                    previousVersionPath = Path.Combine(versionDirs[0], "LesserDashboard.exe");
+                }
+            }
+
+            if (File.Exists(previousVersionPath))
+            {
+                // Abrir diretamente com Process.Start usando o caminho encontrado
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = previousVersionPath,
+                    UseShellExecute = true
+                });
+            }
+            else
+            {
+                // Fallback: tentar usar AppInstaller se não encontrar versão específica
+                SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { });
+                await installer.startApp();
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Não foi possível localizar ou executar a versão anterior do dashboard: {ex.Message}");
+        }
     }
 
 }

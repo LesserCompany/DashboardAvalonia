@@ -81,7 +81,6 @@ public partial class CollectionsViewModel : ViewModelBase
     public enum ActiveViews
     {
         QuickAccess,
-        Banners,
         NewsView,
         NewCollection,
         NewCollectionPreConfigured,
@@ -96,7 +95,6 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         lastActiveComponent = oldValue;
 
-        OnPropertyChanged(nameof(ComponentBannersIsVisible));
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
@@ -106,7 +104,6 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
     }
     public bool ComponentQuickAccessIsVisible => ActiveComponent == ActiveViews.QuickAccess;
-    public bool ComponentBannersIsVisible => ActiveComponent == ActiveViews.Banners;
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
     public bool ComponentNewCollectionIsVisible => ActiveComponent == ActiveViews.NewCollection;
@@ -267,8 +264,8 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         _ = LoadProfessionalTasks();
         _ = LoadProfessionals();
-        //GetInfosAboutFreeTrialPeriod();
-       // LoadDynamicPrices();
+        GetInfosAboutFreeTrialPeriod();
+        LoadDynamicPrices();
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>

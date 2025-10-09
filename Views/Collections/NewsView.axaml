@@ -11,8 +11,6 @@
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="20" Spacing="30">
       
-      <!-- Banner Promocional -->
-      <local:Banners />
       
       <!-- Seção Novidades -->
       <StackPanel>
