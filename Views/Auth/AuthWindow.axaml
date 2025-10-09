@@ -27,7 +27,7 @@
         <Image Width="96" Height="96">
           <SvgImage Source="{Binding PathLogo}" />
         </Image>
-        <TextBlock Text="Login"
+        <TextBlock Text="{Tr 'Login'}"
                    FontSize="24"
                    FontWeight="Bold"
                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"

@@ -19,8 +19,8 @@
           Height="{DynamicResource DefaultHeightCard}"
           Padding="20" Margin="8"
           BorderThickness="2"
-          BorderBrush="Black"
-          Background="#383735"
+          BorderBrush="{DynamicResource BorderBrushCustom}"
+          Background="{DynamicResource CardBackgroundInactiveBrush}"
           HorizontalAlignment="Stretch">
     <!--
     <Border.BorderBrush>
@@ -46,14 +46,14 @@
         <!-- Título -->
         <TextBlock FontWeight="Bold"
                    TextWrapping="Wrap"
-                   Foreground="#FFFFFF"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
                    FontSize="18"
                    Text="{Binding CollectionCombo.ComboTitle, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
         <!-- Descrição -->
         <TextBlock TextWrapping="Wrap"
                    ToolTip.Tip="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
-                   Foreground="#E2DFDC"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    FontSize="12"
                    Text="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
@@ -79,24 +79,24 @@
         
         <!-- Preço -->
         <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-          <TextBlock Text="Preço de 1000 fotos"
-                     Foreground="#E2DFDC"
+          <TextBlock Text="{Tr 'Price for 1000 photos'}"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
                      FontSize="12"
                      Margin="0,0,0,4"/>
           <TextBlock FontSize="24"
                      FontWeight="Bold"
-                     Foreground="#ff9600"
+                     Foreground="{DynamicResource SystemAccentColor}"
                      Text="{Binding CollectionCombo.ComboPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}, StringFormat='R$ {0:0.00}'}"/>
         </StackPanel>
 
         <!-- Botão -->
         <Button Grid.Column="1"
                 Background="Transparent"
-                Foreground="#ff9600"
-                BorderBrush="#ff9600"
+                Foreground="{DynamicResource SystemAccentColor}"
+                BorderBrush="{DynamicResource SystemAccentColor}"
                 BorderThickness="1"
                 CornerRadius="4"
-                Content="Selecionar"
+                Content="{Tr 'Select'}"
                 Padding="16,8"
                 VerticalAlignment="Bottom"
                 Cursor="Hand"
@@ -104,9 +104,9 @@
                 CommandParameter="{Binding CollectionCombo, RelativeSource={RelativeSource AncestorType=local:CardCombo}}">
           <Button.Styles>
             <Style Selector="Button:pointerover">
-              <Setter Property="Background" Value="#ff9600"/>
-              <Setter Property="Foreground" Value="#FFFFFF"/>
-              <Setter Property="BorderBrush" Value="#ff9600"/>
+              <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+              <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+              <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
             </Style>
           </Button.Styles>
         </Button>

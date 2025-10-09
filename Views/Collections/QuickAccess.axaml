@@ -13,10 +13,10 @@
       
       <!-- Seção Coleção Personalizada -->
       <StackPanel>
-        <TextBlock Text="Coleção personalizada" 
+        <TextBlock Text="{Tr 'Custom Collection'}" 
                    FontSize="24" 
                    FontWeight="Bold" 
-                   Foreground="#FFFFFF" 
+                   Foreground="{DynamicResource TextPrimaryBrush}" 
                    HorizontalAlignment="Left"
                    Margin="0,0,0,20"/>
         
@@ -27,8 +27,8 @@
             Padding="20" 
             Margin="8"
             BorderThickness="2"
-            BorderBrush="Black"
-            Background="#383735"
+            BorderBrush="{DynamicResource BorderBrushCustom}"
+            Background="{DynamicResource CardBackgroundInactiveBrush}"
             HorizontalAlignment="Left">
           <Grid>
             <Grid.RowDefinitions>
@@ -42,20 +42,20 @@
               <!-- Título -->
               <TextBlock FontWeight="Bold"
                          TextWrapping="Wrap"
-                         Foreground="#FFFFFF"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
                          FontSize="18"
-                         Text="Coleção personalizada"/>
+                         Text="{Tr 'Custom Collection'}"/>
 
               <!-- Descrição -->
               <TextBlock TextWrapping="Wrap"
-                         Foreground="#E2DFDC"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
                          FontSize="12"
-                         Text="Crie uma coleção personalizada com configurações específicas para suas necessidades."/>
+                         Text="{Tr 'Create a custom collection with specific settings for your needs.'}"/>
 
               <!-- Ícone personalizado -->
               <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
                 <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" 
-                        Fill="#ff9600" 
+                        Fill="{DynamicResource SystemAccentColor}" 
                         Width="30" 
                         Height="30"/>
               </StackPanel>
@@ -70,33 +70,33 @@
               
               <!-- Preço -->
               <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-                <TextBlock Text="Configuração personalizada"
-                           Foreground="#E2DFDC"
+                <TextBlock Text="{Tr 'Custom configuration'}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            FontSize="12"
                            Margin="0,0,0,4"/>
                 <TextBlock FontSize="24"
                            FontWeight="Bold"
-                           Foreground="#ff9600"
-                           Text="Sob consulta"/>
+                           Foreground="{DynamicResource SystemAccentColor}"
+                           Text="{Tr 'On consultation'}"/>
               </StackPanel>
 
               <!-- Botão -->
               <Button Grid.Column="1"
                       Background="Transparent"
-                      Foreground="#ff9600"
-                      BorderBrush="#ff9600"
+                      Foreground="{DynamicResource SystemAccentColor}"
+                      BorderBrush="{DynamicResource SystemAccentColor}"
                       BorderThickness="1"
                       CornerRadius="4"
-                      Content="Selecionar"
+                      Content="{Tr 'Select'}"
                       Padding="16,8"
                       VerticalAlignment="Bottom"
                       Cursor="Hand"
                       Command="{Binding OpenNewCollectionViewCommand}">
                 <Button.Styles>
                   <Style Selector="Button:pointerover">
-                    <Setter Property="Background" Value="#ff9600"/>
-                    <Setter Property="Foreground" Value="#FFFFFF"/>
-                    <Setter Property="BorderBrush" Value="#ff9600"/>
+                    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}"/>
                   </Style>
                 </Button.Styles>
               </Button>
@@ -106,14 +106,14 @@
       </StackPanel>
 
       <!-- Separador -->
-      <Border Height="1" Background="#666666" Margin="0,10,0,10"/>
+      <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
 
       <!-- Seção Combos -->
       <StackPanel>
-        <TextBlock Text="Combos" 
+        <TextBlock Text="{Tr 'Combos'}" 
                    FontSize="24" 
                    FontWeight="Bold" 
-                   Foreground="#E2DFDC" 
+                   Foreground="{DynamicResource TextPrimaryBrush}" 
                    HorizontalAlignment="Left"
                    Margin="0,0,0,20"/>
         

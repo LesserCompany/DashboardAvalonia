@@ -42,17 +42,20 @@
                     <!-- Card Container -->
                     <Border CornerRadius="12"
                             BorderThickness="1"
-                            BorderBrush="Black"
+                            BorderBrush="{DynamicResource BorderBrushCustom}"
                             BoxShadow="0 2 8 #15000000"
                             Padding="16"
                             Margin="4"
                             Cursor="Hand"
                             Name="CardBorder"
+                            Background="{DynamicResource CardBackgroundInactiveBrush}"
                             Tapped="CardBorder_Tapped">
-                      <Border.Background>
-                        <!-- Fundo condicional: laranja para turmas ativas, cinza claro para concluídas -->
-                        <Binding Path="UploadComplete" Converter="{StaticResource UploadCompleteToBackgroundConverter}" />
-                      </Border.Background>
+                      <Border.Styles>
+                        <!-- Card ativo (laranja) - sobrescreve o padrão -->
+                        <Style Selector="Border.ActiveCard">
+                          <Setter Property="Background" Value="{DynamicResource CardBackgroundActiveBrush}" />
+                        </Style>
+                      </Border.Styles>
                       
                       <!-- Detectar clique no card -->
                       <Border.Tag>
@@ -67,6 +70,7 @@
                                   Text="{Binding classCode}" 
                                   FontWeight="Bold" 
                                   FontSize="16"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
                                   TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
                                   ToolTip.Tip="{Binding classCode}"
                                   HorizontalAlignment="Left" />
@@ -81,8 +85,10 @@
                           <StackPanel Orientation="Horizontal" Spacing="6">
                             <TextBlock Text="{Tr 'Total photos:'}" 
                                       FontSize="12"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                       TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" />
                             <TextBlock FontSize="12" FontWeight="SemiBold"
+                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                       TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
                               <TextBlock.Text>
                                 <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
@@ -95,7 +101,7 @@
                           
                           <!-- Status de Upload -->
                           <TextBlock Text="{Tr 'Waiting for upload...'}" 
-                                    Foreground="#FF5722" 
+                                    Foreground="{DynamicResource WarningTextBrush}" 
                                     FontSize="11"
                                     FontWeight="Medium"
                                     IsVisible="{Binding !UploadComplete}" />
@@ -105,7 +111,7 @@
                                     ToolTip.Tip="{Binding CreationDate}" 
                                     FontSize="11"
                                     FontWeight="Medium"
-                                    Foreground="White" />
+                                    Foreground="{DynamicResource TextPrimaryBrush}" />
                         </StackPanel>
                         
                         <!-- Linha 3: Ícones de Funcionalidades -->

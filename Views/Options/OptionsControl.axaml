@@ -21,7 +21,7 @@
                         <RadioButton GroupName="AppTheme" Content="{Tr 'Light mode'}" IsChecked="{Binding !IsDarkMode, Mode=TwoWay}" />
                     </StackPanel>
                 </Grid>
-                <Border Height="1" Background="#FFAAAAAA" Margin="0,10,0,10"/>
+                <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
 
                 <!-- Language -->
                 <Grid RowDefinitions="Auto, Auto">
@@ -31,7 +31,7 @@
                         <RadioButton GroupName="AppLanguage" Content="{Tr 'English'}" IsChecked="{Binding IsLanguageEnglish, Mode=TwoWay}"/>
                     </StackPanel>
                 </Grid>
-                <Border Height="1" Background="#FFAAAAAA" Margin="0,10,0,10"/>
+                <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
 
                 <!-- Path de Config -->
                 <StackPanel Spacing="4">

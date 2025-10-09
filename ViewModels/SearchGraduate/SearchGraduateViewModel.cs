@@ -16,7 +16,7 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         }
         public string loginToken
         {
-            get => LesserFunctionClient.loginFileResult.User.loginToken;
+            get => LesserFunctionClient.loginFileResult?.User?.loginToken ?? "";
         }
 
         //private string baseUrl = "http://localhost:5173";
@@ -26,6 +26,11 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         {
             get
             {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "about:blank";
+                }
+                
                 if (IsDarkMode)
                 {
                     _urlSearchCPF = baseUrl + "/search-graduates/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";
@@ -42,6 +47,11 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         {
             get
             {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "about:blank";
+                }
+                
                 if (IsDarkMode)
                 {
                     _urlReviewPhotos = baseUrl + "/photos-chosen-by-cpfs/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";
@@ -58,6 +68,11 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         {
             get
             {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "about:blank";
+                }
+                
                 if (IsDarkMode)
                 {
                     _urlPhotosForTreatment = baseUrl + "/photos-for-treatment/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";

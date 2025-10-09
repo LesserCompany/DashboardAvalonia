@@ -1,0 +1,127 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+        x:DataType="vm:CollectionsViewModel"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+        x:Class="LesserDashboardClient.Views.Collections.AddNewProfessionalDialog"
+        Title="{Tr 'Add new professional'}"
+        Width="500"
+        Height="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  
+  <Window.Styles>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,10,0,5"/>
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Margin" Value="0,0,0,10"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Spacing="5">
+      <TextBlock Text="{Tr 'Add new professional'}" FontSize="20" FontWeight="Bold"/>
+      <TextBlock Text="{Tr 'Fill in the information to create a new professional'}" 
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                 TextWrapping="Wrap"/>
+    </StackPanel>
+
+    <!-- Form -->
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0">
+      <StackPanel Spacing="5">
+        <!-- Nome de Usuário -->
+        <TextBlock Classes="label" Text="{Tr 'Username'}" />
+        <TextBox Text="{Binding TbNewProfessionalUsername}" 
+                 Watermark="{Tr 'Minimum 4 characters'}"
+                 IsEnabled="{Binding !CreateProfessionalIsRunning}"/>
+        <TextBlock Text="{Tr 'User must contain only letters, numbers, dots, dashes and underscore'}"
+                   FontSize="11"
+                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                   Margin="0,-8,0,5"/>
+
+        <!-- Email -->
+        <TextBlock Classes="label" Text="{Tr 'Email'} *" />
+        <TextBox Text="{Binding TbNewProfessionalEmail}" 
+                 Watermark="email@exemplo.com"
+                 IsEnabled="{Binding !CreateProfessionalIsRunning}"/>
+
+        <!-- Confirmar Email -->
+        <TextBlock Classes="label" Text="{Tr 'Confirm Email'}" />
+        <TextBox Text="{Binding TbNewProfessionalConfirmEmail}" 
+                 Watermark="{Tr 'Confirm the email'}"
+                 IsEnabled="{Binding !CreateProfessionalIsRunning}"/>
+
+        <!-- Mensagem de Erro -->
+        <Border IsVisible="{Binding CreateProfessionalErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Background="#FFEBE9"
+                BorderBrush="#F44336"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10"
+                Margin="0,10,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" 
+                  Fill="#F44336" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"/>
+            <TextBlock Text="{Binding CreateProfessionalErrorMessage}" 
+                       Foreground="#D32F2F"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Mensagem de Sucesso -->
+        <Border IsVisible="{Binding CreateProfessionalSuccessMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Background="#E8F5E9"
+                BorderBrush="#4CAF50"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10"
+                Margin="0,10,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                  Fill="#4CAF50" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"/>
+            <TextBlock Text="{Binding CreateProfessionalSuccessMessage}" 
+                       Foreground="#2E7D32"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Actions -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+      <Button Content="{Tr 'Cancel'}" 
+              Command="{Binding CancelAddNewProfessionalCommand}"
+              IsEnabled="{Binding !CreateProfessionalIsRunning}"
+              Width="100"/>
+      <Button Content="{Tr 'Create Professional'}" 
+              Command="{Binding CreateNewProfessionalCommand}"
+              Classes="accent"
+              IsEnabled="{Binding !CreateProfessionalIsRunning}"
+              Width="150">
+        <Button.Styles>
+          <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+          </Style>
+          <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}"/>
+          </Style>
+        </Button.Styles>
+      </Button>
+    </StackPanel>
+  </Grid>
+</Window>
+

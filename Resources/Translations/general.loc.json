@@ -7,8 +7,8 @@
     "en-US": "Invoices",
     "pt-BR": "Faturas"
   },
-  "Opt-BRions": {
-    "en-US": "Opt-BRions",
+  "Options": {
+    "en-US": "Options",
     "pt-BR": "Opções"
   },
   "User per CPF": {
@@ -71,8 +71,7 @@
     "en-US": "on the use of clients you bring for 2 years!",
     "pt-BR": "sobre o uso dos clientes que trouxer por 2 anos!"
   },
-  "Your code:": {
-    "en-US": "Your code:",
-    "pt-BR": "Seu código:"
-  }
-}
+  "Company:": {
+    "en-US": "Company:",
+    "pt-BR": "Empresa:"
+  },

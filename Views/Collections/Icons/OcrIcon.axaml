@@ -5,14 +5,14 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.OcrIcon">
   <Viewbox Stretch="Uniform">
-    <Border Background="#383735"
+    <Border Background="{DynamicResource CardBackgroundInactiveBrush}"
             CornerRadius="6"
-            BorderBrush="#E2DFDC"
+            BorderBrush="{DynamicResource TextSecondaryBrush}"
             BorderThickness="1"
             Padding="6">
       <TextBlock
           Text="OCR"
-          Foreground="#E2DFDC"
+          Foreground="{DynamicResource TextSecondaryBrush}"
           FontWeight="Bold"
           VerticalAlignment="Center"
           HorizontalAlignment="Center"

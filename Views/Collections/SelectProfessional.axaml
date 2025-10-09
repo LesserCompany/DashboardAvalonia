@@ -32,10 +32,10 @@
       </ListBox>
     </ScrollViewer>
     <StackPanel Grid.Row="1" Margin="10">
-      <Button VerticalAlignment="Center" HorizontalAlignment="Center" >
+      <Button VerticalAlignment="Center" HorizontalAlignment="Center" Command="{Binding OpenAddNewProfessionalDialogCommand}">
         <StackPanel Orientation="Horizontal">
           <Svg Path="/Assets/icons/person-add.svg" Width="16" Height="16" VerticalAlignment="Center" />
-          <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center" />
+          <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center" Margin="5,0,0,0" />
         </StackPanel>
       </Button> 
     </StackPanel>

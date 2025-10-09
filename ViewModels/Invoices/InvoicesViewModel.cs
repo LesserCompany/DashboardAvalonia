@@ -17,7 +17,7 @@ namespace LesserDashboardClient.ViewModels.Invoices
         }
         public string loginToken
         {
-            get => LesserFunctionClient.loginFileResult.User.loginToken;
+            get => LesserFunctionClient.loginFileResult?.User?.loginToken ?? "";
         }
 
         //private string baseUrl = "http://localhost:5173/invoices/";
@@ -27,6 +27,11 @@ namespace LesserDashboardClient.ViewModels.Invoices
         {
             get
             {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "about:blank";
+                }
+                
                 if (IsDarkMode)
                 {
                     _url = baseUrl + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";

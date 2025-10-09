@@ -35,7 +35,7 @@
       </Grid>
 
       <!-- Legenda abaixo -->
-      <TextBlock Text="Ainda não tagadas"
+      <TextBlock Text="{Tr 'Still not tagged'}"
                  FontSize="12"
                  Margin="0,6,0,0"
                  HorizontalAlignment="Center"/>
@@ -67,7 +67,7 @@
       </Grid>
 
       <!-- Legenda abaixo -->
-      <TextBlock Text="Tagadas"
+      <TextBlock Text="{Tr 'Tagged'}"
                  FontSize="12"
                  Margin="0,6,0,0"
                  HorizontalAlignment="Center"/>

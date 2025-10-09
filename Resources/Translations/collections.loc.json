@@ -270,5 +270,197 @@
   "Name": {
     "en-US": "Name",
     "pt-BR": "Nome"
+  },
+  "Add new professional": {
+    "en-US": "Add new professional",
+    "pt-BR": "Adicionar novo profissional"
+  },
+  "Fill in the information to create a new professional": {
+    "en-US": "Fill in the information to create a new professional",
+    "pt-BR": "Preencha as informações para criar um novo profissional"
+  },
+  "Username": {
+    "en-US": "Username",
+    "pt-BR": "Nome de Usuário"
+  },
+  "Minimum 4 characters": {
+    "en-US": "Minimum 4 characters",
+    "pt-BR": "Mínimo 4 caracteres"
+  },
+  "User must contain only letters, numbers, dots, dashes and underscore": {
+    "en-US": "User must contain only letters, numbers, dots, dashes and underscore",
+    "pt-BR": "Usuário deve conter apenas letras, números, pontos, hífens e underscore"
+  },
+  "Confirm Email": {
+    "en-US": "Confirm Email",
+    "pt-BR": "Confirmar Email"
+  },
+  "Confirm the email": {
+    "en-US": "Confirm the email",
+    "pt-BR": "Confirme o email"
+  },
+  "Cancel": {
+    "en-US": "Cancel",
+    "pt-BR": "Cancelar"
+  },
+  "Separator": {
+    "en-US": "Separator",
+    "pt-BR": "Separador"
+  },
+  "Custom Collection": {
+    "en-US": "Custom Collection",
+    "pt-BR": "Coleção personalizada"
+  },
+  "Create a custom collection with specific settings for your needs.": {
+    "en-US": "Create a custom collection with specific settings for your needs.",
+    "pt-BR": "Crie uma coleção personalizada com configurações específicas para suas necessidades."
+  },
+  "Custom configuration": {
+    "en-US": "Custom configuration",
+    "pt-BR": "Configuração personalizada"
+  },
+  "On consultation": {
+    "en-US": "On consultation",
+    "pt-BR": "Sob consulta"
+  },
+  "Select": {
+    "en-US": "Select",
+    "pt-BR": "Selecionar"
+  },
+  "Price for 1000 photos": {
+    "en-US": "Price for 1000 photos",
+    "pt-BR": "Preço de 1000 fotos"
+  },
+  "Combos": {
+    "en-US": "Combos",
+    "pt-BR": "Combos"
+  },
+  "Still not tagged": {
+    "en-US": "Still not tagged",
+    "pt-BR": "Ainda não tagadas"
+  },
+  "Tagged": {
+    "en-US": "Tagged",
+    "pt-BR": "Tagadas"
+  },
+  "Login": {
+    "en-US": "Login",
+    "pt-BR": "Login"
+  },
+  "Go back to previous version": {
+    "en-US": "Go back to previous version",
+    "pt-BR": "Voltar para versão anterior"
+  },
+  "Enable automatic enhancement.": {
+    "en-US": "Enable automatic enhancement.",
+    "pt-BR": "Habilitar melhoria automática."
+  },
+  "test": {
+    "en-US": "test",
+    "pt-BR": "teste"
+  },
+  "Create Professional": {
+    "en-US": "Create Professional",
+    "pt-BR": "Criar Profissional"
+  },
+  "Facial Recognition": {
+    "en-US": "Facial Recognition",
+    "pt-BR": "Reconhecimento facial"
+  },
+  "No additional features enabled. Just standard local storage.": {
+    "en-US": "No additional features enabled. Just standard local storage.",
+    "pt-BR": "Nenhum recurso adicional habilitado. Apenas armazenamento local padrão."
+  },
+  "Facial Recognition + Online Viewing": {
+    "en-US": "Facial Recognition + Online Viewing",
+    "pt-BR": "Reconhecimento facial + Visualização Online"
+  },
+  "Includes automatic HD backup, ensuring photo security against data loss.": {
+    "en-US": "Includes automatic HD backup, ensuring photo security against data loss.",
+    "pt-BR": "Inclui backup automático em HD, garantindo segurança das fotos contra perda de dados."
+  },
+  "Facial Recognition + Online viewing + AI Treatment": {
+    "en-US": "Facial Recognition + Online viewing + AI Treatment",
+    "pt-BR": "Reconhecimento facial + Visualização online + Tratamento com IA"
+  },
+  "Automatically detects faces, backs up photos in HD and applies automatic brightness and saturation adjustments using AI.": {
+    "en-US": "Automatically detects faces, backs up photos in HD and applies automatic brightness and saturation adjustments using AI.",
+    "pt-BR": "Detecta rostos automaticamente, faz backup das fotos em HD e aplica ajustes automáticos de brilho e saturação usando IA."
+  },
+  "Advanced Treatment + Photo Sales": {
+    "en-US": "Advanced Treatment + Photo Sales",
+    "pt-BR": "Tratamento avançado + Venda de fotos"
+  },
+  "Applies automatic treatment to photos and enables photo sales, allowing specific CPFs to view all images.": {
+    "en-US": "Applies automatic treatment to photos and enables photo sales, allowing specific CPFs to view all images.",
+    "pt-BR": "Aplica tratamento automático nas fotos e habilita a venda de fotos, permitindo que CPFs específicos vejam todas as imagens."
+  },
+  "Complete: OCR + AI + Backup + Sales": {
+    "en-US": "Complete: OCR + AI + Backup + Sales",
+    "pt-BR": "Completo: OCR + IA + Backup + Venda"
+  },
+  "Includes all features: HD backup, automatic AI treatment, text recognition (OCR), photo sales and full access for authorized CPFs.": {
+    "en-US": "Includes all features: HD backup, automatic AI treatment, text recognition (OCR), photo sales and full access for authorized CPFs.",
+    "pt-BR": "Inclui todos os recursos: backup em HD, tratamento automático com IA, reconhecimento de texto (OCR), venda de fotos e acesso completo para CPFs autorizados."
+  },
+  "News_01_01_25_Content": {
+    "en-US": "According to the policy established in the Terms of Use, as of 01/01/24, all values are adjusted today according to inflation measured from 11/23 to 11/24 according to the Central Bank calculator. For more information, visit the website: https://www.lesser.biz/lesser-system-helpers/pricing-page/index.html (copy and paste in browser).",
+    "pt-BR": "Conforme a política estabelecida nos Termos de Uso, a partir de 01/01/24, todos os valores sofrem hoje reajuste de acordo com a inflação medida de 11/23 até 11/24 conforme a calculadora do Banco Central. Para mais informações, acesse o site: https://www.lesser.biz/lesser-system-helpers/pricing-page/index.html (copie e cole no navegador)."
+  },
+  "News_07_12_23_Content_1": {
+    "en-US": "Give graduates access to view their own separated photos online! Offer treatment only for photos that graduates request, and if you want, provide products like custom cases and photos printed on demand.",
+    "pt-BR": "Dê acesso aos formandos para que vejam as próprias fotos separadas online! Ofereça tratamento apenas para as fotos que os formandos solicitarem, e, se quiser, forneça produtos como estojo personalizado e fotos impressas sob demanda."
+  },
+  "News_07_12_23_Content_2": {
+    "en-US": "See the online website to understand how it works: https://visualizador.lesser.biz (copy and paste in browser). Use CPF 123456 to enter.",
+    "pt-BR": "Veja o site online para entender como funciona: https://visualizador.lesser.biz (copie e cole no navegador). Utilize o CPF 123456 para entrar."
+  },
+  "News_07_12_23_Content_3": {
+    "en-US": "For more information, contact our support: +55 18 99688-0201.",
+    "pt-BR": "Para mais informações, contate nosso suporte: +55 18 99688-0201."
+  },
+  "News_07_12_23_Adjustment_Content": {
+    "en-US": "As of 01/01/24, there will be a 4.61% adjustment in values, according to 2023 inflation measured by IPCA. The value per photo for separation will change from 3.16 to 3.30 cents per photo. This is not a price increase, but rather an adjustment according to the price increases that occur every year in our country. We are a team and, like our clients, we buy milk, rice and beans, and therefore we need to follow Brazilian prices. We recommend to our clients, especially micro-entrepreneurs, that they also adjust their values.",
+    "pt-BR": "A partir de 01/01/24, haverá reajuste nos valores em 4,61%, de acordo com a inflação em 2023 medida pelo IPCA. O valor por foto para separação passará de 3.16 para 3.30 centavos por foto. Não se trata de um aumento de preços, e sim de um reajuste de acordo com o aumento dos preços que ocorrem todos os anos em nosso país. Somos uma equipe e, assim como nossos clientes, compramos leite, arroz e feijão, e por isso precisamos acompanhar os preços brasileiros. Recomendamos aos nossos clientes, em especial aos microempreendedores, que também reajustem seus valores."
+  },
+  "News_24_02_23_Content_1": {
+    "en-US": "As requested, starting from version 320, the option to simply not tag faces with poor quality (out of focus/in background/partially covered) has been added. It is still possible to keep them as red or simply disable the function and tag all photos.",
+    "pt-BR": "Conforme solicitações, foi adicionada a partir da versão 320 a opção de simplesmente não tagar as faces com má qualidade (fora de foco/em segundo plano/parcialmente encobertas). Ainda é possível mantê-las como vermelhas ou simplesmente desabilitar a função e tagar todas as fotos."
+  },
+  "News_24_02_23_Content_2": {
+    "en-US": "Also, now, when pressing ENTER, only faces with good quality are tagged. Press ENTER again to tag all, regardless of quality.",
+    "pt-BR": "Também, agora, ao pressionar ENTER, somente as faces com boa qualidade são tagadas. Pressione ENTER novamente para tagar todas, independente da qualidade."
+  },
+  "News_11_02_23_Content_1": {
+    "en-US": "Now there is the automatic exclusion feature. It is available for new uploads starting from 11/02/23. The feature is in its initial phases and does not work well for group photos yet. It will be kept free for testing until 03/01/23, and from then on an extra fee will be added since there is an increase in cloud processing costs. Feedback on the operation and on cases where it does not work well is welcome.",
+    "pt-BR": "Agora há o recurso de exclusão automática. Está disponível para novos uploads a partir de 11/02/23. O recurso está em suas fases iniciais e ainda não funciona bem para fotos de grupos. Será mantido como gratuito para testar até 01/03/23, e a partir de então será adicionado uma taxa extra visto que há aumento dos custos de processamento em nuvem. Feedback sobre o funcionamento e sobre casos em que não funciona bem são bem-vindos."
+  },
+  "News_11_02_23_Content_2": {
+    "en-US": "In classes where the feature is enabled, the client should notice a significant improvement in recognition accuracy, especially in those large classes where the system ends up confusing one with the other. This happens because poor quality faces are detected and are left out of the facial recognition algorithm.",
+    "pt-BR": "Nas turmas em que o recurso estiver habilitado, o cliente deve perceber uma melhora significativa na precisão do reconhecimento, especialmente naquelas turmas grandes nas quais o sistema acaba confundindo um com o outro. Isso ocorre porque faces de má qualidade são detectadas e ficam de fora do algoritmo de reconhecimento facial."
+  },
+  "News_01_02_23_Content": {
+    "en-US": "All software usage values were adjusted according to 2022 IPCA by 5.79%. The value for individual photos without contracting other services changed from 3 to 3.16 cents.",
+    "pt-BR": "Todos os valores de uso do software foram reajustados conforme o IPCA de 2022 em 5.79%. O valor de fotos individuais sem contratação de outros serviços passou de 3 para 3.16 centavos."
+  },
+  "News_03_01_22_Content": {
+    "en-US": "We improved the system's detection capability, now smaller faces are recognized. Also, now you don't have to wait beyond the upload time. Photo processing will always be done in real time, instantly. The faster the internet, the faster the recognition process.",
+    "pt-BR": "Melhoramos a capacidade de detecção do sistema, agora faces menores são reconhecidas. Também, agora você não tem mais que esperar além do tempo do upload. O processamento das fotos será feito sempre em tempo real, instantaneamente. Quanto mais rápida a internet, mais rápido o processo de reconhecimento."
+  },
+  "News_02_11_22_Content": {
+    "en-US": "Starting from version 307, the system now shows the Autotag form as soon as the system opens, in order to encourage use by clients who are not yet familiar with this function.",
+    "pt-BR": "A partir da versão 307, o sistema passa a mostrar o formulário de Autotag logo que o sistema abre, a fim de incentivar o uso pelos clientes que ainda não conhecem essa função."
+  },
+  "News_28_09_22_Content": {
+    "en-US": "There was a bug that prevented the use of the 'Recognize again using the face selected above' button. This was fixed starting from version 305.",
+    "pt-BR": "Havia um bug que impedia o uso do botão 'Reconhecer novamente usando a face selecionada acima'. Isto foi corrigido a partir da versão 305."
+  },
+  "News_07_09_22_Content": {
+    "en-US": "Starting from version 302, it is possible to reupload with the inclusion of new photos. For example, if you forgot to include a photo in a file, now it is possible to reupload with the missing photos even after opening to separate.",
+    "pt-BR": "A partir da versão 302, é possível fazer reupload com a inclusão de novas fotos. Por exemplo, se você esqueceu de incluir uma foto em um arquivo, agora é possível fazer o reupload com as fotos faltantes mesmo depois de abrir para separar."
+  },
+  "News_05_09_22_Content": {
+    "en-US": "Need to separate photos in the system and need someone to do it for you? Now you can hire a professional separator to do it for you. For more information, contact support: (18) 99688-0201",
+    "pt-BR": "Precisa separar fotos no sistema e precisa de alguém para fazer isso para você? Agora você pode contratar um separador profissional para fazer isso por você. Para mais informações, entre em contato com o suporte: (18) 99688-0201"
   }
 }

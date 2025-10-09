@@ -7,9 +7,9 @@
 
   <Border
       CornerRadius="6"
-      BorderBrush="#E2DFDC"
+      BorderBrush="{DynamicResource TextSecondaryBrush}"
       BorderThickness="1"
-      Background="#383735"
+      Background="{DynamicResource CardBackgroundInactiveBrush}"
       BoxShadow="2 2 6 #40000000"
       Padding="6"
       HorizontalAlignment="Stretch"

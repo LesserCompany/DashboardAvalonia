@@ -7,6 +7,7 @@ using ExCSS;
 using JavaScriptCore;
 using LesserDashboardClient.Models;
 using LesserDashboardClient.Views;
+using LesserDashboardClient.Views.Collections;
 using MsBox.Avalonia;
 using Newtonsoft.Json;
 using OfficeOpenXml;
@@ -257,7 +258,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool generatingGeneralReport = false;
     [ObservableProperty] public bool generatingReportPerGraduate = false;
 
-
+    // Add New Professional Properties
+    [ObservableProperty] public string tbNewProfessionalUsername = "";
+    [ObservableProperty] public string tbNewProfessionalEmail = "";
+    [ObservableProperty] public string tbNewProfessionalConfirmEmail = "";
+    [ObservableProperty] public bool createProfessionalIsRunning = false;
+    [ObservableProperty] public string createProfessionalErrorMessage = "";
+    [ObservableProperty] public string createProfessionalSuccessMessage = "";
 
 
     public CollectionsViewModel()
@@ -1744,6 +1751,148 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch { }
     }
+
+    // Add New Professional Commands
+    private AddNewProfessionalDialog? _addNewProfessionalDialog;
+    
+    [RelayCommand]
+    public async Task OpenAddNewProfessionalDialogCommand()
+    {
+        try
+        {
+            // Limpar campos e mensagens
+            TbNewProfessionalUsername = "";
+            TbNewProfessionalEmail = "";
+            TbNewProfessionalConfirmEmail = "";
+            CreateProfessionalErrorMessage = "";
+            CreateProfessionalSuccessMessage = "";
+            
+            // Criar e mostrar o dialog
+            _addNewProfessionalDialog = new Views.Collections.AddNewProfessionalDialog
+            {
+                DataContext = this
+            };
+            
+            if (MainWindow.instance != null)
+            {
+                await _addNewProfessionalDialog.ShowDialog(MainWindow.instance);
+            }
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao abrir o formulário: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task CreateNewProfessionalCommand()
+    {
+        try
+        {
+            CreateProfessionalIsRunning = true;
+            CreateProfessionalErrorMessage = "";
+            CreateProfessionalSuccessMessage = "";
+
+            // Validações
+            if (string.IsNullOrWhiteSpace(TbNewProfessionalUsername) || TbNewProfessionalUsername.Length < 4)
+            {
+                CreateProfessionalErrorMessage = "Nome de usuário deve ter pelo menos 4 caracteres.";
+                return;
+            }
+
+            // Validar formato do username
+            if (!System.Text.RegularExpressions.Regex.IsMatch(TbNewProfessionalUsername, @"^[a-zA-Z0-9_.-]+$"))
+            {
+                CreateProfessionalErrorMessage = "Nome de usuário deve conter apenas letras, números, pontos, hífens e underscore.";
+                return;
+            }
+
+            // Validar email
+            if (string.IsNullOrWhiteSpace(TbNewProfessionalEmail) || !IsValidEmail(TbNewProfessionalEmail))
+            {
+                CreateProfessionalErrorMessage = "Email inválido.";
+                return;
+            }
+
+            // Validar confirmação de email
+            if (TbNewProfessionalEmail.Trim().ToLower() != TbNewProfessionalConfirmEmail.Trim().ToLower())
+            {
+                CreateProfessionalErrorMessage = "Confirmação de email não confere.";
+                return;
+            }
+
+            // Obter dados da empresa
+            var companyResult = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
+            if (!companyResult.success || companyResult.Content?.company == null)
+            {
+                CreateProfessionalErrorMessage = "Não foi possível obter dados da empresa.";
+                return;
+            }
+
+            // Criar objeto Professional
+            var professional = new SharedClientSide.ServerInteraction.Users.Professionals.Professional
+            {
+                username = TbNewProfessionalUsername.Trim(),
+                company = companyResult.Content.company,
+                contactMail = TbNewProfessionalEmail.Trim().ToLower()
+            };
+
+            // Chamar API para registrar profissional
+            var result = await GlobalAppStateViewModel.lfc.RegisterProfessional(professional);
+
+            if (result.success)
+            {
+                CreateProfessionalSuccessMessage = "Profissional criado com sucesso!";
+                
+                // Recarregar lista de profissionais
+                await LoadProfessionals();
+                
+                // Selecionar o novo profissional
+                var newProf = Professionals.FirstOrDefault(p => p.username == professional.username);
+                if (newProf != null)
+                {
+                    SelectedProfessional = newProf;
+                }
+
+                // Fechar dialog após 1.5 segundos
+                await Task.Delay(1500);
+                _addNewProfessionalDialog?.Close();
+            }
+            else
+            {
+                CreateProfessionalErrorMessage = result.message ?? "Erro ao criar profissional.";
+            }
+        }
+        catch (Exception ex)
+        {
+            CreateProfessionalErrorMessage = $"Erro ao criar profissional: {ex.Message}";
+            Console.WriteLine($"Erro ao criar profissional: {ex.Message}\n{ex.StackTrace}");
+        }
+        finally
+        {
+            CreateProfessionalIsRunning = false;
+        }
+    }
+
+    [RelayCommand]
+    public void CancelAddNewProfessionalCommand()
+    {
+        _addNewProfessionalDialog?.Close();
+    }
+
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+            return emailRegex.IsMatch(email);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
     #endregion
 
     #region Dynamic Pricing

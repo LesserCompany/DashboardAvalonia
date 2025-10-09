@@ -10,16 +10,46 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
     <Application.Resources>
-      <!-- 
-      -->
-      <converters:BoolToTextDecorationConverter x:Key="BoolToTextDecorationConverter" />
-      <converters:SumConverter x:Key="MultiBindingSumConverter" />
-      <converters:DateTimeToStringConverter x:Key="DateTimeToStringConverter" />
-      <converters:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
-      <converters:CollectionOptionsComboConverter x:Key="CollectionOptionsComboConverter" />
-      <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
-      <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
-      <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+          <ResourceDictionary>
+            <converters:BoolToTextDecorationConverter x:Key="BoolToTextDecorationConverter" />
+            <converters:SumConverter x:Key="MultiBindingSumConverter" />
+            <converters:DateTimeToStringConverter x:Key="DateTimeToStringConverter" />
+            <converters:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
+            <converters:CollectionOptionsComboConverter x:Key="CollectionOptionsComboConverter" />
+            <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
+            <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
+            <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+          </ResourceDictionary>
+        </ResourceDictionary.MergedDictionaries>
+        
+        <ResourceDictionary.ThemeDictionaries>
+          <!-- Light Theme Resources -->
+          <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="CardBackgroundActiveBrush" Color="#FFFFA726" />
+            <SolidColorBrush x:Key="CardBackgroundInactiveBrush" Color="#FFF5F5F5" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF000000" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF333333" />
+            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FF666666" />
+            <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD32F2F" />
+            <SolidColorBrush x:Key="BorderBrushCustom" Color="#FFCCCCCC" />
+            <SolidColorBrush x:Key="SeparatorBrush" Color="#FFE0E0E0" />
+          </ResourceDictionary>
+          
+          <!-- Dark Theme Resources -->
+          <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="CardBackgroundActiveBrush" Color="#FFFFA726" />
+            <SolidColorBrush x:Key="CardBackgroundInactiveBrush" Color="#FF383735" />
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FFE2DFDC" />
+            <SolidColorBrush x:Key="TextTertiaryBrush" Color="#FFAAAAAA" />
+            <SolidColorBrush x:Key="WarningTextBrush" Color="#FFFF5722" />
+            <SolidColorBrush x:Key="BorderBrushCustom" Color="#FF000000" />
+            <SolidColorBrush x:Key="SeparatorBrush" Color="#FF666666" />
+          </ResourceDictionary>
+        </ResourceDictionary.ThemeDictionaries>
+      </ResourceDictionary>
     </Application.Resources>
   
     <Application.Styles>

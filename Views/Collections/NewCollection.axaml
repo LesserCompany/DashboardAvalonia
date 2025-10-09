@@ -27,13 +27,13 @@
               <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="1" Grid.Column="1">
                 <TextBox  Text="{Binding TbEventFolder}" VerticalAlignment="Center" />
-                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="Diretório não encontrado" Foreground="Red" />
+                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>  
                 
               <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="2"  Grid.Column="1">
                 <TextBox  Text="{Binding TbRecFolder}" VerticalAlignment="Center" />
-                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="Diretório não encontrado" Foreground="Red" />
+                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
                 
               <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
@@ -53,7 +53,7 @@
 
               <Grid Grid.Row="5"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center">
                 <StackPanel  Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center">
-                  <TextBlock Text="Separador:" VerticalAlignment="Center" />
+                  <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                   <Button Command="{Binding OpenSelectProfessionalViewCommand}" VerticalAlignment="Center">
                     <local:ProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
                   </Button>
