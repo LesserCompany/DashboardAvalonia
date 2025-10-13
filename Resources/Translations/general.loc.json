@@ -70,5 +70,9 @@
   "on the use of clients you bring for 2 years!": {
     "en-US": "on the use of clients you bring for 2 years!",
     "pt-BR": "sobre o uso dos clientes que trouxer por 2 anos!"
+  },
+  "Do you really want to go back to the previous version of the dashboard? The current application will be closed.": {
+    "en-US": "Do you really want to go back to the previous version of the dashboard? The current application will be closed.",
+    "pt-BR": "Deseja realmente voltar para a versão anterior do dashboard? A aplicação atual será fechada."
   }
 }

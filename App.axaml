@@ -24,6 +24,17 @@
           </ResourceDictionary>
         </ResourceDictionary.MergedDictionaries>
         
+        <!-- Estilo único para Paths pequenos na linha de meta -->
+        <Style x:Key="MetaIcon" Selector="Path">
+          <Setter Property="Width" Value="14"/>
+          <Setter Property="Height" Value="14"/>
+          <Setter Property="Stroke" Value="{DynamicResource MetaFg}"/>
+          <Setter Property="StrokeThickness" Value="1.4"/>
+          <Setter Property="Stretch" Value="Uniform"/>
+          <Setter Property="Margin" Value="0,0,6,0"/>
+          <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+        
         <ResourceDictionary.ThemeDictionaries>
           <!-- Light Theme Resources -->
           <ResourceDictionary x:Key="Light">
@@ -35,6 +46,16 @@
             <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD32F2F" />
             <SolidColorBrush x:Key="BorderBrushCustom" Color="#FFCCCCCC" />
             <SolidColorBrush x:Key="SeparatorBrush" Color="#FFE0E0E0" />
+            
+            <!-- Card Colors for Light Theme -->
+            <SolidColorBrush x:Key="CardBg" Color="#F5F5F5"/>
+            <SolidColorBrush x:Key="CardBgHover" Color="#EEEEEE"/>
+            <SolidColorBrush x:Key="CardBorder" Color="#E0E0E0"/>
+            <SolidColorBrush x:Key="Accent" Color="#FF9600"/>
+            <SolidColorBrush x:Key="BadgeBg" Color="#E8E8E8"/>
+            <SolidColorBrush x:Key="BadgeFg" Color="#333333"/>
+            <SolidColorBrush x:Key="MetaFg" Color="#666666"/>
+
           </ResourceDictionary>
           
           <!-- Dark Theme Resources -->
@@ -47,6 +68,16 @@
             <SolidColorBrush x:Key="WarningTextBrush" Color="#FFFF5722" />
             <SolidColorBrush x:Key="BorderBrushCustom" Color="#FF000000" />
             <SolidColorBrush x:Key="SeparatorBrush" Color="#FF666666" />
+            
+            <!-- Card Colors for Dark Theme -->
+            <SolidColorBrush x:Key="CardBg" Color="#1E1E1E"/>
+            <SolidColorBrush x:Key="CardBgHover" Color="#242424"/>
+            <SolidColorBrush x:Key="CardBorder" Color="#2F2F2F"/>
+            <SolidColorBrush x:Key="Accent" Color="#FF9600"/>
+            <SolidColorBrush x:Key="BadgeBg" Color="#2A2A2A"/>
+            <SolidColorBrush x:Key="BadgeFg" Color="#ECECEC"/>
+            <SolidColorBrush x:Key="MetaFg" Color="#B7B7B7"/>
+
           </ResourceDictionary>
         </ResourceDictionary.ThemeDictionaries>
       </ResourceDictionary>

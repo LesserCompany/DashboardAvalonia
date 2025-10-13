@@ -30,123 +30,117 @@
             <!--
             <ui:ProgressRing Grid.Row="2" IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" IsVisible="{Binding CollectionsListIsLoading}" />
             -->      
-            <ScrollViewer Grid.Row="2" IsVisible="{Binding !CollectionsListIsLoading}">
-              <ItemsControl ItemsSource="{Binding CollectionsListFiltered}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Spacing="12" Margin="8" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate>
-                    <!-- Card Container -->
-                    <Border CornerRadius="12"
-                            BorderThickness="1"
-                            BorderBrush="{DynamicResource BorderBrushCustom}"
-                            BoxShadow="0 2 8 #15000000"
-                            Padding="16"
-                            Margin="4"
-                            Cursor="Hand"
-                            Name="CardBorder"
-                            Background="{DynamicResource CardBackgroundInactiveBrush}"
-                            Tapped="CardBorder_Tapped">
-                      <Border.Styles>
-                        <!-- Card ativo (laranja) - sobrescreve o padrão -->
-                        <Style Selector="Border.ActiveCard">
-                          <Setter Property="Background" Value="{DynamicResource CardBackgroundActiveBrush}" />
-                        </Style>
-                      </Border.Styles>
-                      
-                      <!-- Detectar clique no card -->
-                      <Border.Tag>
-                        <Binding Path="." />
-                      </Border.Tag>
-                      
-                      <!-- Conteúdo do Card -->
-                      <Grid RowDefinitions="Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *, Auto" RowSpacing="8">
-                        
-                        <!-- Linha 1: Código da Turma -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
-                                  Text="{Binding classCode}" 
-                                  FontWeight="Bold" 
-                                  FontSize="16"
-                                  Foreground="{DynamicResource TextPrimaryBrush}"
-                                  TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
-                                  ToolTip.Tip="{Binding classCode}"
-                                  HorizontalAlignment="Left" />
-                        
-                        <!-- Linha 2: Representação do Profissional e Informações -->
-                        <local:ProfessionalRepresentation Grid.Row="1" Grid.Column="0" 
-                                                         ProfessionalName="{Binding professionalLogin}" 
-                                                         VerticalAlignment="Center" 
-                                                         Margin="0,0,12,0" />
-                        
-                        <StackPanel Grid.Row="1" Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                          <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="{Tr 'Total photos:'}" 
-                                      FontSize="12"
-                                      Foreground="{DynamicResource TextPrimaryBrush}"
-                                      TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}" />
-                            <TextBlock FontSize="12" FontWeight="SemiBold"
-                                      Foreground="{DynamicResource TextPrimaryBrush}"
-                                      TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
-                              <TextBlock.Text>
-                                <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
-                                  <Binding Path="recognitionPhotos" />
-                                  <Binding Path="eventPhotos" />
-                                </MultiBinding>
-                              </TextBlock.Text>
-                            </TextBlock>
-                          </StackPanel>
-                          
-                          <!-- Status de Upload -->
-                          <TextBlock Text="{Tr 'Waiting for upload...'}" 
-                                    Foreground="{DynamicResource WarningTextBrush}" 
-                                    FontSize="11"
-                                    FontWeight="Medium"
-                                    IsVisible="{Binding !UploadComplete}" />
-                          
-                          <!-- Data de Criação -->
-                          <TextBlock Text="{Binding CreationDate, Converter={StaticResource DateTimeToStringConverter}}" 
-                                    ToolTip.Tip="{Binding CreationDate}" 
-                                    FontSize="11"
-                                    FontWeight="Medium"
-                                    Foreground="{DynamicResource TextPrimaryBrush}" />
-                        </StackPanel>
-                        
-                        <!-- Linha 3: Ícones de Funcionalidades -->
-                        <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" 
-                                  Orientation="Horizontal" 
-                                  HorizontalAlignment="Right"
-                                  Margin="0,8,0,0">
-                          <!--BackupHD-->
-                          <local:HdAndTreatmentCollection Width="32" Height="32" 
-                                                        AutoTreatment="{Binding AutoTreatment, Converter={StaticResource NullToBoolConverter}}" 
-                                                        IsVisible="{Binding UploadHD, Converter={StaticResource NullToBoolConverter}}"
-                                                        Margin="0,0,4,0" />
-                          <!--AutoTreatment-->
-                          <local:AutoTreatmentIcon Width="32" Height="32" 
-                                                  IsVisible="{Binding AutoTreatment, Converter={StaticResource NullToBoolConverter}}"
-                                                  Margin="0,0,4,0" />
-                          <!--PhotoSales-->
-                          <local:PhotoSalesIcon Width="32" Height="32" 
-                                               IsVisible="{Binding EnablePhotosSales, Converter={StaticResource NullToBoolConverter}}" 
-                                               VerticalAlignment="Center" 
-                                               HorizontalAlignment="Center"
-                                               Margin="0,0,4,0" />
-                          <!--OCR-->
-                          <local:OcrIcon Width="32" Height="32" 
-                                        IsVisible="{Binding OCR, Converter={StaticResource NullToBoolConverter}}" 
-                                        VerticalAlignment="Center" 
-                                        HorizontalAlignment="Center"
-                                        Margin="0,0,4,0" />
-                        </WrapPanel>
-                        
-                      </Grid>
-                    </Border>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
+            <ListBox FontSize="11" 
+                     Grid.Row="2" 
+                     Background="Transparent"
+                     BorderThickness="0"
+                     IsVisible="{Binding !CollectionsListIsLoading}" 
+                     ItemsSource="{Binding CollectionsListFiltered}" 
+                     SelectedItem="{Binding SelectedCollection, Mode=TwoWay}">
+
+              <!-- Garante virtualização simples e barata -->
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <VirtualizingStackPanel/>
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+
+              <!-- "Chrome" do card no container, não no template (menos elementos por item) -->
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Margin" Value="0,6,0,6"/>
+                  <Setter Property="Padding" Value="12"/>
+                  <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+                  <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="CornerRadius" Value="12"/>
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                  <Setter Property="FocusAdorner" Value="{x:Null}"/>
+                </Style>
+
+                <Style Selector="ListBoxItem:pointerover">
+                  <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                </Style>
+
+                <Style Selector="ListBoxItem:selected">
+                  <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                </Style>
+              </ListBox.Styles>
+
+              <!-- Template com árvore enxuta (nada de efeitos) -->
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <!-- 3 colunas: avatar | conteúdo | badges -->
+                  <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+
+                    <!-- Avatar + label de ambiente -->
+                    <StackPanel Grid.RowSpan="3" Margin="0,2,12,0" VerticalAlignment="Center">
+                      <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,2" Margin="0,2,0,0"
+                              IsVisible="{Binding UploadOnTestSystem, FallbackValue=False}">
+                        <TextBlock Text="TEST" Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold" FontSize="9"/>
+                      </Border>
+                      <local:ProfessionalRepresentation ProfessionalName="{Binding professionalLogin}" 
+                                                       Margin="0,6,0,0"/>
+                    </StackPanel>
+
+                    <!-- Título (classCode) -->
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding classCode}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Margin="0,0,8,0"
+                               TextWrapping="NoWrap"
+                               TextTrimming="CharacterEllipsis"
+                               TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
+                               ToolTip.Tip="{Binding classCode}"/>
+
+                    <!-- Badges alinhados à direita -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                      <!-- HD -->
+                      <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3"
+                              IsVisible="{Binding UploadHD, FallbackValue=False}">
+                        <TextBlock Text="HD" Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold"/>
+                      </Border>
+                      <!-- AutoTreatment -->
+                      <local:AutoTreatmentIcon IsVisible="{Binding AutoTreatment, FallbackValue=False}"/>
+                      <!-- Vendas habilitadas -->
+                      <local:PhotoSalesIcon IsVisible="{Binding EnablePhotosSales, FallbackValue=False}"/>
+                      <!-- OCR -->
+                      <local:OcrIcon IsVisible="{Binding OCR, FallbackValue=False}"/>
+                    </StackPanel>
+
+                    <!-- Linha meta: total de fotos + data + separador -->
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                      <TextBlock Text="{Tr 'Total photos:'}" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"/>
+                      <TextBlock TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}">
+                        <TextBlock.Text>
+                          <MultiBinding Converter="{StaticResource MultiBindingSumConverter}">
+                            <Binding Path="recognitionPhotos" />
+                            <Binding Path="eventPhotos" />
+                          </MultiBinding>
+                        </TextBlock.Text>
+                      </TextBlock>
+                      <TextBlock Text="•" TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"/>
+                      <TextBlock Text="{Binding CreationDate, Converter={StaticResource DateTimeToStringConverter}}" 
+                                 ToolTip.Tip="{Binding CreationDate}" 
+                                 FontSize="9"
+                                 TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"/>
+                    </StackPanel>
+
+                    <!-- Status (upload/tratamento) -->
+                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
+                      <TextBlock Text="{Tr 'Waiting for upload...'}" 
+                                 Foreground="Red" 
+                                 IsVisible="{Binding !UploadComplete, FallbackValue=False}"/>
+                      <TextBlock Text="HD pronto" 
+                                 Foreground="{DynamicResource MetaFg}"
+                                 IsVisible="{Binding UploadHD, FallbackValue=False}"/>
+                    </StackPanel>
+
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
     </Grid>
 </UserControl>

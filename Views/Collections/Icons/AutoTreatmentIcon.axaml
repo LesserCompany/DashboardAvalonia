@@ -4,19 +4,14 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.AutoTreatmentIcon">
-  <Viewbox Stretch="Uniform">
-    <Border Background="{DynamicResource CardBackgroundInactiveBrush}"
-            CornerRadius="6"
-            BorderBrush="{DynamicResource TextSecondaryBrush}"
-            BorderThickness="1"
-            Padding="6">
-      <TextBlock
-          Text="✨"
-          FontSize="16"
-          VerticalAlignment="Center"
-          HorizontalAlignment="Center"
-          Cursor="Help"
-          ToolTip.Tip="Essa turma possui Tratamento Automático." />
-    </Border>
-  </Viewbox>
+  <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3">
+    <TextBlock
+        Text="✨"
+        Foreground="{DynamicResource BadgeFg}"
+        FontSize="12"
+        VerticalAlignment="Center"
+        HorizontalAlignment="Center"
+        Cursor="Help"
+        ToolTip.Tip="Essa turma possui Tratamento Automático." />
+  </Border>
 </UserControl>

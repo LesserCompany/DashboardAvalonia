@@ -3,15 +3,14 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using System;
-using System.Reactive.Linq; // <-- necess�rio para usar Subscribe com lambda
-
+using System.Reactive.Linq;
 
 namespace LesserDashboardClient.Views.Collections;
 
-public partial class ProfessionalRepresentation : UserControl
+public partial class SeparatorProfessionalRepresentation : UserControl
 {
     public static readonly StyledProperty<string> ProfessionalNameProperty = 
-        AvaloniaProperty.Register<ProfessionalRepresentation, string>(nameof(ProfessionalName));
+        AvaloniaProperty.Register<SeparatorProfessionalRepresentation, string>(nameof(ProfessionalName));
     public string ProfessionalName
     {
         get => GetValue(ProfessionalNameProperty);
@@ -19,7 +18,8 @@ public partial class ProfessionalRepresentation : UserControl
     }
     public string Initials => GetInitials(ProfessionalName);
     public IBrush AvatarColor => GetColorFromName(ProfessionalName);
-    public ProfessionalRepresentation()
+    
+    public SeparatorProfessionalRepresentation()
     {
         InitializeComponent();
 
@@ -30,7 +30,6 @@ public partial class ProfessionalRepresentation : UserControl
             RaisePropertyChanged(AvatarColorProperty, null, AvatarColor);
         });
     }
-
 
     private static string GetInitials(string? name)
     {
@@ -43,12 +42,13 @@ public partial class ProfessionalRepresentation : UserControl
 
         return (parts[0][0].ToString() + parts[^1][0].ToString()).ToUpper();
     }
+    
     private static IBrush GetColorFromName(string? name)
     {
         if (string.IsNullOrEmpty(name))
             return Brushes.Gray;
 
-        int hash = StableHash(name); // usa hash est�vel
+        int hash = StableHash(name); // usa hash estável
         var colors = new[]
         {
         Brushes.SteelBlue,
@@ -63,6 +63,7 @@ public partial class ProfessionalRepresentation : UserControl
 
         return colors[Math.Abs(hash) % colors.Length];
     }
+    
     private static int StableHash(string input)
     {
         unchecked
@@ -76,15 +77,17 @@ public partial class ProfessionalRepresentation : UserControl
         }
     }
 
-
     // Propriedade Avalonia para binding
-    public static readonly DirectProperty<ProfessionalRepresentation, string> InitialsProperty =
-        AvaloniaProperty.RegisterDirect<ProfessionalRepresentation, string>(
+    public static readonly DirectProperty<SeparatorProfessionalRepresentation, string> InitialsProperty =
+        AvaloniaProperty.RegisterDirect<SeparatorProfessionalRepresentation, string>(
             nameof(Initials),
             o => o.Initials);
 
-    public static readonly DirectProperty<ProfessionalRepresentation, IBrush> AvatarColorProperty =
-        AvaloniaProperty.RegisterDirect<ProfessionalRepresentation, IBrush>(
+    public static readonly DirectProperty<SeparatorProfessionalRepresentation, IBrush> AvatarColorProperty =
+        AvaloniaProperty.RegisterDirect<SeparatorProfessionalRepresentation, IBrush>(
             nameof(AvatarColor),
             o => o.AvatarColor);
 }
+
+
+

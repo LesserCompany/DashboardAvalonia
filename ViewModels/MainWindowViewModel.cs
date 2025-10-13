@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LesserDashboardClient.ViewModels.Collections;
@@ -141,15 +142,11 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             // Mostrar confirmação antes de fechar
-            var messageBox = MessageBoxManager.GetMessageBoxStandard(
-                "Confirmação", 
-                "Deseja realmente voltar para a versão anterior do dashboard? A aplicação atual será fechada.",
-                MsBox.Avalonia.Enums.ButtonEnum.YesNo,
-                MsBox.Avalonia.Enums.Icon.Question);
-
-            var result = await messageBox.ShowWindowDialogAsync(MainWindow.instance);
+            var result = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
+                Loc.Tr("Do you really want to go back to the previous version of the dashboard? The current application will be closed."),
+                Loc.Tr("Confirmation"));
             
-            if (result == MsBox.Avalonia.Enums.ButtonResult.Yes)
+            if (result == true)
             {
                 // Tentar abrir a versão anterior do LesserDashboard (WPF)
                 await StartPreviousVersionDashboard();

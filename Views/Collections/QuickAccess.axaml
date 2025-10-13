@@ -11,6 +11,33 @@
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel Margin="20" Spacing="30">
       
+      <!-- Seção Combos -->
+      <StackPanel>
+        <TextBlock Text="{Tr 'Combos'}" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Foreground="{DynamicResource TextPrimaryBrush}" 
+                   HorizontalAlignment="Left"
+                   Margin="0,0,0,20"/>
+        
+        <ItemsControl ItemsSource="{Binding DynamicCombos}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <local:CardCombo Command="{Binding $parent[UserControl].DataContext.OpenNewCollectionPreConfigured}" 
+                              CollectionCombo="{Binding}" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <!-- Separador -->
+      <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
+      
       <!-- Seção Coleção Personalizada -->
       <StackPanel>
         <TextBlock Text="{Tr 'Custom Collection'}" 
@@ -103,29 +130,6 @@
             </Grid>
           </Grid>
         </Border>
-      </StackPanel>
-
-      <!-- Separador -->
-      <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
-
-      <!-- Seção Combos -->
-      <StackPanel>
-        <TextBlock Text="{Tr 'Combos'}" 
-                   FontSize="24" 
-                   FontWeight="Bold" 
-                   Foreground="{DynamicResource TextPrimaryBrush}" 
-                   HorizontalAlignment="Left"
-                   Margin="0,0,0,20"/>
-        
-        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left">
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo0}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo1}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo2}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo3}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo4}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo5}" />
-          <local:CardCombo Command="{Binding OpenNewCollectionPreConfigured}" CollectionCombo="{Binding NewCollection_Combo6}" />
-        </WrapPanel>
       </StackPanel>
       
     </StackPanel>

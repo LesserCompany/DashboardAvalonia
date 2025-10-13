@@ -59,14 +59,20 @@
 
         <!-- Ícones -->
         <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
-          <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
-                         Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
-                                Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:AutoTreatmentIcon IsVisible="{Binding CollectionCombo.AutoTreatment, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
-                                   Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
-          <local:HdAndTreatmentCollection IsVisible="{Binding CollectionCombo.BackupHd, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"
-                                          Width="{DynamicResource DefaultSizeIcons}" Height="{DynamicResource DefaultSizeIcons}" />
+          <!-- OCR -->
+          <local:OcrIcon IsVisible="{Binding CollectionCombo.Ocr, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"/>
+          
+          <!-- Vendas habilitadas -->
+          <local:PhotoSalesIcon IsVisible="{Binding CollectionCombo.EnablePhotoSales, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"/>
+          
+          <!-- AutoTreatment -->
+          <local:AutoTreatmentIcon IsVisible="{Binding CollectionCombo.AutoTreatment, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}"/>
+          
+          <!-- HD -->
+          <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3"
+                  IsVisible="{Binding CollectionCombo.BackupHd, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
+            <TextBlock Text="HD" Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold"/>
+          </Border>
         </StackPanel>
       </StackPanel>
 

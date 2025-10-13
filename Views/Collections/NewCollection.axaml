@@ -55,7 +55,7 @@
                 <StackPanel  Orientation="Horizontal" Spacing="4" Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                   <Button Command="{Binding OpenSelectProfessionalViewCommand}" VerticalAlignment="Center">
-                    <local:ProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
+                    <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
                   </Button>
                 </StackPanel>
               </Grid>

@@ -58,9 +58,13 @@ public partial class CollectionsViewModel : ViewModelBase
     // ======================== VIEWS ======================== 
 
     private CancellationTokenSource _previewDebounceCtsViewCollection;
+    private bool _isUpdatingSelectedCollection = false;
     [ObservableProperty] public ProfessionalTask selectedCollection;
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
+        // Prevenir loops infinitos
+        if (_isUpdatingSelectedCollection)
+            return;
 
         _previewDebounceCtsViewCollection?.Cancel();
         _previewDebounceCtsViewCollection = new();
@@ -70,13 +74,24 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             try
             {
-                await Task.Delay(250, token);
+                await Task.Delay(100, token); // Reduzido de 250ms para 100ms
                 if (token.IsCancellationRequested)
                     return;
+                
+                // Marcar que estamos atualizando para evitar loops
+                _isUpdatingSelectedCollection = true;
+                
                 // dispara carregamentos com base no ActiveCollection
-                UpdateCollectionViewSelected();
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    UpdateCollectionViewSelected();
+                });
             }
             catch (OperationCanceledException) { }
+            finally
+            {
+                _isUpdatingSelectedCollection = false;
+            }
         }, token);
     }
     public enum ActiveViews
@@ -205,6 +220,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
     [ObservableProperty] public bool classSeparationFilesIsVisible;
     [ObservableProperty] public bool isCreatingCollection = false;
+    [ObservableProperty] public ObservableCollection<CollectionComboOptions> dynamicCombos = new();
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -269,10 +285,10 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public CollectionsViewModel()
     {
-        _ = LoadProfessionalTasks();
-        _ = LoadProfessionals();
+        LoadProfessionalTasks();
+        Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
-        LoadDynamicPrices();
+        LoadDynamicCombos();
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>
@@ -289,42 +305,15 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                CollectionsListIsLoading = true;
-                IsEnabledFilters = false;
-            });
-
+            CollectionsListIsLoading = true;
+            IsEnabledFilters = false;
+            
             var r = await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks();
 
             if (r != null)
             {
-                // Limpar listas existentes na UI thread
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    CollectionsList.Clear();
-                    CollectionsListFiltered.Clear();
-                });
-
-                // Carregar em batches para não travar a UI
-                const int batchSize = 10; // Ajuste este valor conforme necessário
-                for (int i = 0; i < r.Count; i += batchSize)
-                {
-                    var batch = r.Skip(i).Take(batchSize).ToList();
-                    
-                    // Adicionar batch na UI thread
-                    await Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        foreach (var task in batch)
-                        {
-                            CollectionsList.Add(task);
-                            CollectionsListFiltered.Add(task);
-                        }
-                    });
-                    
-                    // Pequeno delay para permitir que a UI renderize
-                    await Task.Delay(1);
-                }
+                CollectionsList = new ObservableCollection<ProfessionalTask>(r);
+                CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
             }
         }
         catch (Exception ex)
@@ -333,11 +322,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                CollectionsListIsLoading = false;
-                IsEnabledFilters = true;
-            });
+            CollectionsListIsLoading = false;
+            IsEnabledFilters = true;
         }
     }
 
@@ -511,8 +497,12 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (f.blobName.EndsWith("separacao.hermes") == false)
                     continue;
 
-                var user = f.blobName.Split('/')[f.blobName.Split('/').Length - 2];
-                var company = f.blobName.Split('/')[0];
+                var pathParts = f.blobName.Split('/');
+                if (pathParts.Length < 2)
+                    continue;
+                    
+                var user = pathParts[pathParts.Length - 2];
+                var company = pathParts[0];
                 var cloudFilePathInCompanyFolder = f.blobName.Substring(company.Length + 1);
                 ClassSeparationFiles.Add(
                     new ClassSeparationFile()
@@ -1898,87 +1888,91 @@ public partial class CollectionsViewModel : ViewModelBase
     #region Dynamic Pricing
 
     /// <summary>
-    /// Carrega pre�os din�micos para todos os combos
+    /// Carrega combos dinamicamente do servidor
     /// </summary>
-    private async void LoadDynamicPrices()
+    private async void LoadDynamicCombos()
     {
         try
         {
-            Console.WriteLine("CollectionsViewModel: Iniciando LoadDynamicPrices");
+            Console.WriteLine("CollectionsViewModel: Iniciando LoadDynamicCombos");
             
-            // Verificar se o cliente est� inicializado
+            // Verificar se o cliente está inicializado
             if (GlobalAppStateViewModel.lfc == null)
             {
-                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc n�o est� inicializado, aguardando...");
+                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc não está inicializado, aguardando...");
                 // Aguardar um pouco e tentar novamente
                 await Task.Delay(2000);
                 if (GlobalAppStateViewModel.lfc == null)
                 {
-                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda n�o est� inicializado, usando pre�os est�ticos");
+                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda não está inicializado, usando combos estáticos");
+                    LoadStaticCombos();
                     return;
                 }
             }
             
-            // Array com todos os combos dispon�veis
-            var combos = new[]
-            {
-                NewCollection_Combo0,
-                NewCollection_Combo1,
-                NewCollection_Combo2,
-                NewCollection_Combo3,
-                NewCollection_Combo4,
-                NewCollection_Combo5,
-                NewCollection_Combo6
-            };
-
-            Console.WriteLine($"CollectionsViewModel: Carregando pre�os para {combos.Length} combos");
+            Console.WriteLine("CollectionsViewModel: Carregando combos dinâmicos do servidor...");
             
-            // Log dos pre�os antes do carregamento
-            foreach (var combo in combos)
-            {
-                Console.WriteLine($"CollectionsViewModel: Pre�o ANTES do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
-            }
-
-            // Carregar pre�os din�micos
-            await ComboPriceService.UpdateCombosWithDynamicPricesAsync(combos);
+            // Carregar combos dinamicamente
+            var serverCombos = await ComboPriceService.GetDynamicCombosAsync();
             
-            // Log dos pre�os depois do carregamento
-            foreach (var combo in combos)
-            {
-                Console.WriteLine($"CollectionsViewModel: Pre�o DEPOIS do carregamento para '{combo.ComboTitle}': {combo.ComboPrice:F4}");
-            }
-            
-            // Notificar mudan�as na UI thread
+            // Notificar mudanças na UI thread
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Console.WriteLine("CollectionsViewModel: Notificando mudan�as na UI");
-                // For�ar atualiza��o das propriedades de pre�o
-                OnPropertyChanged(nameof(NewCollection_Combo0));
-                OnPropertyChanged(nameof(NewCollection_Combo1));
-                OnPropertyChanged(nameof(NewCollection_Combo2));
-                OnPropertyChanged(nameof(NewCollection_Combo3));
-                OnPropertyChanged(nameof(NewCollection_Combo4));
-                OnPropertyChanged(nameof(NewCollection_Combo5));
-                OnPropertyChanged(nameof(NewCollection_Combo6));
-                Console.WriteLine("CollectionsViewModel: Mudan�as notificadas na UI");
+                Console.WriteLine("CollectionsViewModel: Atualizando lista de combos dinâmicos");
+                
+                // Limpar combos antigos
+                DynamicCombos.Clear();
+                
+                // Adicionar novos combos
+                foreach (var combo in serverCombos)
+                {
+                    DynamicCombos.Add(combo);
+                }
+                
+                Console.WriteLine($"CollectionsViewModel: {DynamicCombos.Count} combos dinâmicos carregados");
+                
+                // Notificar que a coleção mudou
+                OnPropertyChanged(nameof(DynamicCombos));
             });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar pre�os din�micos: {ex.Message}");
+            Console.WriteLine($"Erro ao carregar combos dinâmicos: {ex.Message}");
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            // Em caso de erro, os combos continuar�o usando os pre�os est�ticos
+            // Em caso de erro, usar combos estáticos
+            LoadStaticCombos();
         }
     }
 
     /// <summary>
-    /// Recarrega os pre�os din�micos (�til para refresh manual)
+    /// Carrega os combos estáticos como fallback
+    /// </summary>
+    private void LoadStaticCombos()
+    {
+        Console.WriteLine("CollectionsViewModel: Carregando combos estáticos como fallback");
+        
+        DynamicCombos.Clear();
+        
+        // Adicionar os combos estáticos
+        DynamicCombos.Add(NewCollection_Combo0);
+        DynamicCombos.Add(NewCollection_Combo1);
+        DynamicCombos.Add(NewCollection_Combo2);
+        DynamicCombos.Add(NewCollection_Combo3);
+        DynamicCombos.Add(NewCollection_Combo4);
+        DynamicCombos.Add(NewCollection_Combo5);
+        DynamicCombos.Add(NewCollection_Combo6);
+        
+        OnPropertyChanged(nameof(DynamicCombos));
+    }
+
+    /// <summary>
+    /// Recarrega os combos dinâmicos (útil para refresh manual)
     /// </summary>
     [RelayCommand]
     public void RefreshPrices()
     {
         ComboPriceService.ClearCache();
-        LoadDynamicPrices();
+        LoadDynamicCombos();
     }
 
     #endregion

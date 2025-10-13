@@ -4,20 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.OcrIcon">
-  <Viewbox Stretch="Uniform">
-    <Border Background="{DynamicResource CardBackgroundInactiveBrush}"
-            CornerRadius="6"
-            BorderBrush="{DynamicResource TextSecondaryBrush}"
-            BorderThickness="1"
-            Padding="6">
-      <TextBlock
-          Text="OCR"
-          Foreground="{DynamicResource TextSecondaryBrush}"
-          FontWeight="Bold"
-          VerticalAlignment="Center"
-          HorizontalAlignment="Center"
-          Cursor="Help"
-          ToolTip.Tip="{Tr 'Collection have Optical Reconition Charactere'}" />
-    </Border>
-  </Viewbox>
+  <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3">
+    <TextBlock
+        Text="OCR"
+        Foreground="{DynamicResource BadgeFg}"
+        FontWeight="SemiBold"
+        FontSize="10"
+        VerticalAlignment="Center"
+        HorizontalAlignment="Center"
+        Cursor="Help"
+        ToolTip.Tip="{Tr 'Collection have Optical Reconition Charactere'}" />
+  </Border>
 </UserControl>

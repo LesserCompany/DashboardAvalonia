@@ -1,45 +1,39 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Companies;
 using LesserDashboardClient.Models;
+using Newtonsoft.Json;
 
 namespace LesserDashboardClient.Services
 {
-
-    public class PricesData
-    {
-        public double? PhotoPrice { get; set; }
-        public double? PhotosDistributionPricePerPhoto { get; set; }
-        public double? UploadHDPricePerPhoto { get; set; }
-        public double? DiscountPerPhoto { get; set; }
-        public double? FaceRelevanceDetectionPricePerPhoto { get; set; }
-        public double? AutoTreatmentPricePerPhoto { get; set; }
-        public double? OcrPricePerPhoto { get; set; }
-    }
-
     public class ComboPriceService
     {
-        private static PricesData _pricesData;
+        private static List<ServerCombo> _cachedCombos;
         private static DateTime _lastFetchTime = DateTime.MinValue;
         private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        /// Obtém os dados de preços da empresa com cache
+        /// Obtém os combos do servidor com cache
         /// </summary>
-        public static async Task<PricesData> GetCompanyPricesAsync()
+        public static async Task<List<ServerCombo>> GetCompanyComboPricesAsync()
         {
             var now = DateTime.Now;
             
             // Verificar se temos dados em cache válidos
-            if (_pricesData != null && (now - _lastFetchTime) < CacheDuration)
+            if (_cachedCombos != null && (now - _lastFetchTime) < CacheDuration)
             {
-                return _pricesData;
+                Console.WriteLine("ComboPriceService: Usando combos do cache");
+                return _cachedCombos;
             }
 
             try
             {
-                Console.WriteLine("ComboPriceService: Iniciando busca de dados da empresa...");
+                Console.WriteLine("ComboPriceService: Buscando combos do servidor...");
                 
                 if (ViewModels.GlobalAppStateViewModel.lfc == null)
                 {
@@ -47,162 +41,226 @@ namespace LesserDashboardClient.Services
                     throw new Exception("LesserFunctionClient não está inicializado");
                 }
 
-                Console.WriteLine("ComboPriceService: Chamando API GetCompanyDetails...");
-                var result = await ViewModels.GlobalAppStateViewModel.lfc.GetCompanyDetails();
+                Console.WriteLine("ComboPriceService: Chamando API GetCompanyComboPrices...");
                 
-                Console.WriteLine($"ComboPriceService: Resultado da API - success: {result.success}");
+                // TEMPORÁRIO: Chamada direta à API até resolver problema de compilação
+                var serverCombos = await CallGetCompanyComboPricesDirectly();
                 
-                if (!result.success || result.Content == null)
-                {
-                    Console.WriteLine($"ComboPriceService: Falha na API - success: {result.success}, Content: {result.Content}");
-                    throw new Exception("Falha ao obter dados da empresa");
-                }
+                Console.WriteLine($"ComboPriceService: {serverCombos.Count} combos obtidos com sucesso");
 
-                // Acessar diretamente as propriedades da classe Company
-                _pricesData = new PricesData
-                {
-                    PhotoPrice = result.Content.photoPrice,
-                    PhotosDistributionPricePerPhoto = result.Content.PhotosDistributionPricePerPhoto,
-                    UploadHDPricePerPhoto = result.Content.UploadHDPricePerPhoto,
-                    DiscountPerPhoto = result.Content.DiscountPerPhoto,
-                    FaceRelevanceDetectionPricePerPhoto = result.Content.FaceRelevanceDetectionPricePerPhoto,
-                    AutoTreatmentPricePerPhoto = result.Content.AutoTreatmentPricePerPhoto,
-                    OcrPricePerPhoto = result.Content.OcrPricePerPhoto
-                };
-                
+                _cachedCombos = serverCombos;
                 _lastFetchTime = now;
                 
-                Console.WriteLine($"ComboPriceService: Dados de preços obtidos com sucesso:");
-                Console.WriteLine($"  - photoPrice: {_pricesData.PhotoPrice}");
-                Console.WriteLine($"  - faceRelevanceDetectionPricePerPhoto: {_pricesData.FaceRelevanceDetectionPricePerPhoto}");
-                Console.WriteLine($"  - uploadHDPricePerPhoto: {_pricesData.UploadHDPricePerPhoto}");
-                Console.WriteLine($"  - autoTreatmentPricePerPhoto: {_pricesData.AutoTreatmentPricePerPhoto}");
-                Console.WriteLine($"  - photosDistributionPricePerPhoto: {_pricesData.PhotosDistributionPricePerPhoto}");
-                Console.WriteLine($"  - ocrPricePerPhoto: {_pricesData.OcrPricePerPhoto}");
+                Console.WriteLine($"ComboPriceService: {_cachedCombos.Count} combos obtidos com sucesso");
+                foreach (var combo in _cachedCombos)
+                {
+                    Console.WriteLine($"  - {combo.ComboName}: R$ {combo.Price:F4} para 100 fotos");
+                }
                 
-                return _pricesData;
+                return _cachedCombos;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter dados da empresa: {ex.Message}");
+                Console.WriteLine($"Erro ao obter combos do servidor: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
 
         /// <summary>
-        /// Calcula o preço de um combo baseado na configuração e preços da empresa
-        /// Os preços vêm em centavos do endpoint, então convertemos para reais e multiplicamos por 1000
+        /// Converte um combo do servidor para CollectionComboOptions do client-side
         /// </summary>
-        public static async Task<double> CalculateComboPriceAsync(CollectionComboOptions config)
+        private static CollectionComboOptions ConvertServerComboToClientCombo(ServerCombo serverCombo)
+        {
+            return new CollectionComboOptions
+            {
+                ComboTitle = serverCombo.ComboName,
+                ComboDescription = serverCombo.Description,
+                ComboColorAccent = GetColorForCombo(serverCombo.ComboName),
+                BackupHd = serverCombo.Features.UploadHD,
+                AutoTreatment = serverCombo.Features.AutoTreatment,
+                EnablePhotoSales = serverCombo.Features.EnablePhotosSales,
+                AllowCPFsToSeeAllPhotos = serverCombo.Features.AllowCPFsToSeeAllPhotos,
+                AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
+                Ocr = serverCombo.Features.OCR,
+                UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted
+            };
+        }
+
+        /// <summary>
+        /// Define uma cor baseada no nome do combo
+        /// </summary>
+        private static string GetColorForCombo(string comboName)
+        {
+            var name = comboName.ToLower();
+            
+            if (name.Contains("reconhecimento facial") && !name.Contains("visualização"))
+                return "#B0B0B0"; // cinza neutro
+            else if (name.Contains("visualização online"))
+                return "#6495ED"; // azul claro
+            else if (name.Contains("tratamento") && name.Contains("ia"))
+                return "#FF8C00"; // laranja
+            else if (name.Contains("venda"))
+                return "#32CD32"; // verde
+            else if (name.Contains("completo") || name.Contains("ocr"))
+                return "#8A2BE2"; // roxo
+            else if (name.Contains("apenas tratamento"))
+                return "Orange";
+            else if (name.Contains("gratuitamente"))
+                return "Pink";
+            else
+                return "#6495ED"; // azul padrão
+        }
+
+        /// <summary>
+        /// Cria e retorna todos os combos dinamicamente baseados no servidor
+        /// </summary>
+        public static async Task<List<CollectionComboOptions>> GetDynamicCombosAsync()
         {
             try
             {
-                var prices = await GetCompanyPricesAsync();
+                Console.WriteLine("ComboPriceService: Criando combos dinamicamente do servidor...");
                 
-                double totalPriceInCents = 0;
-
-                // photoPrice - sempre aplicado em todos os combos
-                totalPriceInCents += prices.PhotoPrice ?? 0;
-
-                // faceRelevanceDetectionPricePerPhoto - sempre aplicado em todos os combos
-                totalPriceInCents += prices.FaceRelevanceDetectionPricePerPhoto ?? 0;
-
-                // uploadHDPricePerPhoto - quando Backup HD estiver habilitado
-                if (config.BackupHd)
+                // Buscar todos os combos do servidor
+                var serverCombos = await GetCompanyComboPricesAsync();
+                
+                if (serverCombos == null || serverCombos.Count == 0)
                 {
-                    totalPriceInCents += prices.UploadHDPricePerPhoto ?? 0;
+                    Console.WriteLine("ComboPriceService: Nenhum combo retornado do servidor, retornando lista vazia");
+                    return new List<CollectionComboOptions>();
                 }
 
-                // autoTreatmentPricePerPhoto - quando Tratamento automático com IA estiver habilitado
-                if (config.AutoTreatment)
+                var dynamicCombos = new List<CollectionComboOptions>();
+                
+                // Converter cada combo do servidor para o formato do client-side
+                foreach (var serverCombo in serverCombos)
                 {
-                    totalPriceInCents += prices.AutoTreatmentPricePerPhoto ?? 0;
+                    try
+                    {
+                        Console.WriteLine($"ComboPriceService: Convertendo combo '{serverCombo.ComboName}'");
+                        
+                        var clientCombo = ConvertServerComboToClientCombo(serverCombo);
+                        
+                        // Definir o preço dinâmico (converter de centavos/100 fotos para reais/1000 fotos)
+                        double priceFor1000Photos = (serverCombo.Price / 100.0) * 1000.0;
+                        clientCombo.SetDynamicPrice(priceFor1000Photos);
+                        
+                        dynamicCombos.Add(clientCombo);
+                        
+                        Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' criado com preço R$ {priceFor1000Photos:F4}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro ao converter combo '{serverCombo.ComboName}': {ex.Message}");
+                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                        // Continuar com os outros combos em caso de erro
+                    }
                 }
-
-                // ocrPricePerPhoto - quando Reconhecimento de texto estiver habilitado
-                if (config.Ocr)
-                {
-                    totalPriceInCents += prices.OcrPricePerPhoto ?? 1.15; // Usar 1.15 centavos quando null
-                }
-
-                // photosDistributionPricePerPhoto - quando CPFs podem ver todas as fotos estiver habilitado
-                if (config.AllowCPFsToSeeAllPhotos)
-                {
-                    totalPriceInCents += prices.PhotosDistributionPricePerPhoto ?? 0;
-                }
-
-                // Desconto comentado por enquanto
-                // if (prices.DiscountPerPhoto > 0)
-                // {
-                //     totalPriceInCents -= prices.DiscountPerPhoto ?? 0;
-                // }
-
-                // Converter centavos para reais e multiplicar por 1000 fotos
-                double totalPriceInReais = (totalPriceInCents / 100.0) * 1000.0;
-
-                Console.WriteLine($"ComboPriceService: Calculando preço para '{config.ComboTitle}': {totalPriceInCents:F4} centavos = R$ {totalPriceInReais:F2} para 1000 fotos");
-                Console.WriteLine($"  - photoPrice: {prices.PhotoPrice ?? 0:F4} centavos");
-                Console.WriteLine($"  - faceRelevanceDetection: {prices.FaceRelevanceDetectionPricePerPhoto ?? 0:F4} centavos");
-                Console.WriteLine($"  - backupHd: {config.BackupHd} = {(config.BackupHd ? prices.UploadHDPricePerPhoto ?? 0 : 0):F4} centavos");
-                Console.WriteLine($"  - autoTreatment: {config.AutoTreatment} = {(config.AutoTreatment ? prices.AutoTreatmentPricePerPhoto ?? 0 : 0):F4} centavos");
-                Console.WriteLine($"  - ocr: {config.Ocr} = {(config.Ocr ? prices.OcrPricePerPhoto ?? 1.15 : 0):F4} centavos");
-                Console.WriteLine($"  - allowCPFs: {config.AllowCPFsToSeeAllPhotos} = {(config.AllowCPFsToSeeAllPhotos ? prices.PhotosDistributionPricePerPhoto ?? 0 : 0):F4} centavos");
-
-                // Garantir que o preço não seja negativo
-                return Math.Max(0, totalPriceInReais);
+                
+                Console.WriteLine($"ComboPriceService: {dynamicCombos.Count} combos dinâmicos criados com sucesso");
+                return dynamicCombos;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao calcular preço do combo '{config.ComboTitle}': {ex.Message}");
+                Console.WriteLine($"Erro geral ao criar combos dinâmicos: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return 0;
+                return new List<CollectionComboOptions>();
             }
         }
 
         /// <summary>
-        /// Atualiza os preços de todos os combos com valores dinâmicos
-        /// </summary>
-        public static async Task UpdateCombosWithDynamicPricesAsync(CollectionComboOptions[] combos)
-        {
-            Console.WriteLine($"ComboPriceService: Iniciando atualização de preços para {combos.Length} combos");
-            
-            foreach (var combo in combos)
-            {
-                try
-                {
-                    Console.WriteLine($"ComboPriceService: Processando combo '{combo.ComboTitle}'");
-                    var dynamicPrice = await CalculateComboPriceAsync(combo);
-                    combo.SetDynamicPrice(dynamicPrice);
-                    Console.WriteLine($"ComboPriceService: Preço definido para '{combo.ComboTitle}': R$ {dynamicPrice:F4}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro ao calcular preço para combo '{combo.ComboTitle}': {ex.Message}");
-                    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                    // Manter o preço original em caso de erro
-                }
-            }
-            
-            Console.WriteLine("ComboPriceService: Atualização de preços concluída");
-        }
-
-        /// <summary>
-        /// Obtém os dados da empresa com preços
-        /// </summary>
-        public static async Task<PricesData> GetCurrentPricesAsync()
-        {
-            return await GetCompanyPricesAsync();
-        }
-
-        /// <summary>
-        /// Limpa o cache de dados da empresa
+        /// Limpa o cache de combos
         /// </summary>
         public static void ClearCache()
         {
-            _pricesData = null;
+            _cachedCombos = null;
             _lastFetchTime = DateTime.MinValue;
             Console.WriteLine("ComboPriceService: Cache limpo");
+        }
+        /// <summary>
+        /// TEMPORÁRIO: Chamada direta à API GetCompanyComboPrices
+        /// </summary>
+        private static async Task<List<ServerCombo>> CallGetCompanyComboPricesDirectly()
+        {
+            try
+            {
+                Console.WriteLine("ComboPriceService: Fazendo chamada direta à API...");
+                
+                if (ViewModels.GlobalAppStateViewModel.lfc?.loginResult?.User?.loginToken == null)
+                {
+                    Console.WriteLine("ComboPriceService: Token de login não disponível");
+                    throw new Exception("Token de login não disponível");
+                }
+
+                var token = ViewModels.GlobalAppStateViewModel.lfc.loginResult.User.loginToken;
+                var payload = new { Token = token };
+                var jsonPayload = JsonConvert.SerializeObject(payload);
+                
+                Console.WriteLine($"ComboPriceService: Payload: {jsonPayload}");
+                
+                using var httpClient = new HttpClient();
+                httpClient.Timeout = TimeSpan.FromMinutes(5);
+                
+                var endpoint = "https://new-functions-dev-exgkfwchaxagbnay.brazilsouth-01.azurewebsites.net/api/GetCompanyComboPrices";
+                Console.WriteLine($"ComboPriceService: Endpoint: {endpoint}");
+                
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(endpoint, content);
+                
+                Console.WriteLine($"ComboPriceService: Status Code: {response.StatusCode}");
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"ComboPriceService: Erro na resposta: {errorContent}");
+                    throw new Exception($"Erro na API: {response.StatusCode}");
+                }
+                
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"ComboPriceService: Resposta recebida: {responseContent}");
+                
+                // Deserializar a resposta
+                var apiResponse = JsonConvert.DeserializeObject<dynamic>(responseContent);
+                
+                if (apiResponse?.success != true || apiResponse?.content == null)
+                {
+                    Console.WriteLine($"ComboPriceService: API retornou success=false ou content=null");
+                    throw new Exception("API retornou resposta inválida");
+                }
+                
+                // Converter content para List<ServerCombo>
+                var serverCombos = new List<ServerCombo>();
+                var contentArray = apiResponse.content as Newtonsoft.Json.Linq.JArray;
+                
+                if (contentArray != null)
+                {
+                    foreach (var item in contentArray)
+                    {
+                        try
+                        {
+                            var serverCombo = item.ToObject<ServerCombo>();
+                            if (serverCombo != null)
+                            {
+                                serverCombos.Add(serverCombo);
+                                Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' convertido com sucesso");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Erro ao converter combo: {ex.Message}");
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"ComboPriceService: {serverCombos.Count} combos convertidos com sucesso");
+                return serverCombos;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro na chamada direta à API: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw;
+            }
         }
     }
 }
