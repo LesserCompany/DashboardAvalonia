@@ -48,6 +48,14 @@
                       <TabCollections:CollectionsControl />
                     </TabItem>
                     
+                    <TabItem Header="{Tr 'Diagramar'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabItem.ContentTemplate>
+                        <DataTemplate>
+                          <local:DiagramationControl x:CompileBindings="True" x:Name="DiagramationTab" IsVisible="True" />
+                        </DataTemplate>
+                      </TabItem.ContentTemplate>
+                    </TabItem>
+                    
                     <TabItem Header="{Tr 'User per CPF'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
                       <TabItem.ContentTemplate>
                         <DataTemplate>

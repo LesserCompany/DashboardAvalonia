@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:LesserDashboardClient.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.DiagramationControl"
+             x:DataType="vm:DiagramationViewModel">
+
+    <Design.DataContext>
+        <vm:DiagramationViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto, *">
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBg}" 
+                CornerRadius="8" Margin="0,0,0,16" Padding="20">
+            <StackPanel>
+                <TextBlock Text="{Tr 'Diagramation'}" 
+                          FontSize="24" FontWeight="Bold" 
+                          Foreground="{DynamicResource TextPrimaryBrush}" 
+                          Margin="0,0,0,8"/>
+                <TextBlock Text="{Tr 'Create and manage diagrams for your projects'}" 
+                          FontSize="14" 
+                          Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Content -->
+        <Grid Grid.Row="1">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+                
+                <!-- Main Diagramation Button -->
+                <Button Command="{Binding StartDiagramationCommand}" 
+                        IsEnabled="{Binding CanStartDiagramation}"
+                        HorizontalAlignment="Center"
+                        Padding="40,20"
+                        CornerRadius="12"
+                        Background="{DynamicResource Accent}"
+                        Foreground="White"
+                        FontSize="18"
+                        FontWeight="Bold">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <Path Data="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" 
+                              Fill="White" Width="24" Height="24"/>
+                        <TextBlock Text="{Tr 'Start Diagramation'}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Info Card -->
+                <Border Background="{DynamicResource CardBg}" 
+                        CornerRadius="8" 
+                        Padding="20"
+                        MaxWidth="400">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{Tr 'About Diagramation'}" 
+                                  FontSize="16" FontWeight="Bold" 
+                                  Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        
+                        <TextBlock Text="{Tr 'The diagramation tool allows you to create visual diagrams and flowcharts for your projects. This feature is currently free to use.'}" 
+                                  FontSize="14" 
+                                  Foreground="{DynamicResource TextSecondaryBrush}"
+                                  TextWrapping="Wrap"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                            <Path Data="M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2M11,17H13V7H11V17Z" 
+                                  Fill="{DynamicResource Accent}" Width="16" Height="16"/>
+                            <TextBlock Text="{Tr 'Free for now'}" 
+                                      FontSize="12" FontWeight="Bold"
+                                      Foreground="{DynamicResource Accent}"
+                                      VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Progress Bar (when loading) -->
+                <Border IsVisible="{Binding IsLoading}" 
+                        Background="{DynamicResource CardBg}" 
+                        CornerRadius="8" 
+                        Padding="20">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="{Tr 'Loading Diagramation App...'}" 
+                                  FontSize="14" FontWeight="Bold" 
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  HorizontalAlignment="Center"/>
+                        <ProgressBar Value="{Binding LoadingProgress}" 
+                                    Maximum="100" 
+                                    Height="8" 
+                                    Width="200"
+                                    HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

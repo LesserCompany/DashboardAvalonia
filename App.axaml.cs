@@ -225,6 +225,24 @@ public class App : Application
         await ai.startApp();
     }
 
+    public static async Task StartDiagramationWPFApp(Action<int> callback)
+    {
+        try
+        {
+            LesserFunctionClient.DefaultClient.RecordUserEvent("start_diagramation_app");
+            AppInstaller ai = new AppInstaller("DiagramationWPF", callback);
+            await ai.startApp();
+        }
+        catch (Exception e)
+        {
+            if (MainWindow.instance != null)
+            {
+                var bbox = MessageBoxManager.GetMessageBoxStandard("", $"{e.Message} | {e.StackTrace}");
+                var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+            }
+        }
+    }
+
 
 
 
