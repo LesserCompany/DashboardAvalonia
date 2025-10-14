@@ -29,8 +29,8 @@
           <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
         </StackPanel>
 
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center"  />
-        <StackPanel Grid.Row="2"  Grid.Column="1">
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center" IsVisible="{Binding !IsTreatmentOnlyCombo}" />
+        <StackPanel Grid.Row="2"  Grid.Column="1" IsVisible="{Binding !IsTreatmentOnlyCombo}">
           <TextBox  Text="{Binding TbRecFolder}" VerticalAlignment="Center" />
           <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
         </StackPanel>

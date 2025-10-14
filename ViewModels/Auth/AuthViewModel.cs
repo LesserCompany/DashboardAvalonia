@@ -5,6 +5,8 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.ViewModels;
+using LesserDashboardClient.Views;
 using Newtonsoft.Json;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Login;
@@ -134,8 +136,24 @@ namespace LesserDashboardClient.ViewModels.Auth
                 }
                 else
                 {
-                    App.StartMainWindow();
-                    App.AuthWindowInstance?.Close();
+                    // Substitui a janela atual pela janela principal
+                    if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                    {
+                        // Fecha a janela de login atual
+                        desktop.MainWindow?.Close();
+                        
+                        // Cria uma nova janela principal
+                        var mainWindow = new MainWindow
+                        {
+                            DataContext = new MainWindowViewModel(),
+                        };
+                        
+                        // Define a janela principal como a janela principal
+                        desktop.MainWindow = mainWindow;
+                        
+                        // Mostra a nova janela principal
+                        mainWindow.Show();
+                    }
                 }
 
             }

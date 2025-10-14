@@ -124,16 +124,44 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     public async Task LogoutCommand()
     {
-        File.Delete(LesserFunctionClient.loginFileInfo.FullName);
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        try
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            // Remove o arquivo de login para limpar as credenciais
+            File.Delete(LesserFunctionClient.loginFileInfo.FullName);
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if(desktop.MainWindow != null)
-                    desktop.MainWindow.Close();
-            }
-            App.StartAuthWindow();
-        });
+                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    if (desktop.MainWindow != null)
+                    {
+                        // Oculta a janela principal
+                        desktop.MainWindow.Hide();
+                        
+                        // Cria e mostra uma nova janela de login
+                        var authWindow = new AuthWindow();
+                        authWindow.Show();
+                        
+                        // Define a janela de login como a janela principal
+                        desktop.MainWindow = authWindow;
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro durante logout: {ex.Message}");
+            // Em caso de erro, usa o método original como fallback
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    if(desktop.MainWindow != null)
+                        desktop.MainWindow.Close();
+                    App.StartAuthWindow();
+                }
+            });
+        }
     }
 
     [RelayCommand]

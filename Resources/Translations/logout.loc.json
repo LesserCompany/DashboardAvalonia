@@ -7,4 +7,12 @@
     "en-US": "Disconnect and close",
     "pt-BR": "Desconectar e fechar"
   },
+  "Logout (Back to Login)": {
+    "en-US": "Logout (Back to Login)",
+    "pt-BR": "Deslogar (Voltar ao Login)"
+  },
+  "Disconnect and Close": {
+    "en-US": "Disconnect and Close",
+    "pt-BR": "Desconectar e Fechar"
+  }
 }

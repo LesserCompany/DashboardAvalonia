@@ -144,6 +144,11 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public int? totalPhotosForOCRDone;
     [ObservableProperty] public bool? cbUploadOnTestSystem;
     [ObservableProperty] public bool? cbAllowDeletedProductionToBeFoundAnyone;
+    
+    /// <summary>
+    /// Indica se o combo selecionado é apenas para tratamento (sem reconhecimento facial)
+    /// </summary>
+    [ObservableProperty] public bool isTreatmentOnlyCombo = false;
 
     //ProfessionalTask Props
     [ObservableProperty] public string tbCollectionName;
@@ -282,6 +287,11 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string createProfessionalErrorMessage = "";
     [ObservableProperty] public string createProfessionalSuccessMessage = "";
 
+    // Load More Button Properties
+    [ObservableProperty] public bool showLoadMoreButton = true;
+    [ObservableProperty] public bool isLoadingMoreTasks = false;
+    [ObservableProperty] public bool hasLoadedAllTasks = false;
+
 
     public CollectionsViewModel()
     {
@@ -361,6 +371,58 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionsListIsLoading = false;
             IsEnabledFilters = true;
+        }
+    }
+
+    public async Task LoadAllTasksFromLastFiveYears()
+    {
+        try
+        {
+            IsLoadingMoreTasks = true;
+            ShowLoadMoreButton = false;
+            
+            int daysFilterLimit = 365 * 5; // 5 anos
+            var pts = await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks(daysFilterLimit);
+
+            if (pts != null && pts.Count > 0)
+            {
+                // Dividir os itens em lotes menores para melhor performance
+                const int batchSize = 25;
+                var batches = pts.Select((pt, index) => new { pt, index })
+                                 .GroupBy(x => x.index / batchSize)
+                                 .Select(g => g.Select(x => x.pt).ToList());
+
+                foreach (var batch in batches)
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        foreach (var pt in batch)
+                        {
+                            // Verificar se o item já existe na lista para evitar duplicatas
+                            if (!CollectionsList.Any(existing => existing.classCode == pt.classCode))
+                            {
+                                CollectionsList.Add(pt);
+                            }
+                        }
+                        
+                        // Atualizar a lista filtrada mantendo os filtros aplicados
+                        FilterProfessionalTasks("", "");
+                    });
+                    
+                    await Task.Delay(50); // Pequeno delay para não sobrecarregar a UI
+                }
+            }
+            
+            HasLoadedAllTasks = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar tarefas dos últimos 5 anos: {ex.Message}");
+            ShowLoadMoreButton = true; // Mostrar o botão novamente em caso de erro
+        }
+        finally
+        {
+            IsLoadingMoreTasks = false;
         }
     }
 
@@ -632,6 +694,13 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
                 return (false, $"N�o � permitido utilizar o caractere '{chBlocked}' no nome do arquivo \"{c.FullName}\".\nRenomeie o arquivo e tente novamente.");
             }
+        }
+
+        // Validação: Verificar se há pelo menos 1 foto na pasta de reconhecimento
+        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true)
+        if (!(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
+        {
+            return (false, "É necessário ter pelo menos 1 foto na pasta de reconhecimento para criar a coleção. Se as fotos já foram separadas, marque a opção 'Fotos já foram separadas'.");
         }
 
         return (true, "");
@@ -1009,7 +1078,9 @@ public partial class CollectionsViewModel : ViewModelBase
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
-
+        
+        // Resetar propriedade de combo apenas tratamento
+        IsTreatmentOnlyCombo = false;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -1033,6 +1104,9 @@ public partial class CollectionsViewModel : ViewModelBase
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
+        
+        // Resetar propriedade de combo apenas tratamento
+        IsTreatmentOnlyCombo = false;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1058,6 +1132,9 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
         CbAllowDeletedProductionToBeFoundAnyone = options.AllowDeletedProductionToBeFoundAnyone;
+        
+        // Definir se é um combo apenas tratamento
+        IsTreatmentOnlyCombo = options.IsTreatmentOnly;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1075,6 +1152,7 @@ public partial class CollectionsViewModel : ViewModelBase
         ActiveComponent = ActiveViews.NewCollection;
 
         ExpanderAdvancedOptions = true;
+        ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
 
         IsReupload = true;
         TbCollectionName = SelectedCollection.classCode;
@@ -1128,7 +1206,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
 
             }
-            if (!Directory.Exists(TbRecFolder))
+            // Só validar pasta de reconhecimento se não for um combo apenas tratamento
+            if (!IsTreatmentOnlyCombo && !Directory.Exists(TbRecFolder))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Acknowledgments folder not found"));
                 return;
@@ -1154,7 +1233,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadOnTestSystem = CbUploadOnTestSystem ?? false,
                 companyUsername = GlobalAppStateViewModel.lfc.loginResult.User.company,
                 originalEventsFolder = TbEventFolder,
-                originalRecFolder = TbRecFolder,
+                originalRecFolder = IsTreatmentOnlyCombo ? string.Empty : TbRecFolder,
                 EnableFaceRelevanceDetection = CbEnableAutoExclusion,
                 AutoTreatment = CbEnableAutoTreatment,
                 UploadPhotosAreAlreadySorted = CbUploadedPhotosAreAlreadySorted,
@@ -1174,11 +1253,12 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
             var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
-            var recFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
+            var recFiles = IsTreatmentOnlyCombo ? new List<FileInfo>() : FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
             var checkIfClassCanBeCreated = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
             if (checkIfClassCanBeCreated.response == false)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(checkIfClassCanBeCreated.message);
+                return;
             }
 
             var graduatesDataToUpload = GraduatesData.ToList();
@@ -1973,6 +2053,12 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         ComboPriceService.ClearCache();
         LoadDynamicCombos();
+    }
+
+    [RelayCommand]
+    public async Task LoadMoreTasksCommand()
+    {
+        await LoadAllTasksFromLastFiveYears();
     }
 
     #endregion

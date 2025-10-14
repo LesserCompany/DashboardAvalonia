@@ -16,6 +16,11 @@ namespace LesserDashboardClient.Models
         public bool AllowCPFsToSeeAllPhotos { get; set; }
         public bool AllowDeletedProductionToBeFoundAnyone { get; set; }
         public bool UploadedPhotosAreAlreadySorted { get; set; }
+        
+        /// <summary>
+        /// Indica se este combo é apenas para tratamento (sem reconhecimento facial)
+        /// </summary>
+        public bool IsTreatmentOnly { get; set; }
 
 
         public string ComboTitle { get; set; }

@@ -28,6 +28,10 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        
+        // Carrega as configurações primeiro
+        GlobalAppStateViewModel.LoadOptionsModel();
+        
         StartUpLanguageApp();
         StartUpThemeApp();
     }
@@ -90,7 +94,17 @@ public class App : Application
             string translationFilePath = Path.Combine(basePath, "Resources", "Translations", translationFile.Name);
             LocalizationLoader.Instance.AddFile(translationFilePath);
         }
-        SetCurrentLang();
+        
+        // Carrega o idioma salvo nas configurações
+        string savedLanguage = GlobalAppStateViewModel.options.Language;
+        if (!string.IsNullOrEmpty(savedLanguage))
+        {
+            SetCurrentLang(savedLanguage);
+        }
+        else
+        {
+            SetCurrentLang();
+        }
     }
     public void SetCurrentLang(string? language = "")
     {
@@ -114,6 +128,10 @@ public class App : Application
             Loc.Instance.CurrentLanguage = currentLang;
         GlobalAppStateViewModel.Instance.AppLanguage = GetCurrentLang();
         LanguageHelper.SetLanguageInCurrentComputer(GetCurrentLang());
+        
+        // Salva o idioma nas configurações
+        GlobalAppStateViewModel.options.Language = GetCurrentLang();
+        GlobalAppStateViewModel.options.Save();
     }
     public string GetCurrentLang()
     {

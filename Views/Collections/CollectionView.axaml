@@ -39,9 +39,11 @@
           <SelectableTextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding SelectedCollection.originalEventsFolder}" />
           <!-- ProgressBars -->
           <Grid Grid.Row="3" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="200, *" ColumnSpacing="5" RowSpacing="{DynamicResource DefaultRowSpacing}">
-              <!-- Row 1 -->
-              <TextBlock Grid.Row="0"  VerticalAlignment="Center" HorizontalAlignment="Right" Grid.Column="0" Text="{Tr 'Recognition on the server:'}" />
-              <ProgressBar  IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Maximum="{Binding TotalPhotosForRecognition}" Value="{Binding TotalPhotosForRecognitionDone}" Grid.Column="1" Height="35"  ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+              <!-- Row 1 - Recognition Progress Bar (hidden when photos are already sorted) -->
+              <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsVisible="{Binding !SelectedCollection.UploadPhotosAreAlreadySorted, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
+                <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Tr 'Recognition on the server:'}" />
+                <ProgressBar IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Grid.Column="1" Maximum="{Binding TotalPhotosForRecognition}" Value="{Binding TotalPhotosForRecognitionDone}" Height="35" ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+              </Grid>
 
               <!-- Row 2 -->
               <Grid Grid.Row="1" Grid.Column="0"  Grid.ColumnSpan="2" IsVisible="{Binding SelectedCollection.AutoTreatment, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">

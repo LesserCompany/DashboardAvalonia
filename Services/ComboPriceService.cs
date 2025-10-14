@@ -83,7 +83,8 @@ namespace LesserDashboardClient.Services
                 AllowCPFsToSeeAllPhotos = serverCombo.Features.AllowCPFsToSeeAllPhotos,
                 AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
                 Ocr = serverCombo.Features.OCR,
-                UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted
+                UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
+                IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo.ComboName)
             };
         }
 
@@ -110,6 +111,17 @@ namespace LesserDashboardClient.Services
                 return "Pink";
             else
                 return "#6495ED"; // azul padrão
+        }
+
+        /// <summary>
+        /// Verifica se o combo é apenas para tratamento (sem reconhecimento facial)
+        /// </summary>
+        private static bool IsTreatmentOnlyCombo(string comboName)
+        {
+            var name = comboName.ToLower();
+            
+            // Combos que são apenas tratamento - deve conter especificamente "apenas tratamento"
+            return name.Contains("apenas tratamento");
         }
 
         /// <summary>

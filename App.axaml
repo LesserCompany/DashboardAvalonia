@@ -21,6 +21,7 @@
             <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
             <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
           </ResourceDictionary>
         </ResourceDictionary.MergedDictionaries>
         

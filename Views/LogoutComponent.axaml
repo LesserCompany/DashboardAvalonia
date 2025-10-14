@@ -16,8 +16,8 @@
       </DropDownButton.Content>
       <DropDownButton.Flyout>
         <MenuFlyout>
-          <MenuItem Header="{Tr 'Disconnect'}" Command="{Binding LogoutAndExitCommand}" />
-          <MenuItem IsVisible="False" Header="{Tr 'Disconnect and close'}" Command="{Binding LogoutAndExitCommand}" />
+          <MenuItem Header="{Tr 'Logout (Back to Login)'}" Command="{Binding LogoutCommand}" />
+          <MenuItem Header="{Tr 'Disconnect and Close'}" Command="{Binding LogoutAndExitCommand}" />
         </MenuFlyout>
       </DropDownButton.Flyout>
     </DropDownButton>
