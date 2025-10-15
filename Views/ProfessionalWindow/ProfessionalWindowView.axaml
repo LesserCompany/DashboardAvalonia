@@ -1,0 +1,110 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.ProfessionalWindow"
+        xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+        mc:Ignorable="d" d:DesignWidth="745" d:DesignHeight="397"
+        x:Class="LesserDashboardClient.Views.ProfessionalWindow.ProfessionalWindowView"
+        x:DataType="vm:ProfessionalWindowViewModel"
+        Title="{Tr 'Select Contract:'}"
+        Width="745" Height="397"
+        WindowStartupLocation="CenterScreen">
+        
+    <Window.DataContext>
+        <vm:ProfessionalWindowViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header with buttons and search -->
+        <Grid Grid.Row="0" Margin="20,20,20,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Search Label -->
+            <TextBlock Grid.Column="0" 
+                       Text="{Tr 'Search'}" 
+                       VerticalAlignment="Center" 
+                       Margin="0,0,10,0"
+                       Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+
+                    <!-- Search TextBox -->
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchText}"
+                             Watermark="{Tr 'Search...'}"
+                             Margin="0,0,20,0"/>
+
+            <!-- Exit Button -->
+            <Button Grid.Column="2" 
+                    Content="{Tr 'Exit'}" 
+                    Width="75" 
+                    Margin="0,0,10,0"
+                    Command="{Binding ExitCommand}"/>
+
+            <!-- Select Button -->
+            <Button Grid.Column="3" 
+                    Content="{Tr 'Select'}" 
+                    Width="75"
+                    IsEnabled="{Binding IsSelectButtonEnabled}"
+                    Command="{Binding SelectContractCommand}"/>
+        </Grid>
+
+        <!-- Contracts List -->
+        <Border Grid.Row="1" 
+                Margin="20,0,20,10"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                CornerRadius="8">
+            
+            <Grid>
+                <!-- Loading indicator -->
+                <ui:ProgressRing IsVisible="{Binding IsLoading}"
+                                 HorizontalAlignment="Center" 
+                                 VerticalAlignment="Center"/>
+
+                <!-- Contracts ListBox -->
+                <ListBox ItemsSource="{Binding FilteredContractsList}"
+                         SelectedItem="{Binding SelectedContract}"
+                         IsVisible="{Binding !IsLoading}">
+                    
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200"/>
+                                    <ColumnDefinition Width="200"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" 
+                                           Text="{Binding classCode}" 
+                                           Margin="8"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="{Binding companyUsername}" 
+                                           Margin="8"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+            </Grid>
+        </Border>
+
+        <!-- Footer with logout option -->
+        <Grid Grid.Row="2" Margin="20,0,20,20">
+            <Button Content="{Tr 'Logout (Back to Login)'}" 
+                    HorizontalAlignment="Left"
+                    Command="{Binding LogoutCommand}"
+                    Background="Transparent"
+                    BorderThickness="0"/>
+        </Grid>
+    </Grid>
+</Window>

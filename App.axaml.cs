@@ -54,10 +54,20 @@ public class App : Application
             }
             else
             {
-                desktop.MainWindow = new MainWindow
+                // Verifica o tipo de usuário para determinar qual janela mostrar
+                if (lr.User.userType == "professionals")
                 {
-                    DataContext = new MainWindowViewModel(),
-                };
+                    // Para separadores, mostra a ProfessionalWindow
+                    desktop.MainWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
+                }
+                else
+                {
+                    // Para empresas, mostra a MainWindow normal
+                    desktop.MainWindow = new MainWindow
+                    {
+                        DataContext = new MainWindowViewModel(),
+                    };
+                }
             }
         }
         base.OnFrameworkInitializationCompleted();
@@ -67,6 +77,9 @@ public class App : Application
         if(Current != null)
             if (Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                // Reaplica as configurações de tema e idioma antes de criar a nova janela
+                ReapplySettings();
+                
                 desktop.MainWindow = new MainWindow
                 {
                     DataContext = new MainWindowViewModel(),
@@ -79,9 +92,49 @@ public class App : Application
         if (Current != null)
             if (Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
+                // Reaplica as configurações de tema e idioma antes de criar a nova janela
+                ReapplySettings();
+                
                 AuthWindowInstance = new AuthWindow();
                 AuthWindowInstance.Show();
             }
+    }
+    
+    /// <summary>
+    /// Reaplica as configurações de tema e idioma salvas
+    /// </summary>
+    public static void ReapplySettings()
+    {
+        // Recarrega as configurações do arquivo
+        GlobalAppStateViewModel.LoadOptionsModel();
+        
+        // Reaplica o tema
+        var app = Application.Current;
+        if (app != null)
+        {
+            string savedTheme = GlobalAppStateViewModel.options.AppTheme;
+            switch (savedTheme)
+            {
+                case "DarkMode":
+                    app.RequestedThemeVariant = ThemeVariant.Dark;
+                    GlobalAppStateViewModel.Instance.AppIsDarkMode = true;
+                    break;
+                case "LightMode":
+                    app.RequestedThemeVariant = ThemeVariant.Light;
+                    GlobalAppStateViewModel.Instance.AppIsDarkMode = false;
+                    break;
+                default:
+                    app.RequestedThemeVariant = ThemeVariant.Default;
+                    break;
+            }
+        }
+        
+        // Reaplica o idioma
+        string savedLanguage = GlobalAppStateViewModel.options.Language;
+        if (!string.IsNullOrEmpty(savedLanguage))
+        {
+            SetCurrentLang(savedLanguage);
+        }
     }
     private void StartUpLanguageApp()
     {
@@ -106,7 +159,7 @@ public class App : Application
             SetCurrentLang();
         }
     }
-    public void SetCurrentLang(string? language = "")
+    public static void SetCurrentLang(string? language = "")
     {
         string currentLang;
         if (!string.IsNullOrEmpty(language))
@@ -133,13 +186,13 @@ public class App : Application
         GlobalAppStateViewModel.options.Language = GetCurrentLang();
         GlobalAppStateViewModel.options.Save();
     }
-    public string GetCurrentLang()
+    public static string GetCurrentLang()
     {
         return !string.IsNullOrWhiteSpace(Loc.Instance.CurrentLanguage)
             ? Loc.Instance.CurrentLanguage
             : GetDefaultLanguage();
     }
-    public string GetDefaultLanguage()
+    public static string GetDefaultLanguage()
     {
         try
         {

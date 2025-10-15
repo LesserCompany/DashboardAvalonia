@@ -51,6 +51,38 @@
     "en-US": "Separator:",
     "pt-BR": "Separador:"
   },
+  "Select Contract:": {
+    "en-US": "Select Contract:",
+    "pt-BR": "Selecione o contrato:"
+  },
+  "Search": {
+    "en-US": "Search",
+    "pt-BR": "Procurar"
+  },
+  "Search...": {
+    "en-US": "Search...",
+    "pt-BR": "Procurar..."
+  },
+  "Exit": {
+    "en-US": "Exit",
+    "pt-BR": "Sair"
+  },
+  "Select": {
+    "en-US": "Select",
+    "pt-BR": "Selecionar"
+  },
+  "Collection ID": {
+    "en-US": "Collection ID",
+    "pt-BR": "ID da coleção"
+  },
+  "Company/Client Name": {
+    "en-US": "Company/Client Name",
+    "pt-BR": "Nome da Empresa/Cliente"
+  },
+  "Logout (Back to Login)": {
+    "en-US": "Logout (Back to Login)",
+    "pt-BR": "Sair (Voltar ao Login)"
+  },
   "ID collection:": {
     "en-US": "ID collection:",
     "pt-BR": "ID da coleção:"

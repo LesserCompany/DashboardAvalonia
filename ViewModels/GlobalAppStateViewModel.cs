@@ -86,7 +86,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
     private void ChangeAppLanguage(string lang)
     {
         var app = App.Current as App;
-        app?.SetCurrentLang(lang);
+        App.SetCurrentLang(lang);
     }
 
     public void ShowDialogOk(string msg = "", string title = "")

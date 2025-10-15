@@ -11,7 +11,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LesserDashboardClient.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="LetsPick Lesser Client"
+        Title="LetsPic Lesser Client"
         ExtendClientAreaToDecorationsHint="false"
         WindowStartupLocation="CenterScreen"
         MinWidth="900"

@@ -136,23 +136,39 @@ namespace LesserDashboardClient.ViewModels.Auth
                 }
                 else
                 {
-                    // Substitui a janela atual pela janela principal
+                    // Substitui a janela atual pela janela apropriada baseada no tipo de usuário
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
-                        // Fecha a janela de login atual
-                        desktop.MainWindow?.Close();
+                        var oldWindow = desktop.MainWindow;
                         
-                        // Cria uma nova janela principal
-                        var mainWindow = new MainWindow
+                        // Reaplica as configurações de tema e idioma antes de criar a nova janela
+                        App.ReapplySettings();
+                        
+                        // Verifica o tipo de usuário para determinar qual janela mostrar
+                        if (GlobalAppStateViewModel.lfc.loginResult.User.userType == "professionals")
                         {
-                            DataContext = new MainWindowViewModel(),
-                        };
+                            // Para separadores, mostra a ProfessionalWindow
+                            var professionalWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
+                            desktop.MainWindow = professionalWindow;
+                            professionalWindow.Show();
+                        }
+                        else
+                        {
+                            // Para empresas, mostra a MainWindow normal
+                            var mainWindow = new MainWindow
+                            {
+                                DataContext = new MainWindowViewModel(),
+                            };
+                            desktop.MainWindow = mainWindow;
+                            mainWindow.Show();
+                        }
                         
-                        // Define a janela principal como a janela principal
-                        desktop.MainWindow = mainWindow;
+                        // Espera um tick para garantir que a UI da nova janela iniciou
+                        await Task.Delay(150);
                         
-                        // Mostra a nova janela principal
-                        mainWindow.Show();
+                        // Agora fecha a janela antiga (libera Dispatcher antigo)
+                        (oldWindow?.DataContext as IDisposable)?.Dispose();
+                        oldWindow?.Close();
                     }
                 }
 
