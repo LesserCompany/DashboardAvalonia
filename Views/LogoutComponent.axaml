@@ -10,7 +10,7 @@
     <DropDownButton  VerticalAlignment="Center" HorizontalAlignment="Center">
       <DropDownButton.Content>
         <TextBlock>
-          <Run Text="{Tr 'Company:'}" />
+          <Run Text="{Tr 'User:'}" />
           <Run Text="{Binding CompanyName}" FontWeight="Bold" />
         </TextBlock>
       </DropDownButton.Content>

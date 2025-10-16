@@ -57,7 +57,7 @@
                                   FontSize="16" FontWeight="Bold" 
                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
                         
-                        <TextBlock Text="{Tr 'The diagramation tool allows you to create visual diagrams and flowcharts for your projects. This feature is currently free to use.'}" 
+                        <TextBlock Text="{Tr 'The layout feature lets you prepare your photos for printing—at the right size and with the correct crop.'}" 
                                   FontSize="14" 
                                   Foreground="{DynamicResource TextSecondaryBrush}"
                                   TextWrapping="Wrap"/>

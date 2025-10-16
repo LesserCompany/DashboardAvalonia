@@ -38,6 +38,12 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         [ObservableProperty] 
         private bool isSelectButtonEnabled = false;
 
+        [ObservableProperty] 
+        private bool isSelectingContract = false;
+
+        [ObservableProperty] 
+        private int downloadProgress = 0;
+
         partial void OnSelectedContractChanged(ProfessionalTask? value)
         {
             IsSelectButtonEnabled = value != null;
@@ -127,21 +133,60 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         }
 
         [RelayCommand]
-        public async Task SelectContractCommand()
+        public void SelectContractCommand()
         {
             if (SelectedContract == null) return;
 
             try
             {
+                IsSelectingContract = true;
+                DownloadProgress = 0;
+                IsSelectButtonEnabled = false;
+
                 // Start the download app for the selected contract
-                await App.StartDownloadApp(SelectedContract, (progress) =>
-                {
-                    // Progress callback - could be used to show progress
-                    System.Diagnostics.Debug.WriteLine($"Download progress: {progress}%");
-                });
+                App.StartDownloadApp(
+                    SelectedContract, 
+                    (progress) =>
+                    {
+                        // Update progress on UI thread
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            DownloadProgress = progress;
+                            System.Diagnostics.Debug.WriteLine($"Download progress: {progress}%");
+                        });
+                    },
+                    () =>
+                    {
+                        // On done callback
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            IsSelectingContract = false;
+                            DownloadProgress = 100;
+                            IsSelectButtonEnabled = true;
+                            System.Diagnostics.Debug.WriteLine("Download completed successfully!");
+                        });
+                    },
+                    (error) =>
+                    {
+                        // On error callback
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            IsSelectingContract = false;
+                            DownloadProgress = 0;
+                            IsSelectButtonEnabled = true;
+                            System.Diagnostics.Debug.WriteLine($"Download error: {error}");
+                        });
+                    }
+                );
             }
             catch (Exception ex)
             {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    IsSelectingContract = false;
+                    DownloadProgress = 0;
+                    IsSelectButtonEnabled = true;
+                });
                 System.Diagnostics.Debug.WriteLine($"Error starting download app: {ex.Message}");
             }
         }
@@ -182,6 +227,10 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
                         var oldWindow = desktop.MainWindow;
+                        
+                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
+                        App.ReapplySettings();
+                        
                         var authWindow = new AuthWindow();
                         
                         desktop.MainWindow = authWindow;

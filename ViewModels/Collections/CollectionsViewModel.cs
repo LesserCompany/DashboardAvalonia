@@ -1319,7 +1319,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 Action<int> callback = MainWindowViewModel.Instance != null
                     ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                     : _ => { };
-                await App.StartUploadConcurrentApp(pt, callback);
+                App.StartUploadConcurrentApp(pt, callback);
 
                 await UpdateProfessionalTasksList();
                 var currentPt = CollectionsListFiltered.FirstOrDefault(x => x.classCode == pt.classCode);
@@ -1409,7 +1409,7 @@ public partial class CollectionsViewModel : ViewModelBase
             Action<int> callback = MainWindowViewModel.Instance != null
                 ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                 : _ => { };
-            await App.StartDownloadApp(SelectedCollection, callback);
+            App.StartDownloadApp(SelectedCollection, callback);
         }
         catch(Exception ex)
         {

@@ -7,6 +7,7 @@ using CodingSeb.Localization;
 using CodingSeb.Localization.Loaders;
 using LesserDashboardClient.ViewModels;
 using LesserDashboardClient.Views;
+using LesserDashboardClient.Helpers;
 using MsBox.Avalonia;
 using Newtonsoft.Json;
 using SharedClientSide.Helpers;
@@ -49,6 +50,9 @@ public class App : Application
 
             if (lr == null || lr.loginFailed == true || lr.success == false || DateTime.Now > lr.User.loginTokenExpirationDate || GlobalAppStateViewModel.lfc.loginResult == null)
             {
+                // Reaplica as configurações de tema e idioma antes de criar a janela de login
+                ReapplySettings();
+                
                 AuthWindowInstance = new AuthWindow();
                 AuthWindowInstance.Show();
             }
@@ -247,7 +251,7 @@ public class App : Application
         GlobalAppStateViewModel.options.Save();
     }
 
-    public static async Task StartUploadConcurrentApp(ProfessionalTask professionalTask, Action<int> callback)
+    public static void StartUploadConcurrentApp(ProfessionalTask professionalTask, Action<int> callback)
     {
         try
         {
@@ -259,9 +263,21 @@ public class App : Application
                 Directory.CreateDirectory(fi.Directory.FullName);
             File.WriteAllText(AppInstaller.ClassToUploadTxtFilePath, json);
 
-
-            AppInstaller ai = new AppInstaller("UploaderConcurrent", callback);
-            await ai.startApp();
+            // Usar InstallerRunner para executar em background e evitar travada da UI
+            InstallerRunner.RunInBackground(
+                appName: "UploaderConcurrent",
+                onUiProgress: callback,
+                args: "",
+                onUiDone: () => callback?.Invoke(100),
+                onUiError: msg => 
+                {
+                    if(MainWindow.instance != null)
+                    {
+                        var bbox = MessageBoxManager.GetMessageBoxStandard("", $"Erro na instalação: {msg}");
+                        var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+                    }
+                }
+            );
         }
         catch (Exception e)
         {
@@ -272,23 +288,31 @@ public class App : Application
             }
         }
     }
-    public async static Task StartDownloadApp(ProfessionalTask professionalTask, Action<int> callback)
+    public static void StartDownloadApp(ProfessionalTask professionalTask, Action<int> callback)
     {
+        StartDownloadApp(professionalTask, callback, null, null);
+    }
 
+    public static void StartDownloadApp(ProfessionalTask professionalTask, Action<int> progressCallback, Action onDone, Action<string> onError)
+    {
         try
         {
             if (!Directory.Exists(AppInstaller.AppRootFolder))
                 Directory.CreateDirectory(AppInstaller.AppRootFolder);
             File.WriteAllText(AppInstaller.AppRootFolder + "/classToDownload.txt", JsonConvert.SerializeObject(professionalTask, Formatting.Indented));
-
         }
         catch
         {
         }
 
-        AppInstaller ai = new AppInstaller("download", callback);
-        await ai.startApp("autostart");
-
+        // Usar InstallerRunner para executar em background e evitar travada da UI
+        InstallerRunner.RunInBackground(
+            appName: "download",
+            onUiProgress: progressCallback,
+            args: "autostart",
+            onUiDone: onDone,
+            onUiError: onError
+        );
     }
     public async static Task StartOrganizeApp(Action<int> callback)
     {

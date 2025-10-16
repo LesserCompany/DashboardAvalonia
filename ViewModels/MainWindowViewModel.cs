@@ -138,6 +138,9 @@ public partial class MainWindowViewModel : ViewModelBase
                         // Oculta a janela principal
                         desktop.MainWindow.Hide();
                         
+                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
+                        App.ReapplySettings();
+                        
                         // Cria e mostra uma nova janela de login
                         var authWindow = new AuthWindow();
                         authWindow.Show();

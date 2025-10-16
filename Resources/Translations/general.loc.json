@@ -47,9 +47,9 @@
     "en-US": "photos for free.",
     "pt-BR": "fotos gratuitamente."
   },
-  "Company:": {
-    "en-US": "Company:",
-    "pt-BR": "Empresa:"
+  "User:": {
+    "en-US": "User:",
+    "pt-BR": "Usuário:"
   },
   "None": {
     "en-US": "None",
@@ -95,9 +95,9 @@
     "en-US": "About Diagramation",
     "pt-BR": "Sobre Diagramação"
   },
-  "The diagramation tool allows you to create visual diagrams and flowcharts for your projects. This feature is currently free to use.": {
-    "en-US": "The diagramation tool allows you to create visual diagrams and flowcharts for your projects. This feature is currently free to use.",
-    "pt-BR": "A ferramenta de diagramação permite criar diagramas visuais e fluxogramas para seus projetos. Este recurso está atualmente gratuito."
+  "The layout feature lets you prepare your photos for printing—at the right size and with the correct crop.": {
+    "en-US": "The layout feature lets you prepare your photos for printing—at the right size and with the correct crop.",
+    "pt-BR": "A diagramação serve para você montar suas fotos para impressão, no tamanho certo e com o corte correto."
   },
   "Free for now": {
     "en-US": "Free for now",
@@ -106,5 +106,17 @@
   "Loading Diagramation App...": {
     "en-US": "Loading Diagramation App...",
     "pt-BR": "Carregando Aplicação de Diagramação..."
+  },
+  "Cut": {
+    "en-US": "Cut",
+    "pt-BR": "Cortar"
+  },
+  "Copy": {
+    "en-US": "Copy",
+    "pt-BR": "Copiar"
+  },
+  "Paste": {
+    "en-US": "Paste",
+    "pt-BR": "Colar"
   }
 }
