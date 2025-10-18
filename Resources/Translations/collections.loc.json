@@ -494,5 +494,9 @@
   "News_05_09_22_Content": {
     "en-US": "Need to separate photos in the system and need someone to do it for you? Now you can hire a professional separator to do it for you. For more information, contact support: (18) 99688-0201",
     "pt-BR": "Precisa separar fotos no sistema e precisa de alguém para fazer isso para você? Agora você pode contratar um separador profissional para fazer isso por você. Para mais informações, entre em contato com o suporte: (18) 99688-0201"
+  },
+  "Directory not found": {
+    "en-US": "Directory not found",
+    "pt-BR": "Diretório não encontrado"
   }
 }

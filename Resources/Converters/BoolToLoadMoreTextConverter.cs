@@ -26,3 +26,5 @@ public class BoolToLoadMoreTextConverter : IValueConverter
 
 
 
+
+

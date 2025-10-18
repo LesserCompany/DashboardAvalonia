@@ -43,11 +43,17 @@ namespace LesserDashboardClient.Models
     /// </summary>
     public class ServerCombo
     {
+        [JsonProperty("id")]
+        public int Id { get; set; }
+        
         [JsonProperty("comboName")]
         public string ComboName { get; set; }
         
         [JsonProperty("price")]
         public double Price { get; set; }
+        
+        [JsonProperty("coin")]
+        public string Coin { get; set; }
         
         [JsonProperty("description")]
         public string Description { get; set; }

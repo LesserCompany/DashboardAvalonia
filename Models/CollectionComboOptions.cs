@@ -26,6 +26,16 @@ namespace LesserDashboardClient.Models
         public string ComboTitle { get; set; }
         public string ComboDescription { get; set; }
         public string ComboColorAccent { get; set; }
+        
+        /// <summary>
+        /// ID do combo no servidor
+        /// </summary>
+        public int ComboId { get; set; }
+        
+        /// <summary>
+        /// Símbolo da moeda (R$ ou $)
+        /// </summary>
+        public string CurrencySymbol { get; set; } = "R$";
         public double ComboPrice
         {
             get {

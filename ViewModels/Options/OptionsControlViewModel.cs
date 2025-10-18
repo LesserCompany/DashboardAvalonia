@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System;
 
 namespace LesserDashboardClient.ViewModels.Options;
 
@@ -24,10 +25,16 @@ public partial class OptionsControlViewModel : ViewModelBase
         }
         set
         {
-            if (value)
-                GlobalAppStateViewModel.Instance.AppLanguage = "en-US";
-            else
-                GlobalAppStateViewModel.Instance.AppLanguage = "pt-BR";
+            string newLanguage = value ? "en-US" : "pt-BR";
+            string currentLanguage = GlobalAppStateViewModel.Instance.AppLanguage;
+            
+            if (currentLanguage != newLanguage)
+            {
+                Console.WriteLine($"OptionsControlViewModel: Alterando idioma de '{currentLanguage}' para '{newLanguage}'");
+                
+                // Alterar o idioma usando o método do App para disparar eventos
+                App.SetCurrentLang(newLanguage);
+            }
         }
     }
 

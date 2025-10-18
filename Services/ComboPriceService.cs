@@ -54,7 +54,8 @@ namespace LesserDashboardClient.Services
                 Console.WriteLine($"ComboPriceService: {_cachedCombos.Count} combos obtidos com sucesso");
                 foreach (var combo in _cachedCombos)
                 {
-                    Console.WriteLine($"  - {combo.ComboName}: R$ {combo.Price:F4} para 100 fotos");
+                    string currencySymbol = GetCurrencySymbol(combo.Coin);
+                    Console.WriteLine($"  - {combo.ComboName}: {currencySymbol} {combo.Price:F4} para 100 fotos");
                 }
                 
                 return _cachedCombos;
@@ -84,7 +85,9 @@ namespace LesserDashboardClient.Services
                 AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
                 Ocr = serverCombo.Features.OCR,
                 UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
-                IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo.ComboName)
+                IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo.ComboName),
+                ComboId = serverCombo.Id,
+                CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };
         }
 
@@ -125,6 +128,27 @@ namespace LesserDashboardClient.Services
         }
 
         /// <summary>
+        /// Obtém o símbolo da moeda baseado no tipo de moeda
+        /// </summary>
+        private static string GetCurrencySymbol(string coin)
+        {
+            if (string.IsNullOrEmpty(coin))
+                return "R$"; // Fallback para real
+
+            switch (coin.ToLower())
+            {
+                case "real":
+                    return "R$";
+                case "dolar":
+                case "dollar":
+                case "usd":
+                    return "$";
+                default:
+                    return "R$"; // Fallback para real
+            }
+        }
+
+        /// <summary>
         /// Cria e retorna todos os combos dinamicamente baseados no servidor
         /// </summary>
         public static async Task<List<CollectionComboOptions>> GetDynamicCombosAsync()
@@ -159,7 +183,8 @@ namespace LesserDashboardClient.Services
                         
                         dynamicCombos.Add(clientCombo);
                         
-                        Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' criado com preço R$ {priceFor1000Photos:F4}");
+                        string currencySymbol = GetCurrencySymbol(serverCombo.Coin);
+                        Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' criado com preço {currencySymbol} {priceFor1000Photos:F4}");
                     }
                     catch (Exception ex)
                     {
@@ -189,6 +214,33 @@ namespace LesserDashboardClient.Services
             _lastFetchTime = DateTime.MinValue;
             Console.WriteLine("ComboPriceService: Cache limpo");
         }
+
+        /// <summary>
+        /// Obtém o código do idioma atual para enviar à API
+        /// </summary>
+        private static string GetCurrentLanguageCode()
+        {
+            try
+            {
+                // Obter o idioma atual das configurações
+                string currentLanguage = ViewModels.GlobalAppStateViewModel.options?.Language ?? "en-US";
+                
+                // Converter para o formato esperado pela API
+                if (currentLanguage.StartsWith("pt"))
+                {
+                    return "pt";
+                }
+                else
+                {
+                    return "en";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao obter idioma atual: {ex.Message}");
+                return "en"; // Fallback para inglês
+            }
+        }
         /// <summary>
         /// TEMPORÁRIO: Chamada direta à API GetCompanyComboPrices
         /// </summary>
@@ -205,7 +257,11 @@ namespace LesserDashboardClient.Services
                 }
 
                 var token = ViewModels.GlobalAppStateViewModel.lfc.loginResult.User.loginToken;
-                var payload = new { Token = token };
+                
+                // Obter o idioma atual das configurações
+                string currentLanguage = GetCurrentLanguageCode();
+                
+                var payload = new { Token = token, language = currentLanguage };
                 var jsonPayload = JsonConvert.SerializeObject(payload);
                 
                 Console.WriteLine($"ComboPriceService: Payload: {jsonPayload}");

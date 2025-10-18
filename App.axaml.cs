@@ -25,6 +25,11 @@ namespace LesserDashboardClient;
 public class App : Application
 {
     public static AuthWindow? AuthWindowInstance { get; private set; }
+    
+    /// <summary>
+    /// Evento disparado quando o idioma é alterado
+    /// </summary>
+    public static event EventHandler? LanguageChanged;
 
     public override void Initialize()
     {
@@ -165,6 +170,8 @@ public class App : Application
     }
     public static void SetCurrentLang(string? language = "")
     {
+        string previousLang = GetCurrentLang();
+        
         string currentLang;
         if (!string.IsNullOrEmpty(language))
             currentLang = language;
@@ -189,7 +196,34 @@ public class App : Application
         // Salva o idioma nas configurações
         GlobalAppStateViewModel.options.Language = GetCurrentLang();
         GlobalAppStateViewModel.options.Save();
+        
+        // Se o idioma mudou, limpar cache de combos para forçar recarregamento
+        if (previousLang != GetCurrentLang())
+        {
+            Console.WriteLine($"App: Idioma mudou de '{previousLang}' para '{GetCurrentLang()}', limpando cache de combos");
+            Services.ComboPriceService.ClearCache();
+            
+            // Notificar que os combos precisam ser recarregados
+            NotifyLanguageChanged();
+        }
     }
+    
+    /// <summary>
+    /// Notifica que o idioma foi alterado
+    /// </summary>
+    private static void NotifyLanguageChanged()
+    {
+        try
+        {
+            LanguageChanged?.Invoke(null, EventArgs.Empty);
+            Console.WriteLine("App: Evento LanguageChanged disparado");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"App: Erro ao disparar evento LanguageChanged: {ex.Message}");
+        }
+    }
+    
     public static string GetCurrentLang()
     {
         return !string.IsNullOrWhiteSpace(Loc.Instance.CurrentLanguage)

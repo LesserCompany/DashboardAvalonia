@@ -299,6 +299,10 @@ public partial class CollectionsViewModel : ViewModelBase
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
+        
+        // Escutar mudanças de idioma para recarregar combos
+        App.LanguageChanged += OnLanguageChanged;
+        
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>
@@ -309,6 +313,34 @@ public partial class CollectionsViewModel : ViewModelBase
             }
         };
         timerUpdateView.Start();
+    }
+    
+    /// <summary>
+    /// Método chamado quando o idioma é alterado
+    /// </summary>
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        try
+        {
+            Console.WriteLine("CollectionsViewModel: Idioma alterado, recarregando combos...");
+            
+            // Recarregar combos com o novo idioma (sem await para evitar erro)
+            Task.Run(() => LoadDynamicCombos());
+            
+            Console.WriteLine("CollectionsViewModel: Combos recarregados com sucesso");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CollectionsViewModel: Erro ao recarregar combos após mudança de idioma: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Descarrega os eventos quando o ViewModel é destruído
+    /// </summary>
+    ~CollectionsViewModel()
+    {
+        App.LanguageChanged -= OnLanguageChanged;
     }
 
     public async Task LoadProfessionalTasks()
