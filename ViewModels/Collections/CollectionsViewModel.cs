@@ -1054,7 +1054,10 @@ public partial class CollectionsViewModel : ViewModelBase
             if (GlobalAppStateViewModel.lfc != null)
             {
                 var result = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos2();
-                RemainingFreeTrialPhotosResult = result;
+                if (result.success)
+                {
+                    RemainingFreeTrialPhotosResult = result.Content;
+                }
             }
             return;
         }
