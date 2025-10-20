@@ -67,6 +67,9 @@
       <Content Include="Resources\Translations\update-component.loc.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="Resources\Translations\diagramation.loc.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

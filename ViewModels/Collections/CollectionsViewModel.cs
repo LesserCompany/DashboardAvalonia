@@ -1368,19 +1368,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 GlobalAppStateViewModel.Instance.ShowDialogOk(r.message);
             }
 
-            try
-            {
-                if (shouldNotifyPipedriveAboutFirstUse == true)
-                    await GlobalAppStateViewModel.lfc.PipeDrive_NotifySystemFirstUse();
-                if(shouldNotifyPipedriveAboutFreeTrial50PercentReached == true)
-                    await GlobalAppStateViewModel.lfc.PipeDrive_HalfQuotaFreeTrialReached();
-                if(shouldNotifyPipedriveAboutFreeTrialLimitReached == true)
-                    await GlobalAppStateViewModel.lfc.PipeDrive_FullQuotaFreeTrialReached();
-            }
-            catch
-            {
-                return;
-            }
+            // PipeDrive notifications are now handled server-side
 
         }
         catch(Exception ex)

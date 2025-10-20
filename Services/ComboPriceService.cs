@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Companies;
 using LesserDashboardClient.Models;
-using Newtonsoft.Json;
+using LesserDashboardClient.ViewModels;
 
 namespace LesserDashboardClient.Services
 {
@@ -43,8 +41,39 @@ namespace LesserDashboardClient.Services
 
                 Console.WriteLine("ComboPriceService: Chamando API GetCompanyComboPrices...");
                 
-                // TEMPORÁRIO: Chamada direta à API até resolver problema de compilação
-                var serverCombos = await CallGetCompanyComboPricesDirectly();
+                // Obter o idioma atual das configurações
+                string currentLanguage = GetCurrentLanguageCode();
+                
+                // Usar o LesserFunctionClient seguindo o padrão do projeto
+                var result = await ViewModels.GlobalAppStateViewModel.lfc.GetCompanyComboPrices(currentLanguage);
+                
+                if (!result.success)
+                {
+                    Console.WriteLine($"ComboPriceService: Erro na API: {result.message}");
+                    throw new Exception($"Erro na API: {result.message}");
+                }
+                
+                // Converter List<object> para List<ServerCombo>
+                var serverCombos = new List<ServerCombo>();
+                if (result.Content != null)
+                {
+                    foreach (var item in result.Content)
+                    {
+                        try
+                        {
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(item);
+                            var serverCombo = Newtonsoft.Json.JsonConvert.DeserializeObject<ServerCombo>(json);
+                            if (serverCombo != null)
+                            {
+                                serverCombos.Add(serverCombo);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Erro ao converter combo: {ex.Message}");
+                        }
+                    }
+                }
                 
                 Console.WriteLine($"ComboPriceService: {serverCombos.Count} combos obtidos com sucesso");
 
@@ -239,95 +268,6 @@ namespace LesserDashboardClient.Services
             {
                 Console.WriteLine($"Erro ao obter idioma atual: {ex.Message}");
                 return "en"; // Fallback para inglês
-            }
-        }
-        /// <summary>
-        /// TEMPORÁRIO: Chamada direta à API GetCompanyComboPrices
-        /// </summary>
-        private static async Task<List<ServerCombo>> CallGetCompanyComboPricesDirectly()
-        {
-            try
-            {
-                Console.WriteLine("ComboPriceService: Fazendo chamada direta à API...");
-                
-                if (ViewModels.GlobalAppStateViewModel.lfc?.loginResult?.User?.loginToken == null)
-                {
-                    Console.WriteLine("ComboPriceService: Token de login não disponível");
-                    throw new Exception("Token de login não disponível");
-                }
-
-                var token = ViewModels.GlobalAppStateViewModel.lfc.loginResult.User.loginToken;
-                
-                // Obter o idioma atual das configurações
-                string currentLanguage = GetCurrentLanguageCode();
-                
-                var payload = new { Token = token, language = currentLanguage };
-                var jsonPayload = JsonConvert.SerializeObject(payload);
-                
-                Console.WriteLine($"ComboPriceService: Payload: {jsonPayload}");
-                
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromMinutes(5);
-                
-                var endpoint = "https://new-functions-dev-exgkfwchaxagbnay.brazilsouth-01.azurewebsites.net/api/GetCompanyComboPrices";
-                Console.WriteLine($"ComboPriceService: Endpoint: {endpoint}");
-                
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync(endpoint, content);
-                
-                Console.WriteLine($"ComboPriceService: Status Code: {response.StatusCode}");
-                
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"ComboPriceService: Erro na resposta: {errorContent}");
-                    throw new Exception($"Erro na API: {response.StatusCode}");
-                }
-                
-                var responseContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"ComboPriceService: Resposta recebida: {responseContent}");
-                
-                // Deserializar a resposta
-                var apiResponse = JsonConvert.DeserializeObject<dynamic>(responseContent);
-                
-                if (apiResponse?.success != true || apiResponse?.content == null)
-                {
-                    Console.WriteLine($"ComboPriceService: API retornou success=false ou content=null");
-                    throw new Exception("API retornou resposta inválida");
-                }
-                
-                // Converter content para List<ServerCombo>
-                var serverCombos = new List<ServerCombo>();
-                var contentArray = apiResponse.content as Newtonsoft.Json.Linq.JArray;
-                
-                if (contentArray != null)
-                {
-                    foreach (var item in contentArray)
-                    {
-                        try
-                        {
-                            var serverCombo = item.ToObject<ServerCombo>();
-                            if (serverCombo != null)
-                            {
-                                serverCombos.Add(serverCombo);
-                                Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' convertido com sucesso");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Erro ao converter combo: {ex.Message}");
-                        }
-                    }
-                }
-                
-                Console.WriteLine($"ComboPriceService: {serverCombos.Count} combos convertidos com sucesso");
-                return serverCombos;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro na chamada direta à API: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                throw;
             }
         }
     }
