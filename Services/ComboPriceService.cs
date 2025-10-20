@@ -25,21 +25,15 @@ namespace LesserDashboardClient.Services
             // Verificar se temos dados em cache válidos
             if (_cachedCombos != null && (now - _lastFetchTime) < CacheDuration)
             {
-                Console.WriteLine("ComboPriceService: Usando combos do cache");
                 return _cachedCombos;
             }
 
             try
             {
-                Console.WriteLine("ComboPriceService: Buscando combos do servidor...");
-                
                 if (ViewModels.GlobalAppStateViewModel.lfc == null)
                 {
-                    Console.WriteLine("ComboPriceService: LesserFunctionClient não está inicializado");
                     throw new Exception("LesserFunctionClient não está inicializado");
                 }
-
-                Console.WriteLine("ComboPriceService: Chamando API GetCompanyComboPrices...");
                 
                 // Obter o idioma atual das configurações
                 string currentLanguage = GetCurrentLanguageCode();
@@ -49,7 +43,6 @@ namespace LesserDashboardClient.Services
                 
                 if (!result.success)
                 {
-                    Console.WriteLine($"ComboPriceService: Erro na API: {result.message}");
                     throw new Exception($"Erro na API: {result.message}");
                 }
                 
@@ -70,29 +63,18 @@ namespace LesserDashboardClient.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Erro ao converter combo: {ex.Message}");
+                            // Log error silently
                         }
                     }
                 }
-                
-                Console.WriteLine($"ComboPriceService: {serverCombos.Count} combos obtidos com sucesso");
 
                 _cachedCombos = serverCombos;
                 _lastFetchTime = now;
-                
-                Console.WriteLine($"ComboPriceService: {_cachedCombos.Count} combos obtidos com sucesso");
-                foreach (var combo in _cachedCombos)
-                {
-                    string currencySymbol = GetCurrencySymbol(combo.Coin);
-                    Console.WriteLine($"  - {combo.ComboName}: {currencySymbol} {combo.Price:F4} para 100 fotos");
-                }
                 
                 return _cachedCombos;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter combos do servidor: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
@@ -184,14 +166,11 @@ namespace LesserDashboardClient.Services
         {
             try
             {
-                Console.WriteLine("ComboPriceService: Criando combos dinamicamente do servidor...");
-                
                 // Buscar todos os combos do servidor
                 var serverCombos = await GetCompanyComboPricesAsync();
                 
                 if (serverCombos == null || serverCombos.Count == 0)
                 {
-                    Console.WriteLine("ComboPriceService: Nenhum combo retornado do servidor, retornando lista vazia");
                     return new List<CollectionComboOptions>();
                 }
 
@@ -202,8 +181,6 @@ namespace LesserDashboardClient.Services
                 {
                     try
                     {
-                        Console.WriteLine($"ComboPriceService: Convertendo combo '{serverCombo.ComboName}'");
-                        
                         var clientCombo = ConvertServerComboToClientCombo(serverCombo);
                         
                         // Definir o preço dinâmico (converter de centavos/100 fotos para reais/1000 fotos)
@@ -211,25 +188,16 @@ namespace LesserDashboardClient.Services
                         clientCombo.SetDynamicPrice(priceFor1000Photos);
                         
                         dynamicCombos.Add(clientCombo);
-                        
-                        string currencySymbol = GetCurrencySymbol(serverCombo.Coin);
-                        Console.WriteLine($"ComboPriceService: Combo '{serverCombo.ComboName}' criado com preço {currencySymbol} {priceFor1000Photos:F4}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao converter combo '{serverCombo.ComboName}': {ex.Message}");
-                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
                         // Continuar com os outros combos em caso de erro
                     }
                 }
-                
-                Console.WriteLine($"ComboPriceService: {dynamicCombos.Count} combos dinâmicos criados com sucesso");
                 return dynamicCombos;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro geral ao criar combos dinâmicos: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return new List<CollectionComboOptions>();
             }
         }
@@ -241,7 +209,6 @@ namespace LesserDashboardClient.Services
         {
             _cachedCombos = null;
             _lastFetchTime = DateTime.MinValue;
-            Console.WriteLine("ComboPriceService: Cache limpo");
         }
 
         /// <summary>
@@ -266,7 +233,6 @@ namespace LesserDashboardClient.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao obter idioma atual: {ex.Message}");
                 return "en"; // Fallback para inglês
             }
         }

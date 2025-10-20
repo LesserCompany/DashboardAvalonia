@@ -322,16 +322,12 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
-            Console.WriteLine("CollectionsViewModel: Idioma alterado, recarregando combos...");
-            
             // Recarregar combos com o novo idioma (sem await para evitar erro)
             Task.Run(() => LoadDynamicCombos());
-            
-            Console.WriteLine("CollectionsViewModel: Combos recarregados com sucesso");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"CollectionsViewModel: Erro ao recarregar combos após mudança de idioma: {ex.Message}");
+            // Log error silently
         }
     }
     
@@ -1058,10 +1054,7 @@ public partial class CollectionsViewModel : ViewModelBase
             if (GlobalAppStateViewModel.lfc != null)
             {
                 var result = await GlobalAppStateViewModel.lfc.GetRemainingFreeTrialPhotos2();
-                if (result.success)
-                {
-                    RemainingFreeTrialPhotosResult = result.Content;
-                }
+                RemainingFreeTrialPhotosResult = result;
             }
             return;
         }
@@ -1994,23 +1987,17 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
-            Console.WriteLine("CollectionsViewModel: Iniciando LoadDynamicCombos");
-            
             // Verificar se o cliente está inicializado
             if (GlobalAppStateViewModel.lfc == null)
             {
-                Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc não está inicializado, aguardando...");
                 // Aguardar um pouco e tentar novamente
                 await Task.Delay(2000);
                 if (GlobalAppStateViewModel.lfc == null)
                 {
-                    Console.WriteLine("CollectionsViewModel: GlobalAppStateViewModel.lfc ainda não está inicializado, usando combos estáticos");
                     LoadStaticCombos();
                     return;
                 }
             }
-            
-            Console.WriteLine("CollectionsViewModel: Carregando combos dinâmicos do servidor...");
             
             // Carregar combos dinamicamente
             var serverCombos = await ComboPriceService.GetDynamicCombosAsync();
@@ -2018,8 +2005,6 @@ public partial class CollectionsViewModel : ViewModelBase
             // Notificar mudanças na UI thread
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Console.WriteLine("CollectionsViewModel: Atualizando lista de combos dinâmicos");
-                
                 // Limpar combos antigos
                 DynamicCombos.Clear();
                 
@@ -2028,8 +2013,6 @@ public partial class CollectionsViewModel : ViewModelBase
                 {
                     DynamicCombos.Add(combo);
                 }
-                
-                Console.WriteLine($"CollectionsViewModel: {DynamicCombos.Count} combos dinâmicos carregados");
                 
                 // Notificar que a coleção mudou
                 OnPropertyChanged(nameof(DynamicCombos));
@@ -2049,8 +2032,6 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     private void LoadStaticCombos()
     {
-        Console.WriteLine("CollectionsViewModel: Carregando combos estáticos como fallback");
-        
         DynamicCombos.Clear();
         
         // Adicionar os combos estáticos
