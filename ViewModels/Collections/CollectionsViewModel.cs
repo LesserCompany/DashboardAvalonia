@@ -152,6 +152,11 @@ public partial class CollectionsViewModel : ViewModelBase
 
     //ProfessionalTask Props
     [ObservableProperty] public string tbCollectionName;
+    partial void OnTbCollectionNameChanged(string value)
+    {
+        ValidateCollectionName();
+    }
+    [ObservableProperty] public bool tbCollectionNameHasError = false;
     [ObservableProperty] public string tbEventFolder;
     partial void OnTbEventFolderChanged(string value)
     {
@@ -578,7 +583,7 @@ public partial class CollectionsViewModel : ViewModelBase
         foreach (var f in sepFiles) { ClassSeparationFiles.Add(f); }
 
         var userFiles = await LesserFunctionClient.DefaultClient.GetUserFilesInClass(classCode);
-        if (userFiles.success)
+        if (userFiles != null && userFiles.success)
         {
             foreach (var f in userFiles.Content)
             {
@@ -681,6 +686,19 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         return RegexHelper.RegexToClassCode.IsMatch(text);
     }
+    
+    private void ValidateCollectionName()
+    {
+        if (string.IsNullOrEmpty(TbCollectionName))
+        {
+            TbCollectionNameHasError = false;
+            return;
+        }
+        
+        // Verifica se todos os caracteres são válidos
+        TbCollectionNameHasError = !IsTextAllowed(TbCollectionName);
+    }
+    
     private bool CheckIfClassAlreadyExists(string classCode)
     {
         foreach (ProfessionalTask pt in CollectionsList)
@@ -1334,7 +1352,7 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
             var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recFilesShortPaths, eventFilesShortPaths);
-            if (r.success)
+            if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
                     g.ClassCode = pt.classCode;
@@ -1403,7 +1421,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     var classSeparationFile = SelectedSeparationFile;
 
                     var ur = await LesserFunctionClient.DefaultClient.GetBlobBytesFromUserFolderInClassesContainer(classSeparationFile.FilePathInCloudCompanyFolder, classSeparationFile.StorageLocation);
-                    if (ur.success)
+                    if (ur != null && ur.success)
                     {
                         var bytes = ur.Content;
                         if(sepFile.Directory == null)
@@ -1415,7 +1433,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
 
                     var ur2 = await LesserFunctionClient.DefaultClient.GetBlobBytesFromUserFolderInClassesContainer(classSeparationFile.SeparationProgressPathCloudCompanyFolder, classSeparationFile.StorageLocation);
-                    if (ur2.success)
+                    if (ur2 != null && ur2.success)
                     {
                         var localProgressFile = new FileInfo(SharedClientSide.Helpers.Constants.GetSaveFolder(SelectedCollection.classCode) + "/separationProgress.txt");
                         File.WriteAllBytes(localProgressFile.FullName, ur2.Content);
@@ -1679,7 +1697,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             var repeatedClass = SelectedCollectionForCancelBilling.classCode;
             var result = await GlobalAppStateViewModel.lfc.CheckAndCancelBillingForRepeatedClass(SelectedCollection.classCode + "?" + repeatedClass);
-            if (result.success == false)
+            if (result != null && result.success == false)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(result.message);
             }
@@ -1909,7 +1927,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             // Obter dados da empresa
             var companyResult = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
-            if (!companyResult.success || companyResult.Content?.company == null)
+            if (companyResult == null || !companyResult.success || companyResult.Content?.company == null)
             {
                 CreateProfessionalErrorMessage = "Não foi possível obter dados da empresa.";
                 return;
@@ -1926,7 +1944,7 @@ public partial class CollectionsViewModel : ViewModelBase
             // Chamar API para registrar profissional
             var result = await GlobalAppStateViewModel.lfc.RegisterProfessional(professional);
 
-            if (result.success)
+            if (result != null && result.success)
             {
                 CreateProfessionalSuccessMessage = "Profissional criado com sucesso!";
                 

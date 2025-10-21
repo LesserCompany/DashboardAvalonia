@@ -14,10 +14,48 @@ namespace LesserDashboardClient.Views.Collections;
 
 public partial class NewCollectionPreConfigured : UserControl
 {
+    private TextBox? _tbCollectionNamePreConfigured;
+    
     public NewCollectionPreConfigured()
     {
         InitializeComponent();
+        this.Loaded += NewCollectionPreConfigured_Loaded;
     }
+
+    private void NewCollectionPreConfigured_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _tbCollectionNamePreConfigured = this.FindControl<TextBox>("tbCollectionNamePreConfigured");
+        
+        if (DataContext is CollectionsViewModel vm)
+        {
+            vm.PropertyChanged += Vm_PropertyChanged;
+        }
+    }
+
+    private void Vm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CollectionsViewModel.TbCollectionNameHasError))
+        {
+            UpdateTextBoxErrorState();
+        }
+    }
+
+    private void UpdateTextBoxErrorState()
+    {
+        if (_tbCollectionNamePreConfigured == null || DataContext is not CollectionsViewModel vm)
+            return;
+
+        if (vm.TbCollectionNameHasError)
+        {
+            if (!_tbCollectionNamePreConfigured.Classes.Contains("error"))
+                _tbCollectionNamePreConfigured.Classes.Add("error");
+        }
+        else
+        {
+            _tbCollectionNamePreConfigured.Classes.Remove("error");
+        }
+    }
+
     private void TextBox_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
     {
         if (DataContext is CollectionsViewModel vm)
@@ -32,7 +70,7 @@ public partial class NewCollectionPreConfigured : UserControl
     }
     private void Border_OnDragOver(object? sender, DragEventArgs e)
     {
-        // Só permite arquivos
+        // Sï¿½ permite arquivos
         if (e.Data.Contains(DataFormats.Files))
         {
             e.DragEffects = DragDropEffects.Copy;
@@ -55,7 +93,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if (files == null || files.Count == 0)
                 {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "Não foi possível carregar o arquivo.");
+                        .GetMessageBoxStandard("", "Nï¿½o foi possï¿½vel carregar o arquivo.");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }
@@ -65,7 +103,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if (!string.Equals(Path.GetExtension(firstFile), ".xlsx", StringComparison.OrdinalIgnoreCase))
                 {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "Por favor, selecione um arquivo Excel válido (.xlsx).");
+                        .GetMessageBoxStandard("", "Por favor, selecione um arquivo Excel vï¿½lido (.xlsx).");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }
@@ -74,7 +112,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if(string.IsNullOrEmpty(vm.TbRecFolder))
                     {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "A pasta de reconhecimentos especificada não existe.");
+                        .GetMessageBoxStandard("", "A pasta de reconhecimentos especificada nï¿½o existe.");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }

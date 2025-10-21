@@ -92,10 +92,12 @@
                                 
                                 <TextBlock Grid.Column="0" 
                                            Text="{Binding classCode}" 
-                                           Margin="8"/>
+                                           Margin="8"
+                                           TextTrimming="CharacterEllipsis"/>
                                 <TextBlock Grid.Column="1" 
                                            Text="{Binding companyUsername}" 
-                                           Margin="8"/>
+                                           Margin="8"
+                                           TextTrimming="CharacterEllipsis"/>
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

@@ -86,5 +86,13 @@
   "Paste": {
     "en-US": "Paste",
     "pt-BR": "Colar"
+  },
+  "Load old": {
+    "en-US": "Load old",
+    "pt-BR": "Carregar antigas"
+  },
+  "Loading...": {
+    "en-US": "Loading...",
+    "pt-BR": "Carregando..."
   }
 }

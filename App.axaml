@@ -96,25 +96,6 @@
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
         <StyleInclude Source="avares://FluentAvalonia.ProgressRing/Styling/Controls/ProgressRing.axaml" />
         
-        <!-- Estilo para TextBox das notícias - remove hover preto -->
-        <Style Selector="TextBox[IsReadOnly=True]">
-          <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
-          <Setter Property="Background" Value="Transparent"/>
-          <Setter Property="BorderThickness" Value="0"/>
-          <Setter Property="Padding" Value="0"/>
-          <Setter Property="Focusable" Value="False"/>
-          <Setter Property="IsHitTestVisible" Value="True"/>
-        </Style>
-        
-        <!-- Remove hover effects -->
-        <Style Selector="TextBox[IsReadOnly=True]:pointerover">
-          <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        
-        <Style Selector="TextBox[IsReadOnly=True]:pressed">
-          <Setter Property="Background" Value="Transparent"/>
-        </Style>
-        
         <!-- Estilo personalizado para menu de contexto -->
         <Style Selector="ContextMenu">
           <Setter Property="Background" Value="{DynamicResource CardBackgroundInactiveBrush}"/>

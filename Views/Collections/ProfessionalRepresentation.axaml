@@ -5,7 +5,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Name="self"
              x:Class="LesserDashboardClient.Views.Collections.ProfessionalRepresentation">
-  <Grid RowDefinitions="Auto, Auto" VerticalAlignment="Center" HorizontalAlignment="Center">
+  <Grid RowDefinitions="Auto, Auto" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="50">
 
     <!-- Avatar circular -->
     <Grid Grid.Row="0" Width="30" Height="30">
@@ -23,6 +23,8 @@
                Grid.Row="1"
                FontSize="11"
                HorizontalAlignment="Center"
-               TextAlignment="Center" />
+               TextAlignment="Center"
+               TextTrimming="CharacterEllipsis"
+               MaxWidth="50" />
   </Grid>
 </UserControl>

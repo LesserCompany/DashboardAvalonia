@@ -21,7 +21,22 @@
       <!-- form -->
       <Grid  Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
         <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
-        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput" />
+        <StackPanel Grid.Row="0" Grid.Column="1">
+          <TextBox x:Name="tbCollectionNamePreConfigured" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
+            <TextBox.Styles>
+              <Style Selector="TextBox.error /template/ Border#PART_BorderElement">
+                <Setter Property="BorderBrush" Value="Red"/>
+              </Style>
+              <Style Selector="TextBox.error:focus /template/ Border#PART_BorderElement">
+                <Setter Property="BorderBrush" Value="Red"/>
+              </Style>
+              <Style Selector="TextBox.error:pointerover /template/ Border#PART_BorderElement">
+                <Setter Property="BorderBrush" Value="Red"/>
+              </Style>
+            </TextBox.Styles>
+          </TextBox>
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasError}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
+        </StackPanel>
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
         <StackPanel Grid.Row="1" Grid.Column="1">

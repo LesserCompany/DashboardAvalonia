@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
+using CodingSeb.Localization;
 
 namespace LesserDashboardClient.Resources.Converters;
 
@@ -10,9 +11,9 @@ public class BoolToLoadMoreTextConverter : IValueConverter
     {
         if (value is bool isLoading)
         {
-            return isLoading ? "Carregando..." : "Carregar antigas";
+            return isLoading ? Loc.Tr("Loading...") : Loc.Tr("Load old");
         }
-        return "Carregar antigas";
+        return Loc.Tr("Load old");
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -20,11 +21,3 @@ public class BoolToLoadMoreTextConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
-
-
-
-
-
-
-
-

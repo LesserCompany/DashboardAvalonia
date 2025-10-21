@@ -14,9 +14,46 @@ namespace LesserDashboardClient.Views.Collections;
 
 public partial class NewCollection : UserControl
 {
+    private TextBox? _tbCollectionName;
+    
     public NewCollection()
     {
         InitializeComponent();
+        this.Loaded += NewCollection_Loaded;
+    }
+
+    private void NewCollection_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        _tbCollectionName = this.FindControl<TextBox>("tbCollectionName");
+        
+        if (DataContext is CollectionsViewModel vm)
+        {
+            vm.PropertyChanged += Vm_PropertyChanged;
+        }
+    }
+
+    private void Vm_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(CollectionsViewModel.TbCollectionNameHasError))
+        {
+            UpdateTextBoxErrorState();
+        }
+    }
+
+    private void UpdateTextBoxErrorState()
+    {
+        if (_tbCollectionName == null || DataContext is not CollectionsViewModel vm)
+            return;
+
+        if (vm.TbCollectionNameHasError)
+        {
+            if (!_tbCollectionName.Classes.Contains("error"))
+                _tbCollectionName.Classes.Add("error");
+        }
+        else
+        {
+            _tbCollectionName.Classes.Remove("error");
+        }
     }
 
     private void TextBox_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
