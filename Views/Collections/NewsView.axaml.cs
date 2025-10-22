@@ -16,6 +16,10 @@ namespace LesserDashboardClient.Views.Collections;
 /// </summary>
 public partial class NewsView : UserControl
 {
+    // Constante configurável para o tempo limite de exibição do indicativo "NEW"
+    // Pode ser facilmente alterada para 48 horas, 12 horas, etc.
+    private static readonly TimeSpan NEW_INDICATOR_TIME_LIMIT = TimeSpan.FromHours(24);
+    
     public NewsView()
     {
         InitializeComponent();
@@ -150,14 +154,77 @@ public partial class NewsView : UserControl
         }
     }
 
+    /// <summary>
+    /// Verifica se uma notícia é considerada "nova" baseada na data de publicação
+    /// </summary>
+    /// <param name="publishDateString">Data de publicação no formato string</param>
+    /// <returns>True se a notícia foi publicada dentro do tempo limite configurado</returns>
+    private bool IsNewsNew(string publishDateString)
+    {
+        try
+        {
+            if (DateTime.TryParse(publishDateString, out DateTime publishDate))
+            {
+                // Converter para horário de Brasília (UTC-3)
+                var brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                var currentTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, brasiliaTimeZone);
+                
+                // Calcular a diferença de tempo
+                var timeDifference = currentTime - publishDate;
+                
+                // Verificar se está dentro do limite configurado
+                return timeDifference <= NEW_INDICATOR_TIME_LIMIT;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"NewsView: Erro ao verificar se notícia é nova: {ex.Message}");
+        }
+        
+        return false;
+    }
+
+    /// <summary>
+    /// Cria o badge visual "NEW" para notícias recentes
+    /// </summary>
+    /// <param name="isDarkMode">Se está em modo escuro</param>
+    /// <returns>Border com o badge "NEW"</returns>
+    private Border CreateNewBadge(bool isDarkMode)
+    {
+        var badge = new Border
+        {
+            Background = Avalonia.Media.Brushes.Red,
+            CornerRadius = new Avalonia.CornerRadius(4),
+            Padding = new Avalonia.Thickness(6, 2),
+            Margin = new Avalonia.Thickness(0, 0, 0, 0)
+        };
+
+        var badgeText = new TextBlock
+        {
+            Text = "NEW",
+            FontSize = 10,
+            FontWeight = Avalonia.Media.FontWeight.Bold,
+            Foreground = Avalonia.Media.Brushes.White,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+        };
+
+        badge.Child = badgeText;
+        return badge;
+    }
+
     private Border CreateNewsItem(dynamic news)
     {
         try
         {
             string dateStr = ParseDate(news.publishDate.ToString());
             string contentStr = news.content.ToString();
+            string publishDateString = news.publishDate.ToString();
             
-            System.Diagnostics.Debug.WriteLine($"NewsView: Criando notícia - Data: {dateStr}, Content length: {contentStr.Length}");
+            // Verificar se a notícia é nova
+            bool isNew = IsNewsNew(publishDateString);
+            
+            System.Diagnostics.Debug.WriteLine($"NewsView: Criando notícia - Data: {dateStr}, Content length: {contentStr.Length}, IsNew: {isNew}");
             
             // Detectar o tema atual
             var currentTheme = Application.Current?.ActualThemeVariant;
@@ -215,6 +282,13 @@ public partial class NewsView : UserControl
                 Orientation = Avalonia.Layout.Orientation.Vertical
             };
 
+            // Criar um StackPanel horizontal para a data e o indicativo NEW
+            var headerPanel = new StackPanel
+            {
+                Orientation = Avalonia.Layout.Orientation.Horizontal,
+                Spacing = 8
+            };
+
             // Criar o TextBlock da data (adaptável ao tema)
             var dateText = new TextBlock
             {
@@ -223,6 +297,16 @@ public partial class NewsView : UserControl
                 FontSize = 16,
                 Foreground = primaryTextBrush
             };
+
+            // Adicionar a data ao header
+            headerPanel.Children.Add(dateText);
+
+            // Adicionar indicativo "NEW" se a notícia for nova
+            if (isNew)
+            {
+                var newBadge = CreateNewBadge(isDarkMode);
+                headerPanel.Children.Add(newBadge);
+            }
 
             // Criar o SelectableTextBlock do conteúdo (adaptável ao tema)
             var contentText = new SelectableTextBlock
@@ -234,7 +318,7 @@ public partial class NewsView : UserControl
             };
 
             // Adicionar os elementos ao StackPanel
-            stackPanel.Children.Add(dateText);
+            stackPanel.Children.Add(headerPanel);
             stackPanel.Children.Add(contentText);
             
             // Definir o StackPanel como filho do Border

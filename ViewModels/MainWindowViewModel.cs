@@ -113,6 +113,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public async Task LogoutAndExitCommand()
     {
         File.Delete(LesserFunctionClient.loginFileInfo.FullName);
+        
+        // Reseta a instância estática do LesserFunctionClient
+        GlobalAppStateViewModel.ResetLesserFunctionClient();
+        
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -129,24 +133,34 @@ public partial class MainWindowViewModel : ViewModelBase
             // Remove o arquivo de login para limpar as credenciais
             File.Delete(LesserFunctionClient.loginFileInfo.FullName);
             
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            // Reseta a instância estática do LesserFunctionClient
+            GlobalAppStateViewModel.ResetLesserFunctionClient();
+            
+            await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
                     if (desktop.MainWindow != null)
                     {
-                        // Oculta a janela principal
-                        desktop.MainWindow.Hide();
+                        var oldWindow = desktop.MainWindow;
                         
                         // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
                         App.ReapplySettings();
                         
+                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
+                        await Task.Delay(100);
+                        
                         // Cria e mostra uma nova janela de login
                         var authWindow = new AuthWindow();
+                        App.AuthWindowInstance = authWindow;
                         authWindow.Show();
                         
                         // Define a janela de login como a janela principal
                         desktop.MainWindow = authWindow;
+                        
+                        // Fecha a janela antiga
+                        (oldWindow?.DataContext as IDisposable)?.Dispose();
+                        oldWindow?.Close();
                     }
                 }
             });

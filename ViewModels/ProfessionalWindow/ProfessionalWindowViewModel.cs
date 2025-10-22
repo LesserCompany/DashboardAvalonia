@@ -222,6 +222,9 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
                 // Remove o arquivo de login para limpar as credenciais
                 System.IO.File.Delete(LesserFunctionClient.loginFileInfo.FullName);
                 
+                // Reseta a instância estática do LesserFunctionClient
+                GlobalAppStateViewModel.ResetLesserFunctionClient();
+                
                 await Dispatcher.UIThread.InvokeAsync(async () =>
                 {
                     if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -231,7 +234,11 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
                         // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
                         App.ReapplySettings();
                         
+                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
+                        await Task.Delay(100);
+                        
                         var authWindow = new AuthWindow();
+                        App.AuthWindowInstance = authWindow;
                         
                         desktop.MainWindow = authWindow;
                         authWindow.Show();

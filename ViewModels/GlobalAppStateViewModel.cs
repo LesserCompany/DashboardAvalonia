@@ -78,6 +78,16 @@ public partial class GlobalAppStateViewModel : ObservableObject
         LesserFunctionClient.DefaultClient.InitFromFile((string ack) => { });
         _lfc = LesserFunctionClient.DefaultClient;
     }
+    
+    /// <summary>
+    /// Reseta a instância do LesserFunctionClient.
+    /// Deve ser chamado após o logout para garantir que uma nova instância seja criada no próximo login.
+    /// </summary>
+    public static void ResetLesserFunctionClient()
+    {
+        _lfc = null;
+        LesserFunctionClient.DefaultClient = null;
+    }
     private void ChangeAppTheme(string theme)
     {
         var app = App.Current as App;

@@ -125,9 +125,9 @@ namespace LesserDashboardClient.ViewModels.Auth
 
                 LoginRequest lr = new LoginRequest() { username = TbUserName, password = TbPassword };
 
-
+                // Garante que estamos usando uma instância atualizada do LesserFunctionClient
+                // Importante: Após um logout, a instância antiga é resetada, então uma nova será criada aqui
                 await GlobalAppStateViewModel.lfc.loginAsync(lr);
-
 
                 if (GlobalAppStateViewModel.lfc.loginResult == null || GlobalAppStateViewModel.lfc.loginResult.loginFailed == true || GlobalAppStateViewModel.lfc.loginResult.success == false)
                 {
@@ -143,6 +143,9 @@ namespace LesserDashboardClient.ViewModels.Auth
                         
                         // Reaplica as configurações de tema e idioma antes de criar a nova janela
                         App.ReapplySettings();
+                        
+                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
+                        await Task.Delay(100);
                         
                         // Verifica o tipo de usuário para determinar qual janela mostrar
                         if (GlobalAppStateViewModel.lfc.loginResult.User.userType == "professionals")
@@ -169,6 +172,13 @@ namespace LesserDashboardClient.ViewModels.Auth
                         // Agora fecha a janela antiga (libera Dispatcher antigo)
                         (oldWindow?.DataContext as IDisposable)?.Dispose();
                         oldWindow?.Close();
+                        
+                        // Fecha também a instância da AuthWindow se ela existir
+                        if (App.AuthWindowInstance != null)
+                        {
+                            App.AuthWindowInstance.Close();
+                            App.AuthWindowInstance = null;
+                        }
                     }
                 }
 

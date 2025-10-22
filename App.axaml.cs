@@ -24,7 +24,7 @@ namespace LesserDashboardClient;
 
 public class App : Application
 {
-    public static AuthWindow? AuthWindowInstance { get; private set; }
+    public static AuthWindow? AuthWindowInstance { get; set; }
     
     /// <summary>
     /// Evento disparado quando o idioma é alterado
@@ -114,35 +114,60 @@ public class App : Application
     /// </summary>
     public static void ReapplySettings()
     {
-        // Recarrega as configurações do arquivo
-        GlobalAppStateViewModel.LoadOptionsModel();
-        
-        // Reaplica o tema
-        var app = Application.Current;
-        if (app != null)
+        try
         {
-            string savedTheme = GlobalAppStateViewModel.options.AppTheme;
-            switch (savedTheme)
+            Console.WriteLine("App.ReapplySettings: Iniciando reaplicação de configurações...");
+            
+            // Recarrega as configurações do arquivo
+            GlobalAppStateViewModel.LoadOptionsModel();
+            
+            Console.WriteLine($"App.ReapplySettings: Configurações carregadas - Tema: '{GlobalAppStateViewModel.options.AppTheme}', Idioma: '{GlobalAppStateViewModel.options.Language}'");
+            
+            // Reaplica o tema
+            var app = Application.Current;
+            if (app != null)
             {
-                case "DarkMode":
-                    app.RequestedThemeVariant = ThemeVariant.Dark;
-                    GlobalAppStateViewModel.Instance.AppIsDarkMode = true;
-                    break;
-                case "LightMode":
-                    app.RequestedThemeVariant = ThemeVariant.Light;
-                    GlobalAppStateViewModel.Instance.AppIsDarkMode = false;
-                    break;
-                default:
-                    app.RequestedThemeVariant = ThemeVariant.Default;
-                    break;
+                string savedTheme = GlobalAppStateViewModel.options.AppTheme;
+                Console.WriteLine($"App.ReapplySettings: Aplicando tema: '{savedTheme}'");
+                
+                switch (savedTheme)
+                {
+                    case "DarkMode":
+                        app.RequestedThemeVariant = ThemeVariant.Dark;
+                        GlobalAppStateViewModel.Instance.AppIsDarkMode = true;
+                        Console.WriteLine("App.ReapplySettings: Tema escuro aplicado");
+                        break;
+                    case "LightMode":
+                        app.RequestedThemeVariant = ThemeVariant.Light;
+                        GlobalAppStateViewModel.Instance.AppIsDarkMode = false;
+                        Console.WriteLine("App.ReapplySettings: Tema claro aplicado");
+                        break;
+                    default:
+                        app.RequestedThemeVariant = ThemeVariant.Default;
+                        Console.WriteLine("App.ReapplySettings: Tema padrão aplicado");
+                        break;
+                }
             }
+            
+            // Reaplica o idioma
+            string savedLanguage = GlobalAppStateViewModel.options.Language;
+            if (!string.IsNullOrEmpty(savedLanguage))
+            {
+                Console.WriteLine($"App.ReapplySettings: Aplicando idioma: '{savedLanguage}'");
+                SetCurrentLang(savedLanguage);
+                Console.WriteLine($"App.ReapplySettings: Idioma aplicado: '{GetCurrentLang()}'");
+            }
+            else
+            {
+                Console.WriteLine("App.ReapplySettings: Nenhum idioma salvo encontrado, usando padrão");
+                SetCurrentLang(); // Aplica idioma padrão
+            }
+            
+            Console.WriteLine("App.ReapplySettings: Reaplicação de configurações concluída");
         }
-        
-        // Reaplica o idioma
-        string savedLanguage = GlobalAppStateViewModel.options.Language;
-        if (!string.IsNullOrEmpty(savedLanguage))
+        catch (Exception ex)
         {
-            SetCurrentLang(savedLanguage);
+            Console.WriteLine($"App.ReapplySettings: Erro ao reaplicar configurações: {ex.Message}");
         }
     }
     private void StartUpLanguageApp()
