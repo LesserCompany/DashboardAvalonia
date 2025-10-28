@@ -355,10 +355,6 @@
     "en-US": "On consultation",
     "pt-BR": "Sob consulta"
   },
-  "Select": {
-    "en-US": "Select",
-    "pt-BR": "Selecionar"
-  },
   "Price for 1000 photos": {
     "en-US": "Price for 1000 photos",
     "pt-BR": "Preço de 1000 fotos"
@@ -498,5 +494,9 @@
   "Directory not found": {
     "en-US": "Directory not found",
     "pt-BR": "Diretório não encontrado"
+  },
+  "No combos available or failed to load.": {
+    "en-US": "No combos available or failed to load.",
+    "pt-BR": "Nenhum combo disponível ou falha ao carregar."
   }
 }

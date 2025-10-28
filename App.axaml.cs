@@ -25,6 +25,7 @@ namespace LesserDashboardClient;
 public class App : Application
 {
     public static AuthWindow? AuthWindowInstance { get; set; }
+    private static bool isRedirecting = false; // Flag para evitar redirecionamentos duplos
     
     /// <summary>
     /// Evento disparado quando o idioma é alterado
@@ -44,42 +45,366 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-             DisableAvaloniaDataAnnotationValidation();
-
-            
+            DisableAvaloniaDataAnnotationValidation();
 
             var lr = LesserFunctionClient.loginFileResult;
 
-            if (lr == null || lr.loginFailed == true || lr.success == false || DateTime.Now > lr.User.loginTokenExpirationDate || GlobalAppStateViewModel.lfc.loginResult == null)
+            Console.WriteLine("=== VERIFICAÇÃO DE TOKEN INICIAL ===");
+            Console.WriteLine($"loginFileResult existe: {lr != null}");
+            Console.WriteLine($"loginFileResult.User existe: {lr?.User != null}");
+            
+            if (lr != null)
             {
+                Console.WriteLine($"lr.loginFailed: {lr.loginFailed}");
+                Console.WriteLine($"lr.success: {lr.success}");
+                if (lr.User != null)
+                {
+                    Console.WriteLine($"lr.User.loginTokenExpirationDate: {lr.User.loginTokenExpirationDate}");
+                    Console.WriteLine($"DateTime.UtcNow: {DateTime.UtcNow}");
+                    Console.WriteLine($"Token expirou?: {lr.User.loginTokenExpirationDate <= DateTime.UtcNow}");
+                }
+            }
+
+            // Validação do token seguindo a mesma lógica do uploader
+            bool isValidToken = false;
+            if (lr != null && lr.User != null)
+            {
+                // Replica a verificação do uploader: lr.loginFailed != true && lr.success && lr.User.loginTokenExpirationDate > DateTime.UtcNow
+                isValidToken = lr.loginFailed != true && lr.success && lr.User.loginTokenExpirationDate > DateTime.UtcNow;
+            }
+            
+            Console.WriteLine($"Token é válido?: {isValidToken}");
+            Console.WriteLine("===================================");
+
+            if (!isValidToken)
+            {
+                Console.WriteLine("OnFrameworkInitializationCompleted: Token inválido, iniciando janela de login");
+                
+                // IMPORTANTE: Limpa o arquivo de login inválido
+                try
+                {
+                    if (LesserFunctionClient.loginFileInfo.Exists)
+                    {
+                        Console.WriteLine("OnFrameworkInitializationCompleted: Removendo arquivo de login inválido");
+                        LesserFunctionClient.loginFileInfo.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"OnFrameworkInitializationCompleted: Erro ao remover arquivo de login: {ex.Message}");
+                }
+                
+                // Reseta o LesserFunctionClient para garantir que não use dados inválidos
+                GlobalAppStateViewModel.ResetLesserFunctionClient();
+                
                 // Reaplica as configurações de tema e idioma antes de criar a janela de login
                 ReapplySettings();
                 
                 AuthWindowInstance = new AuthWindow();
-                AuthWindowInstance.Show();
+                desktop.MainWindow = AuthWindowInstance; // CORREÇÃO: Define como MainWindow
+                base.OnFrameworkInitializationCompleted();
+                return; // IMPORTANTE: sair aqui se o token for inválido
+            }
+
+            // Só inicializa o lfc SE o token for válido
+            var lfc = GlobalAppStateViewModel.lfc;
+            
+            // Verifica novamente se o lfc foi inicializado corretamente
+            if (lfc == null || lfc.loginResult == null || lfc.loginResult.User == null)
+            {
+                Console.WriteLine("OnFrameworkInitializationCompleted: LesserFunctionClient não inicializado, iniciando janela de login");
+                
+                // IMPORTANTE: Limpa o arquivo de login inválido
+                try
+                {
+                    if (LesserFunctionClient.loginFileInfo.Exists)
+                    {
+                        Console.WriteLine("OnFrameworkInitializationCompleted: Removendo arquivo de login inválido (lfc não inicializado)");
+                        LesserFunctionClient.loginFileInfo.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"OnFrameworkInitializationCompleted: Erro ao remover arquivo de login: {ex.Message}");
+                }
+                
+                // Reseta o LesserFunctionClient para garantir que não use dados inválidos
+                GlobalAppStateViewModel.ResetLesserFunctionClient();
+                
+                // Reaplica as configurações de tema e idioma antes de criar a janela de login
+                ReapplySettings();
+                
+                AuthWindowInstance = new AuthWindow();
+                desktop.MainWindow = AuthWindowInstance; // CORREÇÃO: Define como MainWindow
+                base.OnFrameworkInitializationCompleted();
+                return; // IMPORTANTE: sair aqui se o lfc não foi inicializado
+            }
+
+            Console.WriteLine($"OnFrameworkInitializationCompleted: Token válido para usuário tipo '{lr.User.userType}'");
+            
+            // Verifica o tipo de usuário para determinar qual janela mostrar
+            if (lr.User.userType == "professionals")
+            {
+                // Para separadores, mostra a ProfessionalWindow
+                desktop.MainWindow = new Views.ProfessionalWindow.ProfessionalWindowView(lfc);
             }
             else
             {
-                // Verifica o tipo de usuário para determinar qual janela mostrar
-                if (lr.User.userType == "professionals")
+                // Para empresas, mostra a MainWindow normal
+                desktop.MainWindow = new MainWindow
                 {
-                    // Para separadores, mostra a ProfessionalWindow
-                    desktop.MainWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
+                    DataContext = new MainWindowViewModel(),
+                };
+            }
+            
+            // Verifica o token IMEDIATAMENTE após abrir o dashboard (sem delay)
+            // Se o token expirar nesse momento, redireciona para login
+            _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                VerifyTokenImmediately(desktop);
+            });
+        }
+        
+        base.OnFrameworkInitializationCompleted(); // CORREÇÃO: Chama apenas uma vez no final
+    }
+    
+    /// <summary>
+    /// Verifica o token imediatamente após o dashboard abrir e redireciona se inválido
+    /// </summary>
+    private static void VerifyTokenImmediately(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            Console.WriteLine("=== VERIFICAÇÃO IMEDIATA DE TOKEN ===");
+            Console.WriteLine("VerifyTokenImmediately: Verificando token...");
+            
+            var lr = LesserFunctionClient.loginFileResult;
+            
+            Console.WriteLine($"VerifyTokenImmediately: loginFileResult existe: {lr != null}");
+            Console.WriteLine($"VerifyTokenImmediately: lr.User existe: {lr?.User != null}");
+            
+            if (lr != null)
+            {
+                Console.WriteLine($"VerifyTokenImmediately: lr.loginFailed = {lr.loginFailed}");
+                Console.WriteLine($"VerifyTokenImmediately: lr.success = {lr.success}");
+            }
+            
+            // Verifica se o token ainda está válido
+            bool isStillValid = false;
+            if (lr != null && lr.User != null)
+            {
+                var expirationDate = lr.User.loginTokenExpirationDate;
+                var nowUtc = DateTime.UtcNow;
+                Console.WriteLine($"VerifyTokenImmediately: expirationDate = {expirationDate}");
+                Console.WriteLine($"VerifyTokenImmediately: nowUtc = {nowUtc}");
+                Console.WriteLine($"VerifyTokenImmediately: expirationDate > nowUtc = {expirationDate > nowUtc}");
+                Console.WriteLine($"VerifyTokenImmediately: lr.loginFailed != true = {lr.loginFailed != true}");
+                Console.WriteLine($"VerifyTokenImmediately: lr.success = {lr.success}");
+                
+                isStillValid = lr.loginFailed != true && lr.success && expirationDate > nowUtc;
+                Console.WriteLine($"VerifyTokenImmediately: isStillValid = {isStillValid}");
+            }
+            else
+            {
+                Console.WriteLine("VerifyTokenImmediately: lr ou lr.User é null, token inválido");
+            }
+
+            if (!isStillValid)
+            {
+                Console.WriteLine("VerifyTokenImmediately: Token inválido ou expirado, redirecionando para login...");
+                
+                // IMPORTANTE: Limpa o arquivo de login expirado
+                try
+                {
+                    if (LesserFunctionClient.loginFileInfo.Exists)
+                    {
+                        Console.WriteLine("VerifyTokenImmediately: Removendo arquivo de login expirado");
+                        LesserFunctionClient.loginFileInfo.Delete();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"VerifyTokenImmediately: Erro ao remover arquivo de login: {ex.Message}");
+                }
+                
+                // Reseta o LesserFunctionClient
+                GlobalAppStateViewModel.ResetLesserFunctionClient();
+                
+                // Redireciona para login SEM delay
+                RedirectToLoginWithMessage(desktop);
+            }
+            else
+            {
+                Console.WriteLine("VerifyTokenImmediately: Token válido, dashboard pode continuar");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao verificar token imediatamente: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+    }
+    
+    /// <summary>
+    /// Redireciona para login com mensagem informando que o token está inválido/expirado
+    /// </summary>
+    private static void RedirectToLoginWithMessage(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            Console.WriteLine("RedirectToLoginWithMessage: Iniciando redirecionamento com mensagem");
+            
+            // Salva referência da janela antiga
+            var oldWindow = desktop.MainWindow;
+            
+            // Reaplica as configurações de tema e idioma
+            ReapplySettings();
+            
+            // Cria a nova janela de login
+            AuthWindowInstance = new AuthWindow();
+            
+            // Define a nova janela como MainWindow
+            desktop.MainWindow = AuthWindowInstance;
+            
+            // Mostra a nova janela
+            AuthWindowInstance.Show();
+            
+            // Mostra mensagem ao usuário informando que o token está inválido/expirado
+            _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                try
+                {
+                    var box = MessageBoxManager.GetMessageBoxStandard(
+                        Loc.Tr("Session expired"),
+                        Loc.Tr("Your session has expired or is invalid. Please login again."),
+                        MsBox.Avalonia.Enums.ButtonEnum.Ok
+                    );
+                    
+                    await box.ShowWindowDialogAsync(AuthWindowInstance);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erro ao mostrar mensagem: {ex.Message}");
+                }
+            });
+            
+            // Fecha a janela antiga (se existir)
+            if (oldWindow != null)
+            {
+                Console.WriteLine("RedirectToLoginWithMessage: Fechando janela antiga");
+                // Limpa o DataContext antes de fechar
+                (oldWindow.DataContext as IDisposable)?.Dispose();
+                oldWindow.Close();
+            }
+            
+            Console.WriteLine("RedirectToLoginWithMessage: Redirecionamento concluído");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao redirecionar com mensagem: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+    }
+    
+    /// <summary>
+    /// Mostra mensagem informando que o token expirou
+    /// </summary>
+    private static async Task ShowTokenExpiredMessage()
+    {
+        try
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                var box = MessageBoxManager.GetMessageBoxStandard(
+                    Loc.Tr("Session expired"),
+                    Loc.Tr("Your session has expired. Please login again."),
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok
+                );
+                
+                if (desktop.MainWindow != null)
+                {
+                    await box.ShowWindowDialogAsync(desktop.MainWindow);
                 }
                 else
                 {
-                    // Para empresas, mostra a MainWindow normal
-                    desktop.MainWindow = new MainWindow
-                    {
-                        DataContext = new MainWindowViewModel(),
-                    };
+                    await box.ShowAsync();
                 }
             }
         }
-        base.OnFrameworkInitializationCompleted();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao mostrar mensagem de token expirado: {ex.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Redireciona o usuário para a tela de login
+    /// </summary>
+    public static void RedirectToLoginScreen()
+    {
+        try
+        {
+            // Evita redirecionamento duplo
+            if (isRedirecting)
+            {
+                Console.WriteLine("RedirectToLoginScreen: Já redirecionando, ignorando chamada duplicada");
+                return;
+            }
+            
+            isRedirecting = true;
+            Console.WriteLine("RedirectToLoginScreen: Iniciando redirecionamento para login");
+            
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // Salva referência da janela antiga
+                var oldWindow = desktop.MainWindow;
+                
+                // Verifica se já não é a janela de login
+                if (oldWindow is AuthWindow)
+                {
+                    Console.WriteLine("RedirectToLoginScreen: Já está na janela de login, ignorando");
+                    isRedirecting = false;
+                    return;
+                }
+                
+                // Reaplica as configurações de tema e idioma
+                ReapplySettings();
+                
+                // Cria a nova janela de login
+                AuthWindowInstance = new AuthWindow();
+                
+                // Define a nova janela como MainWindow ANTES de mostrar
+                desktop.MainWindow = AuthWindowInstance;
+                
+                // Mostra a nova janela
+                AuthWindowInstance.Show();
+                
+                // Agora fecha a janela antiga (se existir)
+                if (oldWindow != null)
+                {
+                    Console.WriteLine("RedirectToLoginScreen: Fechando janela antiga");
+                    // Limpa o DataContext antes de fechar
+                    (oldWindow.DataContext as IDisposable)?.Dispose();
+                    oldWindow.Close();
+                }
+                
+                Console.WriteLine("RedirectToLoginScreen: Redirecionamento concluído");
+            }
+            
+            // Reseta o flag após um delay
+            _ = Task.Delay(2000).ContinueWith(_ => {
+                isRedirecting = false;
+                Console.WriteLine("RedirectToLoginScreen: Flag de redirecionamento resetado");
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao redirecionar para tela de login: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            isRedirecting = false;
+        }
     }
     public static void StartMainWindow()
     {
@@ -130,6 +455,12 @@ public class App : Application
                 string savedTheme = GlobalAppStateViewModel.options.AppTheme;
                 Console.WriteLine($"App.ReapplySettings: Aplicando tema: '{savedTheme}'");
                 
+                // Se não há tema salvo, usa o tema padrão do sistema
+                if (string.IsNullOrEmpty(savedTheme))
+                {
+                    savedTheme = "Default";
+                }
+                
                 switch (savedTheme)
                 {
                     case "DarkMode":
@@ -144,6 +475,8 @@ public class App : Application
                         break;
                     default:
                         app.RequestedThemeVariant = ThemeVariant.Default;
+                        // Para tema padrão, verifica o tema atual da aplicação
+                        GlobalAppStateViewModel.Instance.AppIsDarkMode = app.ActualThemeVariant == ThemeVariant.Dark;
                         Console.WriteLine("App.ReapplySettings: Tema padrão aplicado");
                         break;
                 }
@@ -163,6 +496,11 @@ public class App : Application
                 SetCurrentLang(); // Aplica idioma padrão
             }
             
+            // CORREÇÃO: Sincroniza as propriedades do GlobalAppStateViewModel com as configurações aplicadas
+            // Isso garante que a UI sempre reflita as configurações corretas
+            GlobalAppStateViewModel.Instance.AppLanguage = GetCurrentLang();
+            
+            Console.WriteLine($"App.ReapplySettings: Propriedades sincronizadas - AppIsDarkMode: {GlobalAppStateViewModel.Instance.AppIsDarkMode}, AppLanguage: {GlobalAppStateViewModel.Instance.AppLanguage}");
             Console.WriteLine("App.ReapplySettings: Reaplicação de configurações concluída");
         }
         catch (Exception ex)
@@ -192,6 +530,9 @@ public class App : Application
         {
             SetCurrentLang();
         }
+        
+        // CORREÇÃO: Garante que a propriedade AppLanguage seja sincronizada na inicialização
+        GlobalAppStateViewModel.Instance.AppLanguage = GetCurrentLang();
     }
     public static void SetCurrentLang(string? language = "")
     {
@@ -273,6 +614,22 @@ public class App : Application
     private void StartUpThemeApp()
     {
         SwitchCurrentTheme(GlobalAppStateViewModel.options.AppTheme);
+        
+        // CORREÇÃO: Garante que a propriedade AppIsDarkMode seja sincronizada na inicialização
+        string savedTheme = GlobalAppStateViewModel.options.AppTheme;
+        switch (savedTheme)
+        {
+            case "DarkMode":
+                GlobalAppStateViewModel.Instance.AppIsDarkMode = true;
+                break;
+            case "LightMode":
+                GlobalAppStateViewModel.Instance.AppIsDarkMode = false;
+                break;
+            default:
+                // Para tema padrão, verifica o tema atual da aplicação
+                GlobalAppStateViewModel.Instance.AppIsDarkMode = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+                break;
+        }
     }
     public void SwitchCurrentTheme(string theme = "")
     {

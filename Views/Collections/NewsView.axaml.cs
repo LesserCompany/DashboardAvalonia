@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia;
 using Avalonia.Styling;
+using CodingSeb.Localization;
 
 namespace LesserDashboardClient.Views.Collections;
 
@@ -18,7 +19,7 @@ public partial class NewsView : UserControl
 {
     // Constante configurável para o tempo limite de exibição do indicativo "NEW"
     // Pode ser facilmente alterada para 48 horas, 12 horas, etc.
-    private static readonly TimeSpan NEW_INDICATOR_TIME_LIMIT = TimeSpan.FromHours(24);
+    private static readonly TimeSpan NEW_INDICATOR_TIME_LIMIT = TimeSpan.FromDays(7);
     
     public NewsView()
     {
@@ -67,7 +68,7 @@ public partial class NewsView : UserControl
             {
                 System.Diagnostics.Debug.WriteLine($"NewsView: API falhou com mensagem: {result.message}");
                 // Mostrar mensagem de erro no lugar do loading
-                ShowErrorMessage(newsPanel, "Erro ao carregar notícias. Tente novamente.");
+                ShowErrorMessage(newsPanel, Loc.Tr("Error loading news. Please try again."));
                 return;
             }
 
@@ -133,7 +134,7 @@ public partial class NewsView : UserControl
             {
                 // Nenhuma notícia encontrada
                 System.Diagnostics.Debug.WriteLine("NewsView: Nenhuma notícia encontrada");
-                ShowErrorMessage(newsPanel, "Nenhuma notícia disponível no momento.");
+                ShowErrorMessage(newsPanel, Loc.Tr("No news available at the moment."));
             }
             
             // Forçar atualização da interface
@@ -149,7 +150,7 @@ public partial class NewsView : UserControl
             var newsPanel = this.FindControl<StackPanel>("NewsPanel");
             if (newsPanel != null)
             {
-                ShowErrorMessage(newsPanel, "Erro ao carregar notícias. Tente novamente.");
+                ShowErrorMessage(newsPanel, Loc.Tr("Error loading news. Please try again."));
             }
         }
     }
@@ -286,7 +287,8 @@ public partial class NewsView : UserControl
             var headerPanel = new StackPanel
             {
                 Orientation = Avalonia.Layout.Orientation.Horizontal,
-                Spacing = 8
+                Spacing = 0,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top
             };
 
             // Criar o TextBlock da data (adaptável ao tema)
@@ -298,8 +300,25 @@ public partial class NewsView : UserControl
                 Foreground = primaryTextBrush
             };
 
-            // Adicionar a data ao header
+            // Criar o TextBlock da hora (pequeno e bonito)
+            var timeStr = ParseTime(publishDateString);
+            var timeText = new TextBlock
+            {
+                Text = timeStr,
+                FontSize = 11,
+                FontWeight = Avalonia.Media.FontWeight.Normal,
+                Foreground = secondaryTextBrush,
+                Opacity = 0.8,
+                Margin = new Avalonia.Thickness(6, 2, 0, 0),
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top
+            };
+
+            // Adicionar a data e hora ao header
             headerPanel.Children.Add(dateText);
+            if (!string.IsNullOrEmpty(timeStr))
+            {
+                headerPanel.Children.Add(timeText);
+            }
 
             // Adicionar indicativo "NEW" se a notícia for nova
             if (isNew)
@@ -395,13 +414,57 @@ public partial class NewsView : UserControl
         {
             if (DateTime.TryParse(dateString, out DateTime date))
             {
-                return date.ToString("dd/MM/yy");
+                // Converter para o fuso horário de Brasília
+                var brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                var brasiliaDate = TimeZoneInfo.ConvertTimeFromUtc(date.ToUniversalTime(), brasiliaTimeZone);
+                
+                return brasiliaDate.ToString("dd/MM/yy");
             }
             return "Data inválida";
         }
         catch
         {
             return "Data inválida";
+        }
+    }
+
+    private string ParseDateWithTime(string dateString)
+    {
+        try
+        {
+            if (DateTime.TryParse(dateString, out DateTime date))
+            {
+                // Converter para o fuso horário de Brasília
+                var brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                var brasiliaDate = TimeZoneInfo.ConvertTimeFromUtc(date.ToUniversalTime(), brasiliaTimeZone);
+                
+                return brasiliaDate.ToString("dd/MM/yy");
+            }
+            return "Data inválida";
+        }
+        catch
+        {
+            return "Data inválida";
+        }
+    }
+
+    private string ParseTime(string dateString)
+    {
+        try
+        {
+            if (DateTime.TryParse(dateString, out DateTime date))
+            {
+                // Converter para o fuso horário de Brasília
+                var brasiliaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+                var brasiliaDate = TimeZoneInfo.ConvertTimeFromUtc(date.ToUniversalTime(), brasiliaTimeZone);
+                
+                return brasiliaDate.ToString("HH:mm");
+            }
+            return "";
+        }
+        catch
+        {
+            return "";
         }
     }
 

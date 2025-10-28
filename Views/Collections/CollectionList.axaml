@@ -163,7 +163,7 @@
                     <ui:ProgressRing Width="16" Height="16" 
                                      IsIndeterminate="True" 
                                      IsVisible="{Binding IsLoadingMoreTasks}"/>
-                    <TextBlock Text="{Binding IsLoadingMoreTasks, Converter={StaticResource BoolToLoadMoreTextConverter}}"
+                    <TextBlock Text="{Binding LoadOldButtonText}"
                                FontSize="12"
                                VerticalAlignment="Center"/>
                   </StackPanel>

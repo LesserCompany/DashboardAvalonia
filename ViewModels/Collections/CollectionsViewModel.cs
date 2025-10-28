@@ -176,6 +176,26 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool tbEventFolderError = false;
     [ObservableProperty] public bool tbRecFolderError = false;
     [ObservableProperty] public bool? cbHDBackup;
+    
+    /// <summary>
+    /// Indica se o checkbox HD está desabilitado devido ao período de faturamento
+    /// </summary>
+    [ObservableProperty] public bool cbHDBackupIsDisabled = false;
+    
+    /// <summary>
+    /// Mensagem de erro para exibir quando o HD não pode ser habilitado
+    /// </summary>
+    [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
+    
+    /// <summary>
+    /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro período)
+    /// </summary>
+    [ObservableProperty] public bool canAddCPFs = true;
+    
+    /// <summary>
+    /// Mensagem de erro para exibir quando CPFs não podem ser adicionados
+    /// </summary>
+    [ObservableProperty] public string cPFsErrorMessage = string.Empty;
 
     //Buttons
     [ObservableProperty] public bool actionsButtonsIsVisible = false;
@@ -195,6 +215,28 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool expanderAdvancedOptionsIsEnabled;
     partial void OnCbHDBackupChanged(bool? oldValue, bool? newValue)
     {
+        // Validar período de faturamento quando tentando habilitar HD
+        if (newValue == true && IsReupload && SelectedCollection != null)
+        {
+            if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
+            {
+                // Desabilitar o checkbox e mostrar erro
+                CbHDBackupIsDisabled = true;
+                CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
+                
+                // Reverter o valor para false
+                CbHDBackup = false;
+                return;
+            }
+        }
+        
+        // Se não há erro, limpar mensagens
+        if (CbHDBackupIsDisabled)
+        {
+            CbHDBackupIsDisabled = false;
+            CbHDBackupErrorMessage = string.Empty;
+        }
+        
         if (newValue == false)
         {
             CbEnableAutoTreatment = false;
@@ -231,6 +273,21 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool classSeparationFilesIsVisible;
     [ObservableProperty] public bool isCreatingCollection = false;
     [ObservableProperty] public ObservableCollection<CollectionComboOptions> dynamicCombos = new();
+    partial void OnDynamicCombosChanged(ObservableCollection<CollectionComboOptions> value)
+    {
+        OnPropertyChanged(nameof(HasCombos));
+        OnPropertyChanged(nameof(NoCombosAvailable));
+    }
+    
+    /// <summary>
+    /// Indica se há combos disponíveis
+    /// </summary>
+    public bool HasCombos => DynamicCombos != null && DynamicCombos.Count > 0;
+    
+    /// <summary>
+    /// Indica se não há combos disponíveis (para exibir mensagem de fallback)
+    /// </summary>
+    public bool NoCombosAvailable => DynamicCombos == null || DynamicCombos.Count == 0;
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -295,18 +352,27 @@ public partial class CollectionsViewModel : ViewModelBase
     // Load More Button Properties
     [ObservableProperty] public bool showLoadMoreButton = true;
     [ObservableProperty] public bool isLoadingMoreTasks = false;
+    partial void OnIsLoadingMoreTasksChanged(bool value)
+    {
+        // Atualiza o texto do botão quando o estado de carregamento muda
+        UpdateLoadOldButtonText();
+    }
     [ObservableProperty] public bool hasLoadedAllTasks = false;
+    
+    // CORREÇÃO: Propriedade para texto dinâmico do botão "Load old"
+    [ObservableProperty] public string loadOldButtonText = "";
 
 
     public CollectionsViewModel()
     {
         LoadProfessionalTasks();
+        
+        // CORREÇÃO: Inicializa o texto do botão e escuta mudanças de idioma
+        UpdateLoadOldButtonText();
+        App.LanguageChanged += OnLanguageChanged;
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
-        
-        // Escutar mudanças de idioma para recarregar combos
-        App.LanguageChanged += OnLanguageChanged;
         
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
@@ -327,6 +393,9 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+            // CORREÇÃO: Atualiza o texto do botão "Load old" quando o idioma muda
+            UpdateLoadOldButtonText();
+            
             // Recarregar combos com o novo idioma (sem await para evitar erro)
             Task.Run(() => LoadDynamicCombos());
         }
@@ -334,6 +403,12 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             // Log error silently
         }
+    }
+    
+    // CORREÇÃO: Método para atualizar o texto do botão "Load old"
+    private void UpdateLoadOldButtonText()
+    {
+        LoadOldButtonText = IsLoadingMoreTasks ? Loc.Tr("Loading...") : Loc.Tr("Load old");
     }
     
     /// <summary>
@@ -629,6 +704,11 @@ public partial class CollectionsViewModel : ViewModelBase
 
         try
         {
+            // CORREÇÃO: Só atualiza para CollectionView se SelectedCollection não for null
+            // Isso previne que o componente ativo seja resetado quando navegamos para outras telas
+            if (SelectedCollection == null)
+                return;
+                
             ActionsButtonsIsVisible = false;
             IsUpdateProgressBars = true;
 
@@ -938,7 +1018,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         if (SeparationProgressValue == null)
             return;
-        if (SelectedCollection.classCode != SeparationProgressValue.code)
+        if (SelectedCollection == null || SelectedCollection.classCode != SeparationProgressValue.code)
             return;
 
         ResumeSeparationFileComponentIsVisible = SeparationProgressValue.totalPhotos == 0 ? false : true;
@@ -960,6 +1040,13 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     public void UpdateGraduateDataFromFile(FileInfo f)
     {
+        // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
+        if (!CanAddCPFs)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
+            return;
+        }
+        
         GraduatesData.Clear();
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
         var package = new ExcelPackage(f);
@@ -1094,6 +1181,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public void OpenQuickAccessViewCommand()
     {
         // Sempre mostra os combos (QuickAccess) para criar nova cole��o
+        SelectedCollection = null;
         ActiveComponent = ActiveViews.QuickAccess;
     }
     
@@ -1101,12 +1189,14 @@ public partial class CollectionsViewModel : ViewModelBase
     public void ShowNewsCommand()
     {
         // Sempre mostra as novidades (usado pelo bot�o Home)
+        SelectedCollection = null;
         ActiveComponent = ActiveViews.NewsView;
     }
 
     [RelayCommand]
     public void OpenNewCollectionViewCommand()
     {
+        SelectedCollection = null;
         IsReupload = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
@@ -1127,12 +1217,19 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
+        
+        // Resetar propriedades de bloqueio de CPFs
+        CanAddCPFs = true;
+        CPFsErrorMessage = string.Empty;
+        CbHDBackupIsDisabled = false;
+        CbHDBackupErrorMessage = string.Empty;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
     [RelayCommand]
     public void OpenNewCollectionPreConfiguredOnlySeparationCommand()
     {
+        SelectedCollection = null;
         IsReupload = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
@@ -1153,6 +1250,12 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
+        
+        // Resetar propriedades de bloqueio de CPFs
+        CanAddCPFs = true;
+        CPFsErrorMessage = string.Empty;
+        CbHDBackupIsDisabled = false;
+        CbHDBackupErrorMessage = string.Empty;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1161,6 +1264,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenNewCollectionPreConfigured(CollectionComboOptions options)
     {
+        SelectedCollection = null;
         IsReupload = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
@@ -1181,6 +1285,12 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Definir se é um combo apenas tratamento
         IsTreatmentOnlyCombo = options.IsTreatmentOnly;
+        
+        // Resetar propriedades de bloqueio de CPFs
+        CanAddCPFs = true;
+        CPFsErrorMessage = string.Empty;
+        CbHDBackupIsDisabled = false;
+        CbHDBackupErrorMessage = string.Empty;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1215,11 +1325,37 @@ public partial class CollectionsViewModel : ViewModelBase
         AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
         CbOcr = SelectedCollection.OCR ?? false;
         CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
+        
+        // Verificar se o HD deve estar desabilitado devido ao período de faturamento
+        if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
+        {
+            CbHDBackupIsDisabled = true;
+            CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
+            
+            // Se estava habilitado, desabilitar
+            if (CbHDBackup == true)
+            {
+                CbHDBackup = false;
+            }
+            
+            // Bloquear adição/edição de CPFs para turmas de outro período
+            CanAddCPFs = false;
+            CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+        }
+        else
+        {
+            CbHDBackupIsDisabled = false;
+            CbHDBackupErrorMessage = string.Empty;
+            CanAddCPFs = true;
+            CPFsErrorMessage = string.Empty;
+        }
+        
         LoadGraduatesData(SelectedCollection);
     }
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()
     {
+        SelectedCollection = null;
         ActiveComponent = ActiveViews.SelectProfessional;
         if(Professionals == null || Professionals.Count == 0)
             await LoadProfessionals();
@@ -1229,6 +1365,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
+        SelectedCollection = null;
         ActiveComponent = ActiveViews.CancelBilling;
     }
     [RelayCommand]
@@ -1562,6 +1699,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void InsertDataBasedOnRecFolderCommand()
     {
+        // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
+        if (!CanAddCPFs)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
+            return;
+        }
+        
         if (Directory.Exists(TbRecFolder) == false)
         {
             //MessageBox.Show("A pasta de reconhecimentos especificada n�o existe.");
@@ -1603,6 +1747,13 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+            // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
+            if (!CanAddCPFs)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
+                return;
+            }
+            
             ComponentNewCollectionIsEnabled = false;
             if (!Directory.Exists(TbRecFolder))
             {
@@ -1997,6 +2148,31 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
     
+    /// <summary>
+    /// Verifica se a coleção foi criada em um período de faturamento diferente do atual
+    /// </summary>
+    /// <param name="collection">A coleção a ser verificada</param>
+    /// <returns>True se a coleção é de outro período de faturamento</returns>
+    private bool IsCollectionFromDifferentBillingPeriod(ProfessionalTask collection)
+    {
+        try
+        {
+            if (collection?.CreationDate == null)
+                return false;
+                
+            var currentDate = DateTime.UtcNow;
+            var creationDate = collection.CreationDate.Value.DateTime;
+            
+            // Verificar se o mês ou ano são diferentes (mesma lógica do backend)
+            // Isso garante que períodos de faturamento diferentes sejam respeitados
+            return currentDate.Month != creationDate.Month || currentDate.Year != creationDate.Year;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
     #endregion
 
     #region Dynamic Pricing
@@ -2037,6 +2213,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 
                 // Notificar que a coleção mudou
                 OnPropertyChanged(nameof(DynamicCombos));
+                OnPropertyChanged(nameof(HasCombos));
+                OnPropertyChanged(nameof(NoCombosAvailable));
             });
         }
         catch (Exception ex)
@@ -2065,6 +2243,8 @@ public partial class CollectionsViewModel : ViewModelBase
         DynamicCombos.Add(NewCollection_Combo6);
         
         OnPropertyChanged(nameof(DynamicCombos));
+        OnPropertyChanged(nameof(HasCombos));
+        OnPropertyChanged(nameof(NoCombosAvailable));
     }
 
     /// <summary>

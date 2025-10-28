@@ -127,6 +127,16 @@ namespace LesserDashboardClient.ViewModels.Auth
 
                 // Garante que estamos usando uma instância atualizada do LesserFunctionClient
                 // Importante: Após um logout, a instância antiga é resetada, então uma nova será criada aqui
+                
+                // CORREÇÃO: Verifica se lfc está null e cria uma nova instância se necessário
+                if (GlobalAppStateViewModel.lfc == null)
+                {
+                    Console.WriteLine("AuthViewModel.LoginCommand: lfc está null, recarregando...");
+                    GlobalAppStateViewModel.ResetLesserFunctionClient();
+                    // Força o getter a criar uma nova instância
+                    var _ = GlobalAppStateViewModel.lfc;
+                }
+                
                 await GlobalAppStateViewModel.lfc.loginAsync(lr);
 
                 if (GlobalAppStateViewModel.lfc.loginResult == null || GlobalAppStateViewModel.lfc.loginResult.loginFailed == true || GlobalAppStateViewModel.lfc.loginResult.success == false)
@@ -154,6 +164,10 @@ namespace LesserDashboardClient.ViewModels.Auth
                             var professionalWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
                             desktop.MainWindow = professionalWindow;
                             professionalWindow.Show();
+                            
+                            // Reaplica as configurações NOVAMENTE após criar a janela para garantir que o tema seja aplicado
+                            await Task.Delay(50);
+                            App.ReapplySettings();
                         }
                         else
                         {
@@ -164,6 +178,10 @@ namespace LesserDashboardClient.ViewModels.Auth
                             };
                             desktop.MainWindow = mainWindow;
                             mainWindow.Show();
+                            
+                            // Reaplica as configurações NOVAMENTE após criar a janela para garantir que o tema seja aplicado
+                            await Task.Delay(50);
+                            App.ReapplySettings();
                         }
                         
                         // Espera um tick para garantir que a UI da nova janela iniciou

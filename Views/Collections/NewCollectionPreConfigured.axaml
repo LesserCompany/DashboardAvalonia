@@ -169,7 +169,20 @@
             </Grid>
 
 
-            <CheckBox Content="{Tr 'Backup HD photos to the cloud.'}" IsChecked="{Binding CbHDBackup, FallbackValue=False}" VerticalAlignment="Center" />
+            <CheckBox Content="{Tr 'Backup HD photos to the cloud.'}" 
+                     IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
+                     IsEnabled="{Binding !CbHDBackupIsDisabled}"
+                     VerticalAlignment="Center" />
+            
+            <!-- Mensagem de erro para HD -->
+            <TextBlock IsVisible="{Binding CbHDBackupIsDisabled}" 
+                      Text="{Binding CbHDBackupErrorMessage}" 
+                      Foreground="Red" 
+                      FontSize="12" 
+                      HorizontalAlignment="Center" 
+                      Margin="0,5,0,0" 
+                      TextWrapping="Wrap" />
+                      
             <CheckBox Content="{Tr 'Enable automatic enhancement.'}" IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" VerticalAlignment="Center" />
             <CheckBox IsChecked="{Binding CbEnableAutoExclusion, FallbackValue=False}"  Content="{Tr 'Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)'}" />
             <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" Content="{Tr 'The photos are already separated'}" />

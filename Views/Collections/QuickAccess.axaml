@@ -20,7 +20,17 @@
                    HorizontalAlignment="Left"
                    Margin="0,0,0,20"/>
         
-        <ItemsControl ItemsSource="{Binding DynamicCombos}">
+        <!-- Fallback quando não há combos -->
+        <TextBlock Text="{Tr 'No combos available or failed to load.'}"
+                   FontSize="14"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   HorizontalAlignment="Left"
+                   Margin="0,10,0,10"
+                   IsVisible="{Binding NoCombosAvailable}" />
+        
+        <!-- Lista de combos -->
+        <ItemsControl ItemsSource="{Binding DynamicCombos}"
+                      IsVisible="{Binding HasCombos}">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
               <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left"/>

@@ -59,6 +59,10 @@
     "en-US": "News",
     "pt-BR": "Novidades"
   },
+  "Avisos": {
+    "en-US": "Notices",
+    "pt-BR": "Avisos"
+  },
   "Refer Lesser and earn": {
     "en-US": "Refer Lesser and earn",
     "pt-BR": "Indique a Lesser e ganhe"
@@ -94,5 +98,13 @@
   "Loading...": {
     "en-US": "Loading...",
     "pt-BR": "Carregando..."
+  },
+  "This collection is from another billing period, please create a new collection to perform an HD backup.": {
+    "en-US": "This collection is from another billing period, please create a new collection to perform an HD backup.",
+    "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para realizar um backup HD."
+  },
+  "This collection is from another billing period. CPFs cannot be added or modified during reupload.": {
+    "en-US": "This collection is from another billing period. CPFs cannot be added or modified during reupload.",
+    "pt-BR": "Esta coleção é de outro período de faturamento. CPFs não podem ser adicionados ou modificados durante este reupload."
   }
 }

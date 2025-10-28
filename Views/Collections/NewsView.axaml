@@ -31,7 +31,7 @@
       
       <!-- Seção Novidades -->
       <StackPanel>
-        <TextBlock Text="{Tr 'News'}" 
+        <TextBlock Text="{Tr 'Avisos'}" 
                    FontSize="30" 
                    FontWeight="Bold" 
                    Foreground="{DynamicResource TextPrimaryBrush}" 

@@ -34,5 +34,25 @@
   "Incorrect credentials. Please try again.": {
     "en-US": "Incorrect credentials. Please try again.",
     "pt-BR": "Credenciais incorretas. Por favor, tente novamente."
+  },
+  "Session expired": {
+    "en-US": "Session expired",
+    "pt-BR": "Sessão expirada"
+  },
+  "Your session has expired. Please login again.": {
+    "en-US": "Your session has expired. Please login again.",
+    "pt-BR": "Sua sessão expirou. Por favor, faça login novamente."
+  },
+  "Your session has expired or is invalid. Please login again.": {
+    "en-US": "Your session has expired or is invalid. Please login again.",
+    "pt-BR": "Sua sessão expirou ou está inválida. Por favor, faça login novamente."
+  },
+  "Error loading news. Please try again.": {
+    "en-US": "Error loading news. Please try again.",
+    "pt-BR": "Erro ao carregar notícias. Tente novamente."
+  },
+  "No news available at the moment.": {
+    "en-US": "No news available at the moment.",
+    "pt-BR": "Nenhuma notícia disponível no momento."
   }
 }
