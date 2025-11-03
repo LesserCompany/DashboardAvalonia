@@ -62,6 +62,14 @@ public partial class NewsView : UserControl
             // Chamar a API diretamente
             var result = await ViewModels.GlobalAppStateViewModel.lfc.GetAllNewsByLanguage(currentLanguage);
             
+            // Verificar se o resultado é null
+            if (result == null)
+            {
+                System.Diagnostics.Debug.WriteLine("NewsView: API retornou null");
+                ShowErrorMessage(newsPanel, Loc.Tr("Error loading news. Please try again."));
+                return;
+            }
+            
             System.Diagnostics.Debug.WriteLine($"NewsView: API retornou success={result.success}, Content count={result.Content?.Count ?? 0}");
             
             if (!result.success)

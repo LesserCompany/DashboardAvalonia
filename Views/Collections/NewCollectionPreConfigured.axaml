@@ -183,7 +183,19 @@
                       Margin="0,5,0,0" 
                       TextWrapping="Wrap" />
                       
-            <CheckBox Content="{Tr 'Enable automatic enhancement.'}" IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" VerticalAlignment="Center" />
+            <StackPanel Spacing="4">
+              <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
+                       IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
+                       IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
+                       VerticalAlignment="Center" />
+              <TextBlock Text="{Binding CbEnableAutoTreatmentErrorMessage}"
+                        Foreground="Red"
+                        FontSize="12"
+                        HorizontalAlignment="Left"
+                        Margin="20,0,0,0"
+                        TextWrapping="Wrap"
+                        IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" />
+            </StackPanel>
             <CheckBox IsChecked="{Binding CbEnableAutoExclusion, FallbackValue=False}"  Content="{Tr 'Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)'}" />
             <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" Content="{Tr 'The photos are already separated'}" />
             <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />

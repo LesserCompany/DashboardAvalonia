@@ -106,5 +106,9 @@
   "This collection is from another billing period. CPFs cannot be added or modified during reupload.": {
     "en-US": "This collection is from another billing period. CPFs cannot be added or modified during reupload.",
     "pt-BR": "Esta coleção é de outro período de faturamento. CPFs não podem ser adicionados ou modificados durante este reupload."
+  },
+  "This collection is from another billing period, please create a new collection to enable automatic enhancement.": {
+    "en-US": "This collection is from another billing period, please create a new collection to enable automatic enhancement.",
+    "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para habilitar a melhoria automática."
   }
 }

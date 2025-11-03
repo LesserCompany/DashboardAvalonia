@@ -59,6 +59,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
     private CancellationTokenSource _previewDebounceCtsViewCollection;
     private bool _isUpdatingSelectedCollection = false;
+    private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     [ObservableProperty] public ProfessionalTask selectedCollection;
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
@@ -196,6 +197,18 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Mensagem de erro para exibir quando CPFs não podem ser adicionados
     /// </summary>
     [ObservableProperty] public string cPFsErrorMessage = string.Empty;
+    
+    /// <summary>
+    /// Indica se o checkbox AutoTreatment está desabilitado devido ao período de faturamento
+    /// </summary>
+    [ObservableProperty]
+    public bool cbEnableAutoTreatmentIsDisabled = false;
+    
+    /// <summary>
+    /// Mensagem de erro para exibir quando AutoTreatment não pode ser habilitado
+    /// </summary>
+    [ObservableProperty]
+    public string cbEnableAutoTreatmentErrorMessage = string.Empty;
 
     //Buttons
     [ObservableProperty] public bool actionsButtonsIsVisible = false;
@@ -215,6 +228,10 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool expanderAdvancedOptionsIsEnabled;
     partial void OnCbHDBackupChanged(bool? oldValue, bool? newValue)
     {
+        // Não processar eventos enquanto estamos carregando dados de reupload
+        if (_isLoadingReuploadData)
+            return;
+            
         // Validar período de faturamento quando tentando habilitar HD
         if (newValue == true && IsReupload && SelectedCollection != null)
         {
@@ -226,15 +243,12 @@ public partial class CollectionsViewModel : ViewModelBase
                 
                 // Reverter o valor para false
                 CbHDBackup = false;
+                
+                // Bloquear adição de CPFs quando não é HD
+                CanAddCPFs = false;
+                CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
                 return;
             }
-        }
-        
-        // Se não há erro, limpar mensagens
-        if (CbHDBackupIsDisabled)
-        {
-            CbHDBackupIsDisabled = false;
-            CbHDBackupErrorMessage = string.Empty;
         }
         
         if (newValue == false)
@@ -245,6 +259,25 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
     {
+        // Não processar eventos enquanto estamos carregando dados de reupload
+        if (_isLoadingReuploadData)
+            return;
+            
+        // Bloquear habilitação de AutoTreatment em turmas de outro período de faturamento
+        if (newValue == true && IsReupload && SelectedCollection != null)
+        {
+            if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
+            {
+                // Desabilitar o checkbox e mostrar erro
+                CbEnableAutoTreatmentIsDisabled = true;
+                CbEnableAutoTreatmentErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to enable automatic enhancement.");
+                
+                // Reverter o valor para false
+                CbEnableAutoTreatment = false;
+                return;
+            }
+        }
+        
         if (newValue == true)
         {
             CbHDBackup = true;
@@ -1218,11 +1251,13 @@ public partial class CollectionsViewModel : ViewModelBase
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
         
-        // Resetar propriedades de bloqueio de CPFs
+        // Resetar propriedades de bloqueio de CPFs, HD e AutoTreatment
         CanAddCPFs = true;
         CPFsErrorMessage = string.Empty;
         CbHDBackupIsDisabled = false;
         CbHDBackupErrorMessage = string.Empty;
+        CbEnableAutoTreatmentIsDisabled = false;
+        CbEnableAutoTreatmentErrorMessage = string.Empty;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -1251,11 +1286,13 @@ public partial class CollectionsViewModel : ViewModelBase
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
         
-        // Resetar propriedades de bloqueio de CPFs
+        // Resetar propriedades de bloqueio de CPFs, HD e AutoTreatment
         CanAddCPFs = true;
         CPFsErrorMessage = string.Empty;
         CbHDBackupIsDisabled = false;
         CbHDBackupErrorMessage = string.Empty;
+        CbEnableAutoTreatmentIsDisabled = false;
+        CbEnableAutoTreatmentErrorMessage = string.Empty;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1286,11 +1323,13 @@ public partial class CollectionsViewModel : ViewModelBase
         // Definir se é um combo apenas tratamento
         IsTreatmentOnlyCombo = options.IsTreatmentOnly;
         
-        // Resetar propriedades de bloqueio de CPFs
+        // Resetar propriedades de bloqueio de CPFs, HD e AutoTreatment
         CanAddCPFs = true;
         CPFsErrorMessage = string.Empty;
         CbHDBackupIsDisabled = false;
         CbHDBackupErrorMessage = string.Empty;
+        CbEnableAutoTreatmentIsDisabled = false;
+        CbEnableAutoTreatmentErrorMessage = string.Empty;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1301,56 +1340,83 @@ public partial class CollectionsViewModel : ViewModelBase
         if (SelectedCollection == null)
             return;
 
+        // Ativar flag para prevenir que eventos interfiram durante o carregamento
+        _isLoadingReuploadData = true;
 
-        CurrentProfessionalName = SelectedCollection.professionalLogin;
-
-        ScrollComponentNewCollection = 0;
-        ActiveComponent = ActiveViews.NewCollection;
-
-        ExpanderAdvancedOptions = true;
-        ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
-
-        IsReupload = true;
-        TbCollectionName = SelectedCollection.classCode;
-        TbEventFolder = SelectedCollection.originalEventsFolder;
-        TbRecFolder = SelectedCollection.originalRecFolder;
-        CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
-        CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
-        CbHDBackup = SelectedCollection.UploadHD ?? false;
-        CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
-        CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
-        TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
-        TbProfessioanlTaskDescription = SelectedCollection.Description;
-        CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
-        AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
-        CbOcr = SelectedCollection.OCR ?? false;
-        CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
-        
-        // Verificar se o HD deve estar desabilitado devido ao período de faturamento
-        if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
+        try
         {
-            CbHDBackupIsDisabled = true;
-            CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
+            CurrentProfessionalName = SelectedCollection.professionalLogin;
+
+            ScrollComponentNewCollection = 0;
+            ActiveComponent = ActiveViews.NewCollection;
+
+            ExpanderAdvancedOptions = true;
+            ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
+
+            IsReupload = true;
+            TbCollectionName = SelectedCollection.classCode;
+            TbEventFolder = SelectedCollection.originalEventsFolder;
+            TbRecFolder = SelectedCollection.originalRecFolder;
+            CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
+            CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
+            CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
+            CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
+            TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
+            TbProfessioanlTaskDescription = SelectedCollection.Description;
+            CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
+            AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
+            CbOcr = SelectedCollection.OCR ?? false;
+            CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
             
-            // Se estava habilitado, desabilitar
-            if (CbHDBackup == true)
+            // IMPORTANTE: Atribuir CbHDBackup ANTES de verificar as regras de CPF
+            CbHDBackup = SelectedCollection.UploadHD ?? false;
+            
+            // Verificar se o HD deve estar desabilitado devido ao período de faturamento
+            if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
             {
-                CbHDBackup = false;
+                // Em reupload de outro período de faturamento:
+                // - Não permitir transformar turma NÃO-HD em HD (desabilita o toggle)
+                // - Não permitir habilitar AutoTreatment (está ligado ao HD)
+                // - Se a turma já é HD, permitir adicionar/editar CPFs
+                CbHDBackupIsDisabled = true;
+                CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
+                
+                // Bloquear AutoTreatment também (está ligado ao HD)
+                CbEnableAutoTreatmentIsDisabled = true;
+                CbEnableAutoTreatmentErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to enable automatic enhancement.");
+
+                // Não force desabilitar se já for HD; apenas impeça mudar o estado
+                // Mantém CbHDBackup como está (true permanece true; false permanece false)
+
+                // Regras de CPF: turmas NÃO-HD não podem adicionar/editar CPF; turmas HD podem
+                if (CbHDBackup == true)
+                {
+                    CanAddCPFs = true;
+                    CPFsErrorMessage = string.Empty;
+                }
+                else
+                {
+                    CanAddCPFs = false;
+                    CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+                }
+            }
+            else
+            {
+                CbHDBackupIsDisabled = false;
+                CbHDBackupErrorMessage = string.Empty;
+                CbEnableAutoTreatmentIsDisabled = false;
+                CbEnableAutoTreatmentErrorMessage = string.Empty;
+                CanAddCPFs = true;
+                CPFsErrorMessage = string.Empty;
             }
             
-            // Bloquear adição/edição de CPFs para turmas de outro período
-            CanAddCPFs = false;
-            CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+            LoadGraduatesData(SelectedCollection);
         }
-        else
+        finally
         {
-            CbHDBackupIsDisabled = false;
-            CbHDBackupErrorMessage = string.Empty;
-            CanAddCPFs = true;
-            CPFsErrorMessage = string.Empty;
+            // Desativar flag após carregar todos os dados
+            _isLoadingReuploadData = false;
         }
-        
-        LoadGraduatesData(SelectedCollection);
     }
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()

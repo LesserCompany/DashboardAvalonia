@@ -20,7 +20,7 @@
                 <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
             </StackPanel>
             <!-- form -->
-            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
+            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="0" Grid.Column="1">
                 <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
@@ -72,14 +72,26 @@
                         TextWrapping="Wrap" />
                 
               <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                  <CheckBox Content="{Tr 'Enable automatic enhancement.'}" IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" VerticalAlignment="Center" />
+                  <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
+                           IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
+                           IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
+                           VerticalAlignment="Center" />
 
                 <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
                   <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
                 </Button>
               </StackPanel>
+              <!-- Mensagem de erro para AutoTreatment -->
+              <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+                        IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
+                        Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
+                        Foreground="Red" 
+                        FontSize="12" 
+                        HorizontalAlignment="Center" 
+                        Margin="0,5,0,0" 
+                        TextWrapping="Wrap" />
 
-              <Grid Grid.Row="6"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
+              <Grid Grid.Row="7"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
                 <StackPanel  Orientation="Horizontal" Spacing="8" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                   <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
