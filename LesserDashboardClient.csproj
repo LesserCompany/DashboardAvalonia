@@ -10,6 +10,13 @@
         <AssemblyName>LesserDashboard</AssemblyName>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)'=='Alpha'">
+      <DefineConstants>TRACE;ALPHA</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Beta'">
+      <DefineConstants>TRACE;BETA</DefineConstants>
+    </PropertyGroup>
+
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />
     </ItemGroup>
