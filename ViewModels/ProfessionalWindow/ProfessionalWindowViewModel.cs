@@ -44,6 +44,20 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         [ObservableProperty] 
         private int downloadProgress = 0;
 
+        [ObservableProperty]
+        public string appMode;
+
+        [ObservableProperty]
+        public string titleApp;
+
+        public string AppVersion
+        {
+            get
+            {
+                return $"v{GetParentFolderName()}";
+            }
+        }
+
         partial void OnSelectedContractChanged(ProfessionalTask? value)
         {
             IsSelectButtonEnabled = value != null;
@@ -62,7 +76,33 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         public ProfessionalWindowViewModel(LesserFunctionClient lfc)
         {
             lesserFunctionClient = lfc;
+            
+            // Inicializa o AppMode baseado na configuração de compilação (Alpha, Beta, Debug, Prod)
+            string config = LesserFunctionClient.GetConfig();
+            AppMode = config;
+            
+            // Define o título da janela com o modo de build
+            TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
+            
             LoadContractsFromServer();
+        }
+
+        private string GetParentFolderName()
+        {
+            try
+            {
+                string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                DirectoryInfo? parentDirectory = Directory.GetParent(currentDirectory);
+                if (parentDirectory != null)
+                {
+                    return parentDirectory.Name;
+                }
+                return "...";
+            }
+            catch
+            {
+                return "...";
+            }
         }
 
         private async void LoadContractsFromServer()

@@ -34,9 +34,25 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] public  int progressBarUpdanteComponents = 10;
     [ObservableProperty] public bool isUpdateSomeOneComponent = false;
 
+    [ObservableProperty]
+    public bool isLoadingEndpointsInfo = false;
+
+    [ObservableProperty]
+    public string appMode;
+
+    [ObservableProperty]
+    public string titleApp;
+
     public MainWindowViewModel()
     {
         Instance = this;
+        
+        // Inicializa o AppMode baseado na configuração de compilação (Alpha, Beta, Debug, Prod)
+        string config = LesserFunctionClient.GetConfig();
+        AppMode = config;
+        
+        // Define o título da janela com o modo de build
+        TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
     }
     private string GetParentFolderName()
     {
@@ -261,6 +277,63 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             throw new Exception($"Não foi possível localizar ou executar a versão anterior do dashboard: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    public async Task ShowEndpointsInfoCommand()
+    {
+        try
+        {
+            IsLoadingEndpointsInfo = true;
+            
+            string config = LesserFunctionClient.GetConfig();
+            string functionAppEndpoint = await LesserFunctionClient.GetFunctionAppEndpoint();
+            string gcloudAppEndpoint = await LesserFunctionClient.GetGCloudAppEndpoint();
+
+            // Esconde o loading assim que os dados são obtidos, antes de mostrar o MessageBox
+            IsLoadingEndpointsInfo = false;
+
+            string message = $"Modo: {config}\n\n" +
+                           $"FunctionAppEndpoint utilizado:\n{functionAppEndpoint}\n\n" +
+                           $"GcloudAppEndpoint utilizado:\n{gcloudAppEndpoint}";
+
+            var messageBox = MessageBoxManager.GetMessageBoxStandard(
+                "Informações de Endpoints",
+                message,
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Info
+            );
+
+            if (MainWindow.instance != null)
+            {
+                await messageBox.ShowWindowDialogAsync(MainWindow.instance);
+            }
+            else
+            {
+                await messageBox.ShowAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Esconde o loading em caso de erro também
+            IsLoadingEndpointsInfo = false;
+            
+            var errorBox = MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                $"Erro ao obter informações dos endpoints: {ex.Message}",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error
+            );
+            
+            if (MainWindow.instance != null)
+            {
+                await errorBox.ShowWindowDialogAsync(MainWindow.instance);
+            }
+            else
+            {
+                await errorBox.ShowAsync();
+            }
         }
     }
 

@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="745" d:DesignHeight="397"
         x:Class="LesserDashboardClient.Views.ProfessionalWindow.ProfessionalWindowView"
         x:DataType="vm:ProfessionalWindowViewModel"
-        Title="{Tr 'Select Contract:'}"
+        Title="{Binding TitleApp}"
         Width="745" Height="397"
         WindowStartupLocation="CenterScreen">
         

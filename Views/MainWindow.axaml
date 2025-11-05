@@ -8,10 +8,11 @@
         xmlns:TabInvoices="clr-namespace:LesserDashboardClient.Views.Invoices"
         xmlns:TabSearchGraduate="clr-namespace:LesserDashboardClient.Views.SearchGraduate"
         xmlns:local="clr-namespace:LesserDashboardClient.Views"
+        xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LesserDashboardClient.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="LetsPic Lesser Client"
+        Title="{Binding TitleApp}"
         ExtendClientAreaToDecorationsHint="false"
         WindowStartupLocation="CenterScreen"
         MinWidth="900"
@@ -93,7 +94,29 @@
                   </Button>
                 </StackPanel>
                   
-                <local:HelpContactControl Grid.Column="1" VerticalAlignment="Center" Margin="4" HorizontalAlignment="Right" />
+                <StackPanel Grid.Column="1" 
+                           VerticalAlignment="Center" 
+                           Margin="4" 
+                           HorizontalAlignment="Right" 
+                           Orientation="Horizontal" 
+                           Spacing="8">
+                  <!-- Loading indicator para endpoints info (discreto) -->
+                  <StackPanel IsVisible="{Binding IsLoadingEndpointsInfo}" 
+                             Orientation="Horizontal" 
+                             Spacing="4" 
+                             VerticalAlignment="Center">
+                    <ui:ProgressRing IsIndeterminate="True" 
+                                    BorderThickness="2" 
+                                    Width="12" 
+                                    Height="12" 
+                                    VerticalAlignment="Center" />
+                    <TextBlock Text="Carregando..." 
+                              FontSize="10" 
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                  </StackPanel>
+                  <local:HelpContactControl VerticalAlignment="Center" />
+                </StackPanel>
               </Grid>  
               <local:UpdateAppProgressBarControl Grid.Row="1" IsVisible="{Binding IsUpdateSomeOneComponent}" />
             </Grid>
