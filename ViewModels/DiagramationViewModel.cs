@@ -29,7 +29,7 @@ public partial class DiagramationViewModel : ViewModelBase
             LoadingProgress = 20;
 
             // Iniciar a aplicação de diagramação
-            await App.StartDiagramationWPFApp(UpdateProgress);
+            App.StartDiagramationWPFApp(UpdateProgress);
 
             LoadingProgress = 100;
             await Task.Delay(500);

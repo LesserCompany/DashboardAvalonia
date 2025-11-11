@@ -122,4 +122,6 @@
     <ItemGroup>
       <Folder Include="Assets\icons\" />
     </ItemGroup>
+
+    <Import Project="..\..\SharedClientSide\SharedClientSide_AVALONIA\SharedClientSide_AVALONIA.projitems" Label="Shared" />
 </Project>

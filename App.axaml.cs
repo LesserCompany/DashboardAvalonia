@@ -39,6 +39,9 @@ public class App : Application
         // Carrega as configurações primeiro
         GlobalAppStateViewModel.LoadOptionsModel();
         
+        // Configura os delegates para override de endpoint usando o helper compartilhado
+        SharedClientSide_AVALONIA.Helpers.EndpointConfigHelper.ConfigureLesserFunctionClientEndpoints();
+        
         StartUpLanguageApp();
         StartUpThemeApp();
     }
@@ -730,19 +733,45 @@ public class App : Application
             onUiError: onError
         );
     }
-    public async static Task StartOrganizeApp(Action<int> callback)
+    public static void StartOrganizeApp(Action<int> callback)
     {
-        AppInstaller ai = new AppInstaller("organize", callback);
-        await ai.startApp();
+        // Usar InstallerRunner para executar em background e evitar travada da UI
+        InstallerRunner.RunInBackground(
+            appName: "organize",
+            onUiProgress: callback,
+            args: "",
+            onUiDone: () => callback?.Invoke(100),
+            onUiError: msg => 
+            {
+                if(MainWindow.instance != null)
+                {
+                    var bbox = MessageBoxManager.GetMessageBoxStandard("", $"Erro na instalação: {msg}");
+                    var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+                }
+            }
+        );
     }
 
-    public static async Task StartDiagramationWPFApp(Action<int> callback)
+    public static void StartDiagramationWPFApp(Action<int> callback)
     {
         try
         {
             LesserFunctionClient.DefaultClient.RecordUserEvent("start_diagramation_app");
-            AppInstaller ai = new AppInstaller("DiagramationWPF", callback);
-            await ai.startApp();
+            // Usar InstallerRunner para executar em background e evitar travada da UI
+            InstallerRunner.RunInBackground(
+                appName: "DiagramationWPF",
+                onUiProgress: callback,
+                args: "",
+                onUiDone: () => callback?.Invoke(100),
+                onUiError: msg => 
+                {
+                    if(MainWindow.instance != null)
+                    {
+                        var bbox = MessageBoxManager.GetMessageBoxStandard("", $"Erro na instalação: {msg}");
+                        var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
+                    }
+                }
+            );
         }
         catch (Exception e)
         {

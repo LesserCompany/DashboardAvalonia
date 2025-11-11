@@ -506,6 +506,71 @@ public partial class NewsView : UserControl
                 textBrush = Avalonia.Media.Brushes.Black;
             }
 
+            // Criar StackPanel interno para mensagem e botão
+            var contentPanel = new StackPanel
+            {
+                Spacing = 16,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Criar TextBlock da mensagem
+            var messageText = new SelectableTextBlock
+            {
+                Text = message,
+                Foreground = textBrush,
+                FontSize = 14,
+                TextWrapping = Avalonia.Media.TextWrapping.Wrap,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Criar botão de refresh
+            var refreshButton = new Button
+            {
+                Content = Loc.Tr("Atualizar"),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                Padding = new Avalonia.Thickness(16, 8),
+                Margin = new Avalonia.Thickness(0, 8, 0, 0),
+                Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
+            };
+
+            // Definir estilo do botão baseado no tema
+            if (isDarkMode)
+            {
+                refreshButton.Background = this.FindResource("SystemControlBackgroundAltHighBrush") as Avalonia.Media.IBrush ?? 
+                                          Avalonia.Media.Brushes.DarkGray;
+                refreshButton.Foreground = Avalonia.Media.Brushes.White;
+            }
+            else
+            {
+                refreshButton.Background = this.FindResource("SystemControlBackgroundAltHighBrush") as Avalonia.Media.IBrush ?? 
+                                          Avalonia.Media.Brushes.LightGray;
+                refreshButton.Foreground = Avalonia.Media.Brushes.Black;
+            }
+
+            // Adicionar evento de clique para recarregar os avisos
+            refreshButton.Click += async (sender, e) =>
+            {
+                try
+                {
+                    refreshButton.IsEnabled = false;
+                    refreshButton.Content = Loc.Tr("Carregando...");
+                    await LoadNewsAsync();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"NewsView: Erro ao recarregar avisos: {ex.Message}");
+                }
+                finally
+                {
+                    refreshButton.IsEnabled = true;
+                    refreshButton.Content = Loc.Tr("Atualizar");
+                }
+            };
+
+            // Adicionar mensagem e botão ao painel de conteúdo
+            contentPanel.Children.Add(messageText);
+            contentPanel.Children.Add(refreshButton);
+
             // Criar border de erro
             var errorBorder = new Border
             {
@@ -517,14 +582,7 @@ public partial class NewsView : UserControl
                 BorderBrush = this.FindResource("SeparatorBrush") as Avalonia.Media.IBrush ?? 
                              this.FindResource("BorderBrush") as Avalonia.Media.IBrush ?? 
                              Avalonia.Media.Brushes.Gray,
-                Child = new SelectableTextBlock
-                {
-                    Text = message,
-                    Foreground = textBrush,
-                    FontSize = 14,
-                    TextWrapping = Avalonia.Media.TextWrapping.Wrap,
-                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-                }
+                Child = contentPanel
             };
 
             newsPanel.Children.Add(errorBorder);

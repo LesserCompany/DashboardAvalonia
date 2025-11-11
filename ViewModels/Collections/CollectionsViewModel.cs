@@ -1675,7 +1675,7 @@ public partial class CollectionsViewModel : ViewModelBase
             Action<int> callback = MainWindowViewModel.Instance != null
                 ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                 : _ => { };
-            await App.StartOrganizeApp(callback);
+            App.StartOrganizeApp(callback);
         }
         catch
         {
@@ -1684,6 +1684,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
+            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botão
+            await Task.Delay(500);
             BtExportIsEnabled = true;
             BtExportIsRunning = false;
         }
@@ -1702,8 +1704,18 @@ public partial class CollectionsViewModel : ViewModelBase
             Action<int> callback = MainWindowViewModel.Instance != null
                 ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                 : _ => { };
-            AppInstaller ai = new AppInstaller("download-hd", callback);
-            await ai.startApp();
+            
+            // Usar InstallerRunner para executar em background e evitar travada da UI
+            LesserDashboardClient.Helpers.InstallerRunner.RunInBackground(
+                appName: "download-hd",
+                onUiProgress: callback,
+                args: "",
+                onUiDone: () => callback?.Invoke(100),
+                onUiError: msg => 
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro na instalação: {msg}");
+                }
+            );
         }
         catch (Exception ex)
         {
@@ -1711,6 +1723,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
+            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botão
+            await Task.Delay(500);
             BtDownloadHdIsEnabled = true;
             BtDownloadHdIsRunning = false;
         }
