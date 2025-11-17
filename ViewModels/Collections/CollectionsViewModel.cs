@@ -655,6 +655,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             GraduatesData.Add(g);
         }
+        SortGraduatesDataAlphabetically();
     }
     public async Task UpdateClassSeparationFile(string classCode)
     {
@@ -1184,7 +1185,24 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             GraduatesData.Add(gradByCPF);
         }
+        SortGraduatesDataAlphabetically();
     }
+    /// <summary>
+    /// Ordena a lista GraduatesData alfabeticamente crescente pelo nome da foto (ShortPath)
+    /// </summary>
+    private void SortGraduatesDataAlphabetically()
+    {
+        if (GraduatesData == null || GraduatesData.Count == 0)
+            return;
+            
+        var sortedList = GraduatesData.OrderBy(g => g.ShortPath).ToList();
+        GraduatesData.Clear();
+        foreach (var item in sortedList)
+        {
+            GraduatesData.Add(item);
+        }
+    }
+    
     public async void GetInfosAboutFreeTrialPeriod()
     {
         try
@@ -1821,6 +1839,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 i--;
             }
         }
+        SortGraduatesDataAlphabetically();
     }
     [RelayCommand]
     public async Task GenerateExcelBasedOnDataCommand()

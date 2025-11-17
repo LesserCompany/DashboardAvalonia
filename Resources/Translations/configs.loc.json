@@ -34,5 +34,61 @@
   "Save path": {
     "en-US": "Save path",
     "pt-BR": "Salvar caminho"
+  },
+  "Path saved successfully": {
+    "en-US": "Path saved successfully",
+    "pt-BR": "Caminho salvo com sucesso"
+  },
+  "Please select a directory path": {
+    "en-US": "Please select a directory path",
+    "pt-BR": "Por favor, selecione um caminho de diretório"
+  },
+  "Download directory is not configured": {
+    "en-US": "Download directory is not configured",
+    "pt-BR": "Diretório de downloads não está configurado"
+  },
+  "Configured download directory does not exist": {
+    "en-US": "Configured download directory does not exist",
+    "pt-BR": "Diretório de downloads configurado não existe"
+  },
+  "Download directory is not accessible (permission denied)": {
+    "en-US": "Download directory is not accessible (permission denied)",
+    "pt-BR": "Diretório de downloads não é acessível (permissão negada)"
+  },
+  "Download directory is not accessible": {
+    "en-US": "Download directory is not accessible",
+    "pt-BR": "Diretório de downloads não é acessível"
+  },
+  "Would you like to select a valid directory now?": {
+    "en-US": "Would you like to select a valid directory now?",
+    "pt-BR": "Deseja selecionar um diretório válido agora?"
+  },
+  "Please select a valid directory to continue.": {
+    "en-US": "Please select a valid directory to continue.",
+    "pt-BR": "Por favor, selecione um diretório válido para continuar."
+  },
+  "Invalid Download Directory": {
+    "en-US": "Invalid Download Directory",
+    "pt-BR": "Diretório de Downloads Inválido"
+  },
+  "Select Directory": {
+    "en-US": "Select Directory",
+    "pt-BR": "Selecionar Diretório"
+  },
+  "Cancel": {
+    "en-US": "Cancel",
+    "pt-BR": "Cancelar"
+  },
+  "Select Download Directory": {
+    "en-US": "Select Download Directory",
+    "pt-BR": "Selecione o Diretório de Downloads"
+  },
+  "Download directory saved successfully": {
+    "en-US": "Download directory saved successfully",
+    "pt-BR": "Diretório de downloads salvo com sucesso"
+  },
+  "Selected directory is not valid": {
+    "en-US": "Selected directory is not valid",
+    "pt-BR": "Diretório selecionado não é válido"
   }
 }

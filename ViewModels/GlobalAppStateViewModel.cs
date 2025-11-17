@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LesserDashboardClient.Models.Company;
@@ -10,6 +11,8 @@ using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LesserDashboardClient.ViewModels;
@@ -234,5 +237,200 @@ public partial class GlobalAppStateViewModel : ObservableObject
     private void SaveOptions()
     {
         options.Save();
+    }
+
+    /// <summary>
+    /// Valida se o diretório de downloads configurado é válido e acessível
+    /// </summary>
+    /// <returns>Tupla com (isValid, errorMessage)</returns>
+    public (bool isValid, string errorMessage) ValidateDownloadDirectory()
+    {
+        try
+        {
+            string downloadPath = options?.DefaultPathToDownloadProfessionalTaskFiles;
+
+            // Verifica se o caminho está vazio
+            if (string.IsNullOrWhiteSpace(downloadPath))
+            {
+                return (false, Loc.Tr("Download directory is not configured"));
+            }
+
+            // Verifica se o diretório existe
+            if (!Directory.Exists(downloadPath))
+            {
+                return (false, Loc.Tr("Configured download directory does not exist"));
+            }
+
+            // Verifica se o diretório é acessível (tenta listar conteúdo)
+            try
+            {
+                var _ = Directory.GetFiles(downloadPath);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return (false, Loc.Tr("Download directory is not accessible (permission denied)"));
+            }
+            catch (Exception ex)
+            {
+                return (false, Loc.Tr("Download directory is not accessible") + $": {ex.Message}");
+            }
+
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error validating directory: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Valida o diretório de downloads e mostra dialog se inválido
+    /// </summary>
+    public async Task ValidateAndPromptDownloadDirectoryIfNeeded()
+    {
+        var (isValid, errorMessage) = ValidateDownloadDirectory();
+        
+        if (!isValid)
+        {
+            await ShowInvalidDownloadDirectoryDialog(errorMessage);
+        }
+    }
+
+    /// <summary>
+    /// Mostra dialog quando o diretório de downloads é inválido e obriga escolher novo
+    /// </summary>
+    private async Task ShowInvalidDownloadDirectoryDialog(string errorMessage)
+    {
+        try
+        {
+            if (MainWindow.instance != null)
+            {
+                // Loop até que o usuário selecione um diretório válido
+                bool directoryValid = false;
+                while (!directoryValid)
+                {
+                    MessageBoxCustomParams customParams = new MessageBoxCustomParams
+                    {
+                        MaxWidth = 550,
+                        MaxHeight = 800,
+                        ContentMessage = errorMessage + "\n\n" + Loc.Tr("Please select a valid directory to continue."),
+                        ShowInCenter = true,
+                        WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                        SizeToContent = SizeToContent.WidthAndHeight,
+                        ContentTitle = Loc.Tr("Invalid Download Directory"),
+                        ButtonDefinitions = new List<ButtonDefinition>
+                        {
+                            new ButtonDefinition { Name = Loc.Tr("Select Directory") },
+                        },
+                    };
+                    
+                    var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
+                    var result = await bbox.ShowWindowDialogAsync(MainWindow.instance);
+                    
+                    // O usuário só pode clicar em "Selecionar Diretório" (única opção)
+                    if (result == Loc.Tr("Select Directory"))
+                    {
+                        // Abre o folder picker
+                        bool validDirectorySelected = await OpenFolderPickerForDownloadDirectory();
+                        
+                        if (validDirectorySelected)
+                        {
+                            // Verifica novamente se o diretório selecionado é válido
+                            var (isValid, newErrorMessage) = ValidateDownloadDirectory();
+                            if (isValid)
+                            {
+                                directoryValid = true;
+                            }
+                            else
+                            {
+                                // Se ainda for inválido, atualiza a mensagem de erro e tenta novamente
+                                errorMessage = newErrorMessage;
+                            }
+                        }
+                        else
+                        {
+                            // Se o usuário cancelou o folder picker, mostra o dialog novamente
+                            // (não permite cancelar, deve selecionar um diretório)
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao mostrar dialog de diretório inválido: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Abre folder picker para selecionar novo diretório de downloads
+    /// </summary>
+    /// <returns>True se um diretório válido foi selecionado, False caso contrário</returns>
+    private async Task<bool> OpenFolderPickerForDownloadDirectory()
+    {
+        try
+        {
+            if (MainWindow.instance != null)
+            {
+                var topLevel = TopLevel.GetTopLevel(MainWindow.instance);
+                if (topLevel?.StorageProvider == null)
+                    return false;
+
+                var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+                {
+                    AllowMultiple = false,
+                    Title = Loc.Tr("Select Download Directory")
+                });
+
+                var folder = folders.FirstOrDefault();
+                if (folder != null)
+                {
+                    string selectedPath = folder.Path.LocalPath;
+                    
+                    // Valida o novo diretório antes de salvar
+                    if (Directory.Exists(selectedPath))
+                    {
+                        // Atualiza temporariamente para validar
+                        string tempPath = options.DefaultPathToDownloadProfessionalTaskFiles;
+                        options.DefaultPathToDownloadProfessionalTaskFiles = selectedPath;
+                        
+                        var (isValid, errorMessage) = ValidateDownloadDirectory();
+                        
+                        if (isValid)
+                        {
+                            // Se válido, salva permanentemente
+                            options.Save();
+                            ShowDialogOk(Loc.Tr("Download directory saved successfully"));
+                            return true;
+                        }
+                        else
+                        {
+                            // Restaura o valor original se inválido
+                            options.DefaultPathToDownloadProfessionalTaskFiles = tempPath;
+                            ShowDialogOk(errorMessage);
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        ShowDialogOk(Loc.Tr("Selected directory is not valid"));
+                        return false;
+                    }
+                }
+                else
+                {
+                    // Usuário cancelou o folder picker, mas não pode cancelar o processo
+                    return false;
+                }
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao abrir folder picker: {ex.Message}");
+            ShowDialogOk($"Error: {ex.Message}");
+            return false;
+        }
     }
 }

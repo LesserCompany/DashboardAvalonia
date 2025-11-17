@@ -168,6 +168,14 @@ public class App : Application
             {
                 VerifyTokenImmediately(desktop);
             });
+            
+            // Valida o diretório de downloads após abrir já logado
+            _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                // Aguarda um pouco para garantir que a janela está totalmente carregada
+                await Task.Delay(500);
+                await GlobalAppStateViewModel.Instance.ValidateAndPromptDownloadDirectoryIfNeeded();
+            });
         }
         
         base.OnFrameworkInitializationCompleted(); // CORREÇÃO: Chama apenas uma vez no final

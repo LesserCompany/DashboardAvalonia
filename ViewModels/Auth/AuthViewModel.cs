@@ -197,6 +197,10 @@ namespace LesserDashboardClient.ViewModels.Auth
                             App.AuthWindowInstance.Close();
                             App.AuthWindowInstance = null;
                         }
+
+                        // Valida o diretório de downloads após login bem-sucedido
+                        await Task.Delay(300); // Pequeno delay para garantir que a janela está totalmente carregada
+                        await GlobalAppStateViewModel.Instance.ValidateAndPromptDownloadDirectoryIfNeeded();
                     }
                 }
 
