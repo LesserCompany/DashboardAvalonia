@@ -31,6 +31,7 @@
       -->
       <local:QuickAccess Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentQuickAccessIsVisible}" IsEnabled="{Binding !LoadProfessionalsIsRunning}" />
       <local:NewsView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewsViewIsVisible}" />
+      <local:MessagesView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentMessagesViewIsVisible}" />
       <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisible}" Margin="5" />
       <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />
       <local:NewCollectionPreConfigured Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionPreConfiguredIsVisible}"  Margin="5" />

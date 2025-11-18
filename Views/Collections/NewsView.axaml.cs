@@ -536,15 +536,17 @@ public partial class NewsView : UserControl
             // Definir estilo do botão baseado no tema
             if (isDarkMode)
             {
-                refreshButton.Background = this.FindResource("SystemControlBackgroundAltHighBrush") as Avalonia.Media.IBrush ?? 
+                // Tema escuro: usar cor escura com texto branco
+                refreshButton.Background = this.FindResource("SystemChromeBlackMediumLowColor") as Avalonia.Media.IBrush ?? 
                                           Avalonia.Media.Brushes.DarkGray;
                 refreshButton.Foreground = Avalonia.Media.Brushes.White;
             }
             else
             {
-                refreshButton.Background = this.FindResource("SystemControlBackgroundAltHighBrush") as Avalonia.Media.IBrush ?? 
-                                          Avalonia.Media.Brushes.LightGray;
-                refreshButton.Foreground = Avalonia.Media.Brushes.Black;
+                // Tema claro: usar cor de destaque (accent) que se adapta bem ao tema claro
+                refreshButton.Background = this.FindResource("SystemControlBackgroundAccentBrush") as Avalonia.Media.IBrush ?? 
+                                          Avalonia.Media.Brushes.SlateBlue;
+                refreshButton.Foreground = Avalonia.Media.Brushes.White;
             }
 
             // Adicionar evento de clique para recarregar os avisos

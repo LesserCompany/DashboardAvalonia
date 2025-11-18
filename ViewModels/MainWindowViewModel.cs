@@ -6,12 +6,15 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Models;
+using SharedClientSide.ServerInteraction.Users.Results;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.ViewModels.Options;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,6 +46,17 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     public string titleApp;
 
+    [ObservableProperty]
+    private int unreadMessagesCount = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<UserMessage> userMessages = new();
+
+    [ObservableProperty]
+    private int selectedTabIndex = 0;
+
+    public bool HasUnreadMessages => UnreadMessagesCount > 0;
+
     public MainWindowViewModel()
     {
         Instance = this;
@@ -53,6 +67,22 @@ public partial class MainWindowViewModel : ViewModelBase
         
         // Define o título da janela com o modo de build
         TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
+        
+        // Carrega mensagens do usuário ao inicializar
+        _ = LoadUserMessagesAsync();
+        
+        // Atualiza periodicamente as mensagens (a cada 30 segundos)
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        timer.Tick += async (s, e) => await LoadUserMessagesAsync();
+        timer.Start();
+    }
+    
+    partial void OnUnreadMessagesCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(HasUnreadMessages));
     }
     private string GetParentFolderName()
     {
@@ -277,6 +307,132 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             throw new Exception($"Não foi possível localizar ou executar a versão anterior do dashboard: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Carrega as mensagens não lidas do usuário do servidor
+    /// </summary>
+    public async Task LoadUserMessagesAsync()
+    {
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.GetUserNotifications<UserMessage>();
+            
+            if (result != null && result.success && result.Content != null)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    UserMessages.Clear();
+                    
+                    foreach (var message in result.Content)
+                    {
+                        // Garantir que MessageType tenha um valor padrão se não vier da API
+                        if (string.IsNullOrEmpty(message.MessageType))
+                        {
+                            message.MessageType = "info";
+                        }
+                        
+                        UserMessages.Add(message);
+                    }
+                    
+                    // Atualiza a contagem de mensagens não lidas
+                    UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar mensagens do usuário: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Marca uma mensagem específica como lida
+    /// </summary>
+    [RelayCommand]
+    public async Task MarkMessageAsReadAsync(string messageId)
+    {
+        try
+        {
+            var message = UserMessages.FirstOrDefault(m => m.Id == messageId);
+            if (message != null && !message.IsRead)
+            {
+                // Chama o endpoint para marcar como visualizada no servidor
+                var result = await GlobalAppStateViewModel.lfc.MarkUserNotificationAsViewed(messageId);
+                
+                if (result != null && result.success)
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        message.IsRead = true;
+                        UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao marcar mensagem como lida: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Marca todas as mensagens como lidas
+    /// </summary>
+    [RelayCommand]
+    public async Task MarkAllMessagesAsReadAsync()
+    {
+        try
+        {
+            var unreadMessages = UserMessages.Where(m => !m.IsRead).ToList();
+            
+            // Marca cada mensagem não lida no servidor
+            foreach (var message in unreadMessages)
+            {
+                var result = await GlobalAppStateViewModel.lfc.MarkUserNotificationAsViewed(message.Id);
+                if (result != null && result.success)
+                {
+                    message.IsRead = true;
+                }
+            }
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao marcar todas mensagens como lidas: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Comando para abrir a página de mensagens do usuário
+    /// </summary>
+    [RelayCommand]
+    public void OpenMessagesCommand()
+    {
+        try
+        {
+            // Navega para a aba de Collections (índice 0)
+            SelectedTabIndex = 0;
+            
+            // Aguarda um pouco para garantir que a aba foi trocada antes de mudar a view
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Abre a view de mensagens
+                var collectionsViewModel = CollectionsViewModel.Instance;
+                if (collectionsViewModel != null)
+                {
+                    collectionsViewModel.ActiveComponent = CollectionsViewModel.ActiveViews.MessagesView;
+                }
+            }, DispatcherPriority.Background);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao abrir mensagens: {ex.Message}");
         }
     }
 

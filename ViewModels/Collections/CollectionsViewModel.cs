@@ -38,6 +38,7 @@ namespace LesserDashboardClient.ViewModels.Collections;
 
 public partial class CollectionsViewModel : ViewModelBase
 {
+    public static CollectionsViewModel Instance { get; set; }
     private static Queue<string> CollectionCreationQueue = new Queue<string>();
 
     public class GraduateReportInfo
@@ -99,6 +100,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         QuickAccess,
         NewsView,
+        MessagesView,
         NewCollection,
         NewCollectionPreConfigured,
         CollectionView,
@@ -119,6 +121,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
         OnPropertyChanged(nameof(ComponentCancelBillingIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
+        OnPropertyChanged(nameof(ComponentMessagesViewIsVisible));
     }
     public bool ComponentQuickAccessIsVisible => ActiveComponent == ActiveViews.QuickAccess;
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
@@ -127,6 +130,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
+    public bool ComponentMessagesViewIsVisible => ActiveComponent == ActiveViews.MessagesView;
 
     #endregion
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsList = new();
@@ -398,6 +402,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public CollectionsViewModel()
     {
+        Instance = this;
         LoadProfessionalTasks();
         
         // CORREÇÃO: Inicializa o texto do botão e escuta mudanças de idioma

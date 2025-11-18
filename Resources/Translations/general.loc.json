@@ -114,5 +114,25 @@
   "This collection is from another billing period, please create a new collection to enable automatic enhancement.": {
     "en-US": "This collection is from another billing period, please create a new collection to enable automatic enhancement.",
     "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para habilitar a melhoria automática."
+  },
+  "Messages": {
+    "en-US": "Messages",
+    "pt-BR": "Mensagens"
+  },
+  "Mark All as Read": {
+    "en-US": "Mark All as Read",
+    "pt-BR": "Marcar todas como lidas"
+  },
+  "Mark as Read": {
+    "en-US": "Mark as Read",
+    "pt-BR": "Marcar como lida"
+  },
+  "No messages available": {
+    "en-US": "No messages available",
+    "pt-BR": "Nenhuma mensagem disponível"
+  },
+  "Error loading message": {
+    "en-US": "Error loading message",
+    "pt-BR": "Erro ao carregar mensagem"
   }
 }
