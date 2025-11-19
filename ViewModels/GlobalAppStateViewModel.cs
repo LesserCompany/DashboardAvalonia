@@ -241,13 +241,15 @@ public partial class GlobalAppStateViewModel : ObservableObject
 
     /// <summary>
     /// Valida se o diretório de downloads configurado é válido e acessível
+    /// Lê diretamente do arquivo settings.json para garantir que verifica o valor salvo
     /// </summary>
     /// <returns>Tupla com (isValid, errorMessage)</returns>
     public (bool isValid, string errorMessage) ValidateDownloadDirectory()
     {
         try
         {
-            string downloadPath = options?.DefaultPathToDownloadProfessionalTaskFiles;
+            // Lê diretamente do arquivo settings.json ao invés de usar o objeto em memória
+            string downloadPath = GetDownloadPathFromSettingsFile();
 
             // Verifica se o caminho está vazio
             if (string.IsNullOrWhiteSpace(downloadPath))
@@ -280,6 +282,45 @@ public partial class GlobalAppStateViewModel : ObservableObject
         catch (Exception ex)
         {
             return (false, $"Error validating directory: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Lê o path de downloads diretamente do arquivo settings.json
+    /// </summary>
+    /// <returns>O path configurado ou string vazia se não existir</returns>
+    private string GetDownloadPathFromSettingsFile()
+    {
+        try
+        {
+            string settingsFilePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), 
+                "Separacao", 
+                "app", 
+                "settings.json"
+            );
+
+            if (!File.Exists(settingsFilePath))
+            {
+                return string.Empty;
+            }
+
+            string json = File.ReadAllText(settingsFilePath);
+            
+            // Deserializa diretamente para OptionsModel que já sabe mapear os campos corretamente
+            var settingsModel = Newtonsoft.Json.JsonConvert.DeserializeObject<OptionsModel>(json);
+            
+            if (settingsModel != null && !string.IsNullOrWhiteSpace(settingsModel.DefaultPathToDownloadProfessionalTaskFiles))
+            {
+                return settingsModel.DefaultPathToDownloadProfessionalTaskFiles;
+            }
+
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao ler settings.json: {ex.Message}");
+            return string.Empty;
         }
     }
 
@@ -356,6 +397,12 @@ public partial class GlobalAppStateViewModel : ObservableObject
                     }
                 }
             }
+            else
+            {
+                // Se MainWindow.instance for null, loga o erro mas não bloqueia
+                // A validação no CollectionsViewModel vai bloquear mesmo assim
+                Console.WriteLine($"Erro: MainWindow.instance é null, não é possível mostrar o diálogo de validação de diretório.");
+            }
         }
         catch (Exception ex)
         {
@@ -388,26 +435,27 @@ public partial class GlobalAppStateViewModel : ObservableObject
                 {
                     string selectedPath = folder.Path.LocalPath;
                     
-                    // Valida o novo diretório antes de salvar
+                    // Valida se o diretório existe antes de salvar
                     if (Directory.Exists(selectedPath))
                     {
-                        // Atualiza temporariamente para validar
-                        string tempPath = options.DefaultPathToDownloadProfessionalTaskFiles;
+                        // Salva o novo path no arquivo settings.json
                         options.DefaultPathToDownloadProfessionalTaskFiles = selectedPath;
+                        options.Save();
                         
+                        // Recarrega as opções para garantir sincronização
+                        LoadOptionsModel();
+                        
+                        // Valida lendo diretamente do arquivo settings.json
                         var (isValid, errorMessage) = ValidateDownloadDirectory();
                         
                         if (isValid)
                         {
-                            // Se válido, salva permanentemente
-                            options.Save();
                             ShowDialogOk(Loc.Tr("Download directory saved successfully"));
                             return true;
                         }
                         else
                         {
-                            // Restaura o valor original se inválido
-                            options.DefaultPathToDownloadProfessionalTaskFiles = tempPath;
+                            // Se a validação falhar após salvar, mostra erro
                             ShowDialogOk(errorMessage);
                             return false;
                         }

@@ -1467,6 +1467,26 @@ public partial class CollectionsViewModel : ViewModelBase
 
 
             IsCreatingCollection = true;
+            
+            // Valida o diretório de downloads PRIMEIRO, antes de qualquer outra validação
+            // Esta validação DEVE bloquear a criação se o diretório não estiver válido
+            var (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
+            if (!isValid)
+            {
+                // Se o diretório não estiver válido, mostra o diálogo e força a seleção
+                await GlobalAppStateViewModel.Instance.ValidateAndPromptDownloadDirectoryIfNeeded();
+                
+                // Verifica NOVAMENTE após o diálogo - se ainda não estiver válido, BLOQUEIA
+                (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
+                if (!isValid)
+                {
+                    // Se ainda não estiver válido após o diálogo, mostra erro e bloqueia a criação
+                    // Isso garante que a coleção NUNCA será criada sem um diretório válido
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(errorMessage + "\n\n" + "Não é possível criar a coleção sem um diretório de downloads válido.");
+                    return;
+                }
+            }
+            
             if (!IsTextAllowed(TbCollectionName))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("The class code can only contain letters and numbers"));

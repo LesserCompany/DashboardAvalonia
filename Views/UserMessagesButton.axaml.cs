@@ -16,5 +16,3 @@ public partial class UserMessagesButton : UserControl
 
 
 
-
-

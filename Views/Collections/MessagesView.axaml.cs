@@ -273,19 +273,66 @@ public partial class MessagesView : UserControl
                 TextWrapping = TextWrapping.Wrap
             };
 
-            // Criar o SelectableTextBlock do conteúdo
+            // Criar o SelectableTextBlock do conteúdo com altura máxima
             var contentText = new SelectableTextBlock
             {
                 Text = message.Content,
                 FontSize = 14,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = secondaryTextBrush
+                Foreground = secondaryTextBrush,
+                MaxHeight = 100 // Altura máxima de 3-4 linhas aproximadamente
             };
+
+            // Variável para controlar o estado de expansão
+            bool isExpanded = false;
+            
+            // Estimar se o texto precisa ser truncado (aproximadamente 150 caracteres = ~3-4 linhas)
+            bool needsExpansion = message.Content.Length > 150;
+
+            // Criar botão "Ver mais" / "Ver menos" se necessário
+            Button? expandButton = null;
+            if (needsExpansion)
+            {
+                expandButton = new Button
+                {
+                    Content = "... Ver mais",
+                    FontSize = 12,
+                    Background = Avalonia.Media.Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(0),
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+                    Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
+                    Foreground = this.FindResource("SystemControlBackgroundAccentBrush") as IBrush ?? 
+                                Avalonia.Media.Brushes.DodgerBlue,
+                    Margin = new Thickness(0, 4, 0, 0)
+                };
+
+                expandButton.Click += (s, e) =>
+                {
+                    isExpanded = !isExpanded;
+                    if (isExpanded)
+                    {
+                        contentText.MaxHeight = double.PositiveInfinity;
+                        expandButton.Content = "Ver menos";
+                    }
+                    else
+                    {
+                        contentText.MaxHeight = 100;
+                        expandButton.Content = "... Ver mais";
+                    }
+                };
+            }
 
             // Adicionar os elementos ao StackPanel de conteúdo
             contentPanel.Children.Add(headerPanel);
             contentPanel.Children.Add(titleText);
             contentPanel.Children.Add(contentText);
+            
+            // Adicionar botão de expandir se necessário
+            if (expandButton != null)
+            {
+                contentPanel.Children.Add(expandButton);
+            }
 
             // Criar botão "Marcar como lida" (só aparece se não estiver lida)
             if (!message.IsRead)
