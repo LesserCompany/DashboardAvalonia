@@ -134,5 +134,13 @@
   "Error loading message": {
     "en-US": "Error loading message",
     "pt-BR": "Erro ao carregar mensagem"
+  },
+  "Welcome": {
+    "en-US": "Welcome",
+    "pt-BR": "Bem-vindo"
+  },
+  "WelcomeMessage": {
+    "en-US": "Welcome to the Lesser Dashboard. here you can create, download, separate and detail the data of your photo collections in an efficient way. Use the panel on the left to create a new collection or select an existing one to use the other features.",
+    "pt-BR": "Bem-vindo ao Lesser Dashboard. Aqui você pode criar, baixar, separar e detalhar os dados das suas coleções de fotos de forma eficiente. Use o painel à esquerda para criar uma nova coleção ou selecionar uma existente para usar as demais funcionalidades."
   }
 }

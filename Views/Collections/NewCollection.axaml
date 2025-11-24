@@ -41,13 +41,19 @@
                 
               <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="1" Grid.Column="1">
-                <TextBox  Text="{Binding TbEventFolder}" VerticalAlignment="Center" />
+                <Grid ColumnDefinitions="*, Auto">
+                  <TextBox Grid.Column="0" Text="{Binding TbEventFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                  <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenEventFolderDialog_Click" Cursor="Hand" />
+                </Grid>
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>  
                 
               <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center" IsVisible="{Binding !IsTreatmentOnlyCombo}" />
               <StackPanel Grid.Row="2"  Grid.Column="1" IsVisible="{Binding !IsTreatmentOnlyCombo}">
-                <TextBox  Text="{Binding TbRecFolder}" VerticalAlignment="Center" />
+                <Grid ColumnDefinitions="*, Auto">
+                  <TextBox Grid.Column="0" Text="{Binding TbRecFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
+                  <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenRecFolderDialog_Click" Cursor="Hand" />
+                </Grid>
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
                 

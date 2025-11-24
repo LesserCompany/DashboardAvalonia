@@ -26,7 +26,7 @@ public partial class UserMessage : ObservableObject
     private DateTime createdDate;
 
     [ObservableProperty]
-    [JsonProperty("isVisualized")]
+    [JsonProperty("isViewed")]
     private bool isRead;
 
     [ObservableProperty]

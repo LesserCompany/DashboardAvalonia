@@ -114,6 +114,21 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         lastActiveComponent = oldValue;
 
+        // Detectar navegação manual para MessagesView
+        if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
+        {
+            // Se não foi a primeira verificação inicial, é navegação manual
+            if (_hasCheckedInitialMessages)
+            {
+                _userManuallyNavigatedToMessages = true;
+            }
+        }
+        // Se sair de MessagesView, resetar flag de navegação manual
+        else if (oldValue == ActiveViews.MessagesView && newValue != ActiveViews.MessagesView)
+        {
+            _userManuallyNavigatedToMessages = false;
+        }
+
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
@@ -412,6 +427,9 @@ public partial class CollectionsViewModel : ViewModelBase
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
         
+        // Observar mudanças nas mensagens não lidas para decidir view inicial
+        InitializeMessagesViewLogic();
+        
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
         timerUpdateView.Elapsed += (e, a) =>
@@ -422,6 +440,170 @@ public partial class CollectionsViewModel : ViewModelBase
             }
         };
         timerUpdateView.Start();
+    }
+    
+    private bool _hasCheckedInitialMessages = false;
+    private bool _userManuallyNavigatedToMessages = false;
+    
+    /// <summary>
+    /// Inicializa a lógica de observação de mensagens não lidas para decidir qual view mostrar
+    /// </summary>
+    private void InitializeMessagesViewLogic()
+    {
+        // Aguardar um pouco para garantir que o MainWindowViewModel foi inicializado e carregou as mensagens
+        Task.Run(async () =>
+        {
+            // Aguardar até que o MainWindowViewModel esteja disponível
+            MainWindowViewModel? mainVM = null;
+            int attempts = 0;
+            while (mainVM == null && attempts < 50) // Máximo 5 segundos
+            {
+                await Task.Delay(100);
+                mainVM = MainWindowViewModel.Instance;
+                attempts++;
+            }
+            
+            if (mainVM == null)
+            {
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel não encontrado após inicialização");
+                return;
+            }
+            
+            // Aguardar até que as mensagens sejam carregadas da API (ou timeout)
+            // Isso garante que a decisão de qual view mostrar seja baseada na resposta real da API
+            int maxWaitAttempts = 100; // Máximo 10 segundos (100 * 100ms)
+            int waitAttempts = 0;
+            bool messagesLoaded = false;
+            
+            while (!messagesLoaded && waitAttempts < maxWaitAttempts)
+            {
+                await Task.Delay(100);
+                waitAttempts++;
+                
+                // Verificar se as mensagens foram carregadas
+                try
+                {
+                    messagesLoaded = mainVM.MessagesLoaded;
+                }
+                catch
+                {
+                    // Se houver erro ao verificar, continuar aguardando
+                }
+            }
+            
+            if (!messagesLoaded)
+            {
+                Console.WriteLine("CollectionsViewModel: Timeout aguardando carregamento de mensagens. Usando estado padrão (welcome).");
+            }
+            
+            // Verificar estado inicial das mensagens apenas uma vez na inicialização
+            // Agora que as mensagens foram carregadas (ou timeout), podemos decidir qual view mostrar
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (!_hasCheckedInitialMessages)
+                {
+                    CheckAndUpdateInitialView(mainVM, isInitialCheck: true);
+                    _hasCheckedInitialMessages = true;
+                }
+            });
+            
+            // Observar mudanças futuras em ShouldShowMessagesOnStartup usando PropertyChanged
+            // Criar um observador que verifica quando a propriedade muda
+            System.Timers.Timer messagesCheckTimer = new System.Timers.Timer();
+            messagesCheckTimer.Interval = 2000; // Verificar a cada 2 segundos (menos agressivo)
+            bool lastState = mainVM.ShouldShowMessagesOnStartup;
+            messagesCheckTimer.Elapsed += (s, e) =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (mainVM.ShouldShowMessagesOnStartup != lastState)
+                    {
+                        lastState = mainVM.ShouldShowMessagesOnStartup;
+                        CheckAndUpdateInitialView(mainVM, isInitialCheck: false);
+                    }
+                }, DispatcherPriority.Background);
+            };
+            messagesCheckTimer.Start();
+        });
+    }
+    
+    /// <summary>
+    /// Verifica se deve mostrar a view de mensagens ou welcome baseado em mensagens não lidas
+    /// </summary>
+    private void CheckAndUpdateInitialView(MainWindowViewModel mainVM, bool isInitialCheck)
+    {
+        try
+        {
+            // Verificar se mainVM é válido
+            if (mainVM == null)
+            {
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel é null ao verificar view inicial");
+                // Em caso de erro, garantir que mostra welcome (padrão seguro)
+                if (isInitialCheck && ActiveComponent != ActiveViews.NewsView)
+                {
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+                return;
+            }
+
+            if (isInitialCheck)
+            {
+                // Na inicialização: se houver mensagens não lidas, mostrar mensagens
+                // Se houver erro (ShouldShowMessagesOnStartup retorna false), mostrar welcome
+                try
+                {
+                    if (mainVM.ShouldShowMessagesOnStartup)
+                    {
+                        ActiveComponent = ActiveViews.MessagesView;
+                    }
+                    else
+                    {
+                        // Se não houver mensagens ou houver erro, garantir que mostra welcome
+                        ActiveComponent = ActiveViews.NewsView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar ShouldShowMessagesOnStartup: {ex.Message}");
+                    // Em caso de erro, mostrar welcome por padrão
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+            }
+            else
+            {
+                // Após inicialização: se todas as mensagens foram lidas e estamos em MessagesView,
+                // voltar para NewsView (mas só se não foi navegação manual)
+                try
+                {
+                    if (!mainVM.ShouldShowMessagesOnStartup && ActiveComponent == ActiveViews.MessagesView && !_userManuallyNavigatedToMessages)
+                    {
+                        ActiveComponent = ActiveViews.NewsView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar mudança de estado: {ex.Message}");
+                    // Em caso de erro, não fazer nada (manter estado atual)
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CollectionsViewModel: Erro ao verificar view inicial: {ex.Message}");
+            // Em caso de erro geral, garantir que mostra welcome (padrão seguro)
+            if (isInitialCheck)
+            {
+                try
+                {
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+                catch
+                {
+                    // Se nem isso funcionar, pelo menos logar
+                    Console.WriteLine("CollectionsViewModel: Erro crítico ao definir view inicial");
+                }
+            }
+        }
     }
     
     /// <summary>

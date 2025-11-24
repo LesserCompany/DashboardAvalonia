@@ -32,6 +32,42 @@ public partial class MessagesView : UserControl
                 await LoadMessagesAsync();
             }
         });
+        
+        // Tentar obter o MainWindowViewModel através da árvore visual se o DataContext não for ele
+        this.GetObservable(DataContextProperty).Subscribe(async _ =>
+        {
+            // Se o DataContext mudou e a view está visível, recarregar
+            if (IsVisible)
+            {
+                await LoadMessagesAsync();
+            }
+        });
+    }
+    
+    /// <summary>
+    /// Obtém o MainWindowViewModel através do DataContext ou da árvore visual
+    /// </summary>
+    private MainWindowViewModel? GetMainWindowViewModel()
+    {
+        // Primeiro, tenta usar o DataContext direto
+        if (DataContext is MainWindowViewModel mainVM)
+        {
+            return mainVM;
+        }
+        
+        // Se não for, busca na árvore visual (Window -> MainWindowViewModel)
+        var parent = this.Parent;
+        while (parent != null)
+        {
+            if (parent is Window window && window.DataContext is MainWindowViewModel windowVM)
+            {
+                return windowVM;
+            }
+            parent = parent.Parent;
+        }
+        
+        // Fallback: usar o singleton (menos ideal, mas funcional)
+        return MainWindowViewModel.Instance;
     }
 
     private async void MessagesView_Loaded(object sender, RoutedEventArgs e)
@@ -56,33 +92,28 @@ public partial class MessagesView : UserControl
                 return;
             }
 
-            // Obter o ViewModel
-            var viewModel = MainWindowViewModel.Instance;
+            // Obter o ViewModel via DataContext ou árvore visual (MVVM-friendly)
+            var viewModel = GetMainWindowViewModel();
             if (viewModel == null)
             {
-                System.Diagnostics.Debug.WriteLine("MessagesView: MainWindowViewModel.Instance é null");
+                System.Diagnostics.Debug.WriteLine("MessagesView: Não foi possível obter MainWindowViewModel");
                 return;
             }
 
-            // Carregar as mensagens se necessário
-            if (viewModel.UserMessages == null || viewModel.UserMessages.Count == 0)
-            {
-                await viewModel.LoadUserMessagesAsync();
-            }
+            // A View apenas solicita o carregamento - a lógica de "precisa carregar?" está no ViewModel
+            await viewModel.LoadUserMessagesAsync();
 
             System.Diagnostics.Debug.WriteLine($"MessagesView: Total de mensagens: {viewModel.UserMessages?.Count ?? 0}");
 
             // Limpar skeleton loading
             messagesPanel.Children.Clear();
 
-            // Verificar se há mensagens
-            if (viewModel.UserMessages != null && viewModel.UserMessages.Count > 0)
-            {
-                // Ordenar mensagens: não lidas primeiro, depois por data
-                var sortedMessages = viewModel.UserMessages
-                    .OrderBy(m => m.IsRead)
-                    .ThenByDescending(m => m.CreatedDate);
+            // Usar SortedUserMessages do ViewModel (ordenação está no VM, não na View)
+            var sortedMessages = viewModel.SortedUserMessages;
 
+            // Verificar se há mensagens
+            if (sortedMessages != null && sortedMessages.Any())
+            {
                 // Adicionar cada mensagem ao painel
                 foreach (var message in sortedMessages)
                 {
@@ -91,9 +122,11 @@ public partial class MessagesView : UserControl
                 }
 
                 // Mostrar botão "Marcar todas como lidas" se houver mensagens não lidas
+                // A propriedade HasUnreadMessages já está no ViewModel
                 if (markAllButton != null)
                 {
                     markAllButton.IsVisible = viewModel.HasUnreadMessages;
+                    // Remover handler anterior para evitar duplicação
                     markAllButton.Click -= MarkAllAsReadButton_Click;
                     markAllButton.Click += MarkAllAsReadButton_Click;
                 }
@@ -121,11 +154,13 @@ public partial class MessagesView : UserControl
     {
         try
         {
-            var viewModel = MainWindowViewModel.Instance;
+            // Obter ViewModel via método helper (MVVM-friendly)
+            var viewModel = GetMainWindowViewModel();
             if (viewModel != null)
             {
+                // Usar o Command do ViewModel (já existe como RelayCommand)
                 await viewModel.MarkAllMessagesAsReadAsync();
-                // Recarregar a view
+                // Recarregar a view para atualizar a UI
                 await LoadMessagesAsync();
             }
         }
@@ -370,7 +405,9 @@ public partial class MessagesView : UserControl
                 {
                     try
                     {
+                        // Usar o Command do ViewModel (já existe como RelayCommand)
                         await viewModel.MarkMessageAsReadAsync(messageId);
+                        // Recarregar a view para atualizar a UI
                         await LoadMessagesAsync();
                     }
                     catch (Exception ex)

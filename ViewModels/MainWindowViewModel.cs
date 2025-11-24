@@ -14,6 +14,7 @@ using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -52,10 +53,27 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<UserMessage> userMessages = new();
 
+    /// <summary>
+    /// Indica se as mensagens já foram carregadas da API (mesmo que vazias)
+    /// </summary>
+    private bool _messagesLoaded = false;
+    
+    /// <summary>
+    /// Indica se as mensagens já foram carregadas da API
+    /// </summary>
+    public bool MessagesLoaded => _messagesLoaded;
+
     [ObservableProperty]
     private int selectedTabIndex = 0;
 
     public bool HasUnreadMessages => UnreadMessagesCount > 0;
+
+    /// <summary>
+    /// Mensagens ordenadas: não lidas primeiro, depois por data decrescente
+    /// </summary>
+    public IEnumerable<UserMessage> SortedUserMessages => UserMessages
+        .OrderBy(m => m.IsRead)
+        .ThenByDescending(m => m.CreatedDate);
 
     public MainWindowViewModel()
     {
@@ -83,6 +101,43 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnUnreadMessagesCountChanged(int value)
     {
         OnPropertyChanged(nameof(HasUnreadMessages));
+        // Notifica que o estado de mensagens não lidas mudou
+        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+    }
+
+    partial void OnUserMessagesChanged(ObservableCollection<UserMessage> value)
+    {
+        OnPropertyChanged(nameof(SortedUserMessages));
+        // Notifica que o estado de mensagens não lidas mudou
+        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+    }
+
+    /// <summary>
+    /// Indica se deve mostrar a tela de mensagens na inicialização
+    /// (true se houver pelo menos uma mensagem não lida)
+    /// Retorna false em caso de erro ou se não houver mensagens carregadas
+    /// </summary>
+    public bool ShouldShowMessagesOnStartup
+    {
+        get
+        {
+            try
+            {
+                // Se UserMessages for null ou vazio, não mostrar mensagens (mostrar welcome)
+                if (UserMessages == null || UserMessages.Count == 0)
+                {
+                    return false;
+                }
+                
+                // Verificar se há mensagens não lidas
+                return HasUnreadMessages;
+            }
+            catch
+            {
+                // Em caso de qualquer erro, mostrar welcome por padrão
+                return false;
+            }
+        }
     }
     private string GetParentFolderName()
     {
@@ -312,16 +367,87 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>
     /// Carrega as mensagens não lidas do usuário do servidor
+    /// A lógica de verificar se precisa carregar está aqui, não na View
     /// </summary>
-    public async Task LoadUserMessagesAsync()
+    public async Task LoadUserMessagesAsync(bool forceReload = false)
     {
         try
         {
+            // Regra de negócio: só recarrega se forçado ou se não houver mensagens
+            if (!forceReload && UserMessages != null && UserMessages.Count > 0)
+            {
+                return;
+            }
+
+            // Verificar se o cliente está disponível
+            if (GlobalAppStateViewModel.lfc == null)
+            {
+                Console.WriteLine("LoadUserMessagesAsync: LesserFunctionClient não está disponível");
+                // Garantir que ShouldShowMessagesOnStartup retorne false em caso de erro
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
             var result = await GlobalAppStateViewModel.lfc.GetUserNotifications<UserMessage>();
             
-            if (result != null && result.success && result.Content != null)
+            // Tratar casos de erro ou null
+            if (result == null)
             {
+                Console.WriteLine("LoadUserMessagesAsync: Resultado da API é null");
                 await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
+            if (!result.success)
+            {
+                Console.WriteLine($"LoadUserMessagesAsync: API retornou erro - {result.message ?? "Erro desconhecido"}");
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
+            if (result.Content == null)
+            {
+                Console.WriteLine("LoadUserMessagesAsync: Content da resposta é null");
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+            
+            // Sucesso: processar mensagens
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
                 {
                     UserMessages.Clear();
                     
@@ -338,12 +464,48 @@ public partial class MainWindowViewModel : ViewModelBase
                     
                     // Atualiza a contagem de mensagens não lidas
                     UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
-                });
-            }
+                    
+                    // Marcar que as mensagens foram carregadas (mesmo que vazias)
+                    _messagesLoaded = true;
+                    
+                    // Notifica mudança na coleção ordenada
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    
+                    // Notifica mudança no estado de mensagens não lidas (para decidir view inicial)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                }
+                catch (Exception innerEx)
+                {
+                    Console.WriteLine($"Erro ao processar mensagens: {innerEx.Message}");
+                    // Em caso de erro ao processar, garantir estado seguro
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                }
+            });
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao carregar mensagens do usuário: {ex.Message}");
+            // Em caso de exceção, garantir que ShouldShowMessagesOnStartup retorne false
+            try
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+            }
+            catch
+            {
+                // Se nem isso funcionar, pelo menos logar
+                Console.WriteLine("Erro crítico ao limpar estado de mensagens após exceção");
+            }
         }
     }
 
@@ -367,6 +529,10 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         message.IsRead = true;
                         UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                        // Notifica mudança na coleção ordenada
+                        OnPropertyChanged(nameof(SortedUserMessages));
+                        // Notifica mudança no estado de mensagens não lidas
+                        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
                     });
                 }
             }
@@ -400,6 +566,10 @@ public partial class MainWindowViewModel : ViewModelBase
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                // Notifica mudança na coleção ordenada
+                OnPropertyChanged(nameof(SortedUserMessages));
+                // Notifica mudança no estado de mensagens não lidas
+                OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
             });
         }
         catch (Exception ex)
