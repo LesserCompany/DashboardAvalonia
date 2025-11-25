@@ -145,18 +145,20 @@
                             Height="100"
                             BorderThickness="2"
                             BorderBrush="{StaticResource AccentButtonBackground}"
+                            Background="Transparent"
                             CornerRadius="6"
                             HorizontalAlignment="Stretch"
                             VerticalAlignment="Center"
-                            Margin="10"
-                            DragDrop.AllowDrop="True"
-                            DragDrop.Drop="Border_OnDrop"
-                            DragDrop.DragOver="Border_OnDragOver"
-                            >
-                        <StackPanel VerticalAlignment="Center">
-                            <Svg Path="/Assets/icons/drop-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                        </StackPanel>
+                            Margin="10">
+                        <Grid DragDrop.AllowDrop="True"
+                              DragDrop.Drop="Border_OnDrop"
+                              DragDrop.DragOver="Border_OnDragOver"
+                              Background="Transparent">
+                            <StackPanel VerticalAlignment="Center" IsHitTestVisible="False">
+                                <Svg Path="/Assets/icons/drop-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
+                                <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
+                            </StackPanel>
+                        </Grid>
                     </Border>
                     
                     <!-- Table -->
