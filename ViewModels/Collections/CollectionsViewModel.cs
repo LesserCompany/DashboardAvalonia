@@ -2013,7 +2013,7 @@ public partial class CollectionsViewModel : ViewModelBase
         
         if (Directory.Exists(TbRecFolder) == false)
         {
-            //MessageBox.Show("A pasta de reconhecimentos especificada n�o existe.");
+            //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
             return;
         }
         var gradPhotos = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);

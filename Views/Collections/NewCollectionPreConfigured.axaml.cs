@@ -115,7 +115,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if(string.IsNullOrEmpty(vm.TbRecFolder))
                     {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "A pasta de reconhecimentos especificada n�o existe.");
+                        .GetMessageBoxStandard("", "A pasta de reconhecimentos especificada não existe.");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }
