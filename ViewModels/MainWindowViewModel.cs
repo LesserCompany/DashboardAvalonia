@@ -12,6 +12,7 @@ using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -250,11 +251,19 @@ public partial class MainWindowViewModel : ViewModelBase
                     .Where(d => !d.EndsWith(GetParentFolderName())) // Excluir a versão atual
                     .OrderByDescending(d => d) // Ordenar por nome (versão mais recente primeiro)
                     .ToArray();
-                
+
+
+
                 if (versionDirs.Length > 0)
                 {
                     // Pegar a versão mais recente disponível (que não seja a atual)
-                    previousVersionPath = Path.Combine(versionDirs[0], "LesserDashboard.exe");
+                    //previousVersionPath = Path.Combine(versionDirs[0], "LesserDashboard.exe");
+
+                    string path = versionDirs.Where(d => d.EndsWith("188")).FirstOrDefault();
+                    if (path == null)
+                        return;
+
+                    previousVersionPath = Path.Combine(path, "LesserDashboard.exe");
                 }
             }
 

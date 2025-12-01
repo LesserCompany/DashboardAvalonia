@@ -359,6 +359,10 @@
     "en-US": "Price for 1000 photos",
     "pt-BR": "Preço de 1000 fotos"
   },
+  "Price for each 1000 photos": {
+    "en-US": "Price for each 1000 photos",
+    "pt-BR": "Preço para cada 1000 fotos"
+  },
   "Combos": {
     "en-US": "Combos",
     "pt-BR": "Combos"
