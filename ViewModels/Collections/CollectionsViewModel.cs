@@ -117,6 +117,9 @@ public partial class CollectionsViewModel : ViewModelBase
         // Detectar navegação manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
         {
+            // Limpar a turma selecionada quando abrir o componente de mensagens
+            SelectedCollection = null;
+            
             // Se não foi a primeira verificação inicial, é navegação manual
             if (_hasCheckedInitialMessages)
             {
@@ -208,6 +211,31 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
     
     /// <summary>
+    /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
+    /// </summary>
+    [ObservableProperty] public bool isHDStorageOptionsVisible = false;
+    
+    /// <summary>
+    /// Checkbox para armazenamento HD por 5 anos
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageFiveYears = false;
+    
+    /// <summary>
+    /// Checkbox para armazenamento HD com data customizada
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageCustomDate = false;
+    
+    /// <summary>
+    /// Data customizada para armazenamento HD
+    /// </summary>
+    [ObservableProperty] public DateTimeOffset? hdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
+    
+    /// <summary>
+    /// Texto do preço para armazenamento HD customizado
+    /// </summary>
+    [ObservableProperty] public string hdStoragePriceText = string.Empty;
+    
+    /// <summary>
     /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro período)
     /// </summary>
     [ObservableProperty] public bool canAddCPFs = true;
@@ -251,6 +279,24 @@ public partial class CollectionsViewModel : ViewModelBase
         if (_isLoadingReuploadData)
             return;
             
+        // Mostrar/esconder opções de armazenamento quando HD é marcado/desmarcado
+        IsHDStorageOptionsVisible = newValue == true;
+        
+        // Se desmarcar HD, resetar opções de armazenamento
+        if (newValue == false)
+        {
+            CbEnableAutoTreatment = false;
+            CbHDStorageFiveYears = false;
+            CbHDStorageCustomDate = false;
+            HdStoragePriceText = string.Empty;
+        }
+        else if (newValue == true)
+        {
+            // Por padrão, marcar 5 anos quando HD é habilitado
+            CbHDStorageFiveYears = true;
+            CbHDStorageCustomDate = false;
+        }
+            
         // Validar período de faturamento quando tentando habilitar HD
         if (newValue == true && IsReupload && SelectedCollection != null)
         {
@@ -262,6 +308,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 
                 // Reverter o valor para false
                 CbHDBackup = false;
+                IsHDStorageOptionsVisible = false;
                 
                 // Bloquear adição de CPFs quando não é HD
                 CanAddCPFs = false;
@@ -269,10 +316,99 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
             }
         }
-        
-        if (newValue == false)
+    }
+    
+    partial void OnCbHDStorageFiveYearsChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
         {
-            CbEnableAutoTreatment = false;
+            // Se marcar 5 anos, desmarcar data customizada
+            CbHDStorageCustomDate = false;
+            HdStoragePriceText = string.Empty;
+        }
+    }
+    
+    partial void OnCbHDStorageCustomDateChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+        {
+            // Se marcar data customizada, desmarcar 5 anos
+            CbHDStorageFiveYears = false;
+            // Carregar preço inicial
+            LoadHDStoragePriceAsync();
+        }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+    }
+    
+    partial void OnHdStorageCustomDateChanged(DateTimeOffset? oldValue, DateTimeOffset? newValue)
+    {
+        if (newValue.HasValue && CbHDStorageCustomDate == true)
+        {
+            // Recarregar preço quando a data muda
+            LoadHDStoragePriceAsync();
+        }
+    }
+    
+    private async void LoadHDStoragePriceAsync()
+    {
+        if (!CbHDStorageCustomDate.HasValue || CbHDStorageCustomDate != true || !HdStorageCustomDate.HasValue)
+        {
+            HdStoragePriceText = string.Empty;
+            return;
+        }
+        
+        try
+        {
+            HdStoragePriceText = Loc.Tr("Loading price...");
+            
+            if (GlobalAppStateViewModel.lfc == null || SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
+            {
+                HdStoragePriceText = Loc.Tr("Error loading price");
+                return;
+            }
+            
+            var dateTimeOffset = HdStorageCustomDate.Value.ToUniversalTime();
+            var result = await GlobalAppStateViewModel.lfc.SimulateDeletionDeadlineExtensionCollectionPrice(
+                SelectedCollection.classCode,
+                dateTimeOffset
+            );
+            
+            if (result != null && result.success == true && result.Content != null)
+            {
+                double priceInCents = 0;
+                
+                // Extrair o valor (vem em centavos) - forma simplificada
+                if (result.Content is Newtonsoft.Json.Linq.JObject jObject && jObject["value"] != null)
+                {
+                    priceInCents = jObject["value"].ToObject<double>();
+                }
+                else
+                {
+                    var contentJson = JsonConvert.SerializeObject(result.Content);
+                    var jObj = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(contentJson);
+                    if (jObj != null && jObj["value"] != null)
+                        priceInCents = jObj["value"].ToObject<double>();
+                    else if (result.Content is double d)
+                        priceInCents = d;
+                    else if (result.Content is int i)
+                        priceInCents = i;
+                }
+                
+                // Dividir por 100 para converter centavos em reais
+                double priceInReais = priceInCents / 100.0;
+                HdStoragePriceText = Loc.Tr("Price:") + $" R$ {priceInReais:F2}";
+            }
+            else
+            {
+                HdStoragePriceText = Loc.Tr("Error loading price");
+            }
+        }
+        catch (Exception ex)
+        {
+            HdStoragePriceText = Loc.Tr("Error loading price");
         }
     }
     [ObservableProperty] public bool? cbEnableAutoTreatment;
@@ -1463,6 +1599,13 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        
+        // Resetar propriedades de armazenamento HD
+        IsHDStorageOptionsVisible = false;
+        CbHDStorageFiveYears = false;
+        CbHDStorageCustomDate = false;
+        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
+        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -1498,6 +1641,13 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        
+        // Resetar propriedades de armazenamento HD
+        IsHDStorageOptionsVisible = false;
+        CbHDStorageFiveYears = false;
+        CbHDStorageCustomDate = false;
+        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
+        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1535,6 +1685,13 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        
+        // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
+        IsHDStorageOptionsVisible = options.BackupHd == true;
+        CbHDStorageFiveYears = options.BackupHd == true ? true : false;
+        CbHDStorageCustomDate = false;
+        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
+        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1638,6 +1795,47 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         ActiveComponent = ActiveViews.CancelBilling;
+    }
+
+    [RelayCommand]
+    public async Task OpenChangeDeletionDateDialogCommand()
+    {
+        if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
+            return;
+
+        try
+        {
+            var viewModel = new ChangeDeletionDateViewModel(
+                GlobalAppStateViewModel.lfc,
+                SelectedCollection,
+                async () =>
+                {
+                    // Atualiza a coleção após sucesso
+                    var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(SelectedCollection.classCode);
+                    if (updatedCollection != null)
+                    {
+                        SelectedCollection = updatedCollection;
+                        UpdateCollectionViewSelected();
+                    }
+                }
+            );
+
+            var dialog = new ChangeDeletionDateWindow
+            {
+                DataContext = viewModel
+            };
+            
+            viewModel.SetWindow(dialog);
+
+            // Carrega o preço após o modal estar carregado
+            _ = viewModel.LoadInitialPriceAsync();
+
+            await dialog.ShowDialog(MainWindow.instance);
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error"));
+        }
     }
     [RelayCommand]
     public async Task CreateCollectionCommand()
@@ -2525,8 +2723,6 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar combos dinâmicos: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             // Em caso de erro, usar combos estáticos
             LoadStaticCombos();
         }

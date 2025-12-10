@@ -1,0 +1,144 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+        xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+        x:DataType="vm:ChangeDeletionDateViewModel"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
+        x:Class="LesserDashboardClient.Views.Collections.ChangeDeletionDateWindow"
+        Title="{Tr 'Change class deletion date'}"
+        Width="500"
+        Height="450"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  
+  <Window.Styles>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,10,0,5"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Spacing="5">
+      <TextBlock Text="{Tr 'Change class deletion date'}" FontSize="20" FontWeight="Bold"/>
+      <TextBlock Text="{Tr 'Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.'}" 
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                 TextWrapping="Wrap"/>
+    </StackPanel>
+
+    <!-- Form -->
+    <ScrollViewer Grid.Row="1" Margin="0,20,0,0">
+      <StackPanel Spacing="15">
+        <!-- Date Picker -->
+        <StackPanel Spacing="5">
+          <TextBlock Classes="label" Text="{Tr 'Select new deletion date:'}" />
+          <DatePicker SelectedDate="{Binding SelectedDate}"
+                     IsEnabled="{Binding IsDatePickerEnabled}"/>
+        </StackPanel>
+
+        <!-- Price Display -->
+        <StackPanel Spacing="5">
+          <TextBlock Classes="label" Text="{Tr 'Price:'}" />
+          <Border Background="{DynamicResource SystemControlBackgroundAltMediumBrush}"
+                  BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="12"
+                  MinHeight="40">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <ui:ProgressRing IsVisible="{Binding IsLoadingPrice}" 
+                              BorderThickness="3" 
+                              IsIndeterminate="True" 
+                              Width="16" 
+                              Height="16"
+                              VerticalAlignment="Center"/>
+              <TextBlock Text="{Binding PriceText}" 
+                         VerticalAlignment="Center"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- Error Message -->
+        <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue=False}"
+                Background="#FFEBE9"
+                BorderBrush="#F44336"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10"
+                Margin="0,10,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" 
+                  Fill="#F44336" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"/>
+            <TextBlock Text="{Binding ErrorMessage}" 
+                       Foreground="#B71C1C"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Success Message -->
+        <Border IsVisible="{Binding ShowSuccessMessage}"
+                Background="#E8F5E9"
+                BorderBrush="#4CAF50"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10"
+                Margin="0,10,0,0">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                  Fill="#4CAF50" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"/>
+            <TextBlock Text="{Tr 'Deletion date updated successfully!'}" 
+                       Foreground="#2E7D32"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Actions -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+      <Button Content="{Tr 'Cancel'}" 
+              Command="{Binding CancelCommand}"
+              IsEnabled="{Binding !IsUpdating}"
+              Width="100"/>
+      <Button Command="{Binding ConfirmCommand}"
+              Classes="accent"
+              IsEnabled="{Binding IsConfirmButtonEnabled}"
+              Width="150">
+        <Button.Styles>
+          <Style Selector="Button.accent">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+          </Style>
+          <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}"/>
+          </Style>
+        </Button.Styles>
+        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" HorizontalAlignment="Center">
+          <ui:ProgressRing IsVisible="{Binding IsUpdating}" 
+                          BorderThickness="3" 
+                          IsIndeterminate="True" 
+                          Width="12" 
+                          Height="12"
+                          VerticalAlignment="Center"/>
+          <TextBlock Text="{Tr 'Confirm'}" VerticalAlignment="Center"/>
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </Grid>
+</Window>
+

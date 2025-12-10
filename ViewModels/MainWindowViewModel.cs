@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
@@ -245,11 +245,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         var oldWindow = desktop.MainWindow;
                         
-                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
-                        App.ReapplySettings();
-                        
-                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
-                        await Task.Delay(100);
+                        // NÃO reinicializar configurações - elas já estão aplicadas
+                        // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
                         // Cria e mostra uma nova janela de login
                         var authWindow = new AuthWindow();
@@ -355,7 +352,8 @@ public partial class MainWindowViewModel : ViewModelBase
             else
             {
                 // Fallback: tentar usar AppInstaller se não encontrar versão específica
-                SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { });
+                // Versão hardcoded: 188
+                SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { }, "188");
                 await installer.startApp();
             }
         }

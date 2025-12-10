@@ -183,7 +183,8 @@ namespace LesserDashboardClient.Services
                     {
                         var clientCombo = ConvertServerComboToClientCombo(serverCombo);
                         
-                        // Definir o preço dinâmico (converter de centavos/100 fotos para reais/1000 fotos)
+                        // Definir o preço dinâmico (mesma lógica do Svelte: price / 100 * 1000)
+                        // O preço vem por 100 fotos, então para 1000 fotos multiplicamos por 10
                         double priceFor1000Photos = (serverCombo.Price / 100.0) * 1000.0;
                         clientCombo.SetDynamicPrice(priceFor1000Photos);
                         
@@ -238,3 +239,4 @@ namespace LesserDashboardClient.Services
         }
     }
 }
+

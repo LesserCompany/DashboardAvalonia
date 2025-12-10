@@ -37,8 +37,15 @@
           <TextBlock Grid.Row="1" IsVisible="{Binding !UploadComplete}" TextWrapping="Wrap" TextAlignment="Center" Text="{Tr 'Upload incomplete ...'}" />
             
           <SelectableTextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding SelectedCollection.originalEventsFolder}" />
+          
+          <!-- Data de Deleção -->
+          <Grid Grid.Row="3" IsVisible="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource NullToBoolConverter}}" ColumnDefinitions="Auto, Auto" ColumnSpacing="5" HorizontalAlignment="Center">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Tr 'Scheduled deletion date:'}" />
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource DateTimeToStringConverter}, ConverterParameter=deletion}" Foreground="{DynamicResource WarningTextBrush}" />
+          </Grid>
+          
           <!-- ProgressBars -->
-          <Grid Grid.Row="3" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="200, *" ColumnSpacing="5" RowSpacing="{DynamicResource DefaultRowSpacing}">
+          <Grid Grid.Row="4" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="200, *" ColumnSpacing="5" RowSpacing="{DynamicResource DefaultRowSpacing}">
               <!-- Row 1 - Recognition Progress Bar (hidden when photos are already sorted) -->
               <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsVisible="{Binding !SelectedCollection.UploadPhotosAreAlreadySorted, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Tr 'Recognition on the server:'}" />
@@ -59,7 +66,7 @@
           </Grid>
             
             <!-- SeparationFiles -->
-          <Grid Grid.Row="4" RowDefinitions="Auto, Auto" RowSpacing="6" Margin="4" IsVisible="{Binding ClassSeparationFilesIsVisible}">
+          <Grid Grid.Row="5" RowDefinitions="Auto, Auto" RowSpacing="6" Margin="4" IsVisible="{Binding ClassSeparationFilesIsVisible}">
             <TextBlock Grid.Row="0" Text="{Tr 'Choose the separation file you want to work with:'}" FontSize="12" />
             
             <ListBox Grid.Row="1" BorderBrush="Black" BorderThickness="0.6"  x:Name="ListBox" ItemsSource="{Binding ClassSeparationFiles}" SelectedItem="{Binding SelectedSeparationFile}" FontSize="11" >
@@ -81,7 +88,7 @@
           
             
           <!-- Buttons -->
-          <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="5" ColumnSpacing="5">
+          <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="6" ColumnSpacing="5">
             <Button IsEnabled="{Binding BtTagSortIsEnabled}" Command="{Binding TagSortCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Tag/Sort'}" VerticalAlignment="Center" />
@@ -134,7 +141,7 @@
           <!-- Resume SeparationFile -->
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
-          <Grid Grid.Row="6">
+          <Grid Grid.Row="7">
               <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding !SelectedCollection.BillingCancelled}" >
                   <StackPanel Spacing="6">
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
@@ -161,6 +168,12 @@
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Cancel billing'}" VerticalAlignment="Center" />
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip=""  />
+                          </StackPanel>
+                      </Button>
+                      <Button Width="325" Command="{Binding OpenChangeDeletionDateDialogCommand}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Change class deletion date'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.'}"  />
                           </StackPanel>
                       </Button>
                   </StackPanel>

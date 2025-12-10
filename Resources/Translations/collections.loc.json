@@ -20,8 +20,8 @@
     "pt-BR": "Relatórios"
   },
   "Download Backup HD": {
-    "en-US": "Download Backup HD",
-    "pt-BR": "Baixar backup HD"
+    "en-US": "Download HD Storage",
+    "pt-BR": "Baixar armazenamento HD"
   },
   "Reupload the class to the server": {
     "en-US": "Reupload the class to the server",
@@ -100,8 +100,8 @@
     "pt-BR": "Pasta de Reconhecimentos:"
   },
   "Backup HD photos to the cloud.": {
-    "en-US": "Backup HD photos to the cloud.",
-    "pt-BR": "Faça backup de fotos em HD na nuvem."
+    "en-US": "HD storage in the cloud.",
+    "pt-BR": "Armazenamento em HD na nuvem."
   },
   "Prices and more information": {
     "en-US": "Prices and more information",
@@ -355,9 +355,9 @@
     "en-US": "On consultation",
     "pt-BR": "Sob consulta"
   },
-  "Price for 1000 photos": {
-    "en-US": "Price for 1000 photos",
-    "pt-BR": "Preço de 1000 fotos"
+  "Price for each 1000 photos": {
+    "en-US": "Price for each 1000 photos",
+    "pt-BR": "Preço para cada 1000 fotos"
   },
   "Combos": {
     "en-US": "Combos",
@@ -498,5 +498,65 @@
   "No combos available or failed to load.": {
     "en-US": "No combos available or failed to load.",
     "pt-BR": "Nenhum combo disponível ou falha ao carregar."
+  },
+  "Scheduled deletion date:": {
+    "en-US": "Deletion date for this class:",
+    "pt-BR": "Data de deleção dessa turma:"
+  },
+  "Change class deletion date": {
+    "en-US": "Change class deletion date",
+    "pt-BR": "Alterar data de deleção de turma"
+  },
+  "Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.": {
+    "en-US": "Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.",
+    "pt-BR": "Altere a data de deleção agendada para esta coleção. Uma nova cobrança será gerada com base na data selecionada."
+  },
+  "Select new deletion date:": {
+    "en-US": "Select new deletion date:",
+    "pt-BR": "Selecione a nova data de deleção:"
+  },
+  "Price:": {
+    "en-US": "Price:",
+    "pt-BR": "Preço:"
+  },
+  "Loading price...": {
+    "en-US": "Loading price...",
+    "pt-BR": "Carregando preço..."
+  },
+  "Confirm": {
+    "en-US": "Confirm",
+    "pt-BR": "Confirmar"
+  },
+  "Deletion date updated successfully!": {
+    "en-US": "Deletion date updated successfully!",
+    "pt-BR": "Data de deleção atualizada com sucesso!"
+  },
+  "Error updating deletion date": {
+    "en-US": "Error updating deletion date",
+    "pt-BR": "Erro ao atualizar data de deleção"
+  },
+  "The selected date must be greater than the current date.": {
+    "en-US": "The selected date must be greater than the current date.",
+    "pt-BR": "A data selecionada deve ser maior que a data atual."
+  },
+  "HD Storage Options": {
+    "en-US": "HD Storage Options",
+    "pt-BR": "Opções de Armazenamento HD"
+  },
+  "5 years storage": {
+    "en-US": "5 years storage",
+    "pt-BR": "5 anos armazenadas"
+  },
+  "Custom date": {
+    "en-US": "Custom date",
+    "pt-BR": "Data diferente"
+  },
+  "Select storage date:": {
+    "en-US": "Select storage date:",
+    "pt-BR": "Selecione a data de armazenamento:"
+  },
+  "Error loading price": {
+    "en-US": "Error loading price",
+    "pt-BR": "Erro ao carregar preço"
   }
 }

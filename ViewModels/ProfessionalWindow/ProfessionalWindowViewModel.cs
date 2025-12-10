@@ -271,11 +271,8 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
                     {
                         var oldWindow = desktop.MainWindow;
                         
-                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
-                        App.ReapplySettings();
-                        
-                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
-                        await Task.Delay(100);
+                        // NÃO reinicializar configurações - elas já estão aplicadas
+                        // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
                         var authWindow = new AuthWindow();
                         App.AuthWindowInstance = authWindow;

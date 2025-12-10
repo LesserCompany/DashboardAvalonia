@@ -13,7 +13,16 @@ namespace LesserDashboardClient.Resources.Converters
                 var localTimeZone = TimeZoneInfo.Local;
                 DateTimeOffset adjustedTime = dateTimeOffset.AddHours(localTimeZone.BaseUtcOffset.TotalHours);
 
-                // Formata a data e hora
+                // Se o parâmetro for "withAt" ou "deletion", adiciona "às" antes do horário
+                if (parameter?.ToString() == "withAt" || parameter?.ToString() == "deletion")
+                {
+                    // Formata a data e hora e adiciona "às" antes do horário
+                    string datePart = adjustedTime.ToString("D", CultureInfo.CurrentCulture); // Data completa
+                    string timePart = adjustedTime.ToString("HH:mm", CultureInfo.CurrentCulture); // Hora
+                    return $"{datePart} às {timePart}";
+                }
+
+                // Formata a data e hora padrão
                 string formattedDateTime = adjustedTime.ToString("f", CultureInfo.CurrentCulture);
 
                 return formattedDateTime;

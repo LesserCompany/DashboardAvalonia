@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using LesserDashboardClient.ViewModels;
 using LesserDashboardClient.ViewModels.ProfessionalWindow;
 using SharedClientSide.ServerInteraction;
 using System;
@@ -21,10 +22,7 @@ namespace LesserDashboardClient.Views.ProfessionalWindow
             
             DataContext = new ProfessionalWindowViewModel(lfc);
             
-            // CORREÇÃO: Aplica as configurações de tema e idioma após inicializar tudo
-            Console.WriteLine("ProfessionalWindowView: Aplicando configurações de tema e idioma...");
-            App.ReapplySettings();
-            Console.WriteLine("ProfessionalWindowView: Configurações aplicadas com sucesso");
+            // NÃO reinicializar configurações - elas já estão aplicadas desde o início
         }
 
         private void InitializeComponent()

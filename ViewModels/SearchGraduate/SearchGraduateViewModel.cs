@@ -1,4 +1,4 @@
-﻿using SharedClientSide.ServerInteraction;
+using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +9,8 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
 {
     public partial class SearchGraduateViewModel : ViewModelBase
     {
-        public bool IsDarkMode
-        {
-            get => GlobalAppStateViewModel.Instance.AppIsDarkMode;
-            set => GlobalAppStateViewModel.Instance.AppIsDarkMode = value;
-        }
+        // Somente leitura - evita loops de binding
+        public bool IsDarkMode => GlobalAppStateViewModel.Instance.AppIsDarkMode;
         public string loginToken
         {
             get => LesserFunctionClient.loginFileResult?.User?.loginToken ?? "";

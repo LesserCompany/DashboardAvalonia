@@ -42,7 +42,6 @@ namespace LesserDashboardClient.Models
                 // Se temos um preço dinâmico, usar ele
                 if (_dynamicPrice.HasValue)
                 {
-                    Console.WriteLine($"CollectionComboOptions: Usando preço dinâmico para '{ComboTitle}': {_dynamicPrice.Value:F4}");
                     return _dynamicPrice.Value;
                 }
                 
@@ -52,7 +51,6 @@ namespace LesserDashboardClient.Models
                 if (BackupHd) total += Price_backupHd;
                 if (AutoTreatment) total += Price_AutoTreatment;
                 if (Ocr) total += Price_Ocr;
-                Console.WriteLine($"CollectionComboOptions: Usando preço estático para '{ComboTitle}': {total:F4}");
                 return total;
             }
         }
@@ -66,7 +64,6 @@ namespace LesserDashboardClient.Models
         /// </summary>
         public void SetDynamicPrice(double price)
         {
-            Console.WriteLine($"CollectionComboOptions: SetDynamicPrice chamado para '{ComboTitle}': R$ {price:F4}");
             _dynamicPrice = price;
             // Notificar que o preço mudou
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComboPrice)));

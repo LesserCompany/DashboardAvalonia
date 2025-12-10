@@ -1,8 +1,9 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LesserDashboardClient.Models.Company;
+using LesserDashboardClient.Services;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
@@ -10,7 +11,6 @@ using MsBox.Avalonia.Models;
 using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,30 +23,114 @@ public partial class GlobalAppStateViewModel : ObservableObject
     {
         Instance = this;
     }
+
     public static GlobalAppStateViewModel _instance;
     public static GlobalAppStateViewModel Instance
     {
         get
         {
-            if(_instance == null)
+            if (_instance == null)
                 _instance = new GlobalAppStateViewModel();
             return _instance;
         }
         private set { _instance = value; }
     }
 
+    // Propriedades com lógica de aplicação e salvamento
     [ObservableProperty] public bool appIsDarkMode;
+
     partial void OnAppIsDarkModeChanged(bool value)
     {
-        if (value == true)
-            ChangeAppTheme("DarkMode");
-        else
-            ChangeAppTheme("LightMode");
+        // Determina o tema baseado no valor
+        string newTheme = value ? "DarkMode" : "LightMode";
+        
+        // Verifica se REALMENTE mudou (evita salvar quando binding é inicializado)
+        string currentTheme = options?.AppTheme ?? "";
+        bool reallyChanged = !string.Equals(currentTheme, newTheme, StringComparison.OrdinalIgnoreCase);
+        
+        // 1. Aplica visualmente (sempre)
+        ThemeManager.Instance.ApplyTheme(newTheme);
+
+        // 2. Atualiza Model e Salva APENAS se:
+        //    - Já estiver inicializado E
+        //    - O valor REALMENTE mudou (não é apenas inicialização de binding)
+        if (_isInitialized && reallyChanged)
+        {
+            options.AppTheme = newTheme;
+            SaveOptions();
+            Console.WriteLine($"GlobalAppStateViewModel: Tema ALTERADO e salvo: {newTheme}");
+        }
     }
+
     [ObservableProperty] public string appLanguage;
+
     partial void OnAppLanguageChanged(string value)
     {
-        ChangeAppLanguage(value);
+        // 1. Aplica idioma
+        LocalizationService.Instance.ApplyLanguage(value);
+        
+        // Obtém o idioma efetivamente aplicado
+        string appliedLang = LocalizationService.Instance.GetCurrentLanguage();
+        
+        // Verifica se REALMENTE mudou
+        string currentLang = options?.Language ?? "";
+        bool reallyChanged = !string.Equals(currentLang, appliedLang, StringComparison.OrdinalIgnoreCase);
+
+        // 2. Atualiza Model e Salva APENAS se:
+        //    - Já estiver inicializado E
+        //    - O valor REALMENTE mudou
+        if (_isInitialized && reallyChanged)
+        {
+            options.Language = appliedLang;
+            SaveOptions();
+            Console.WriteLine($"GlobalAppStateViewModel: Idioma ALTERADO e salvo: {appliedLang}");
+        }
+    }
+
+    // Flag interna para saber se a aplicação já terminou de carregar as configurações iniciais
+    private bool _isInitialized = false;
+
+    /// <summary>
+    /// Método para inicializar o estado da aplicação (tema, idioma, etc) sem disparar salvamentos desnecessários.
+    /// Deve ser chamado na inicialização do App ou no ReloadSettings.
+    /// </summary>
+    public void InitializeApplicationState()
+    {
+        _isInitialized = false;
+
+        try
+        {
+            // 1. Carrega opções do disco
+            LoadOptionsModel();
+
+            // 2. Aplica Tema
+            string savedTheme = options.AppTheme;
+            if (string.IsNullOrEmpty(savedTheme)) savedTheme = "Default"; // Ou lógica do sistema
+            
+            // Aplica visualmente
+            ThemeManager.Instance.ApplyTheme(savedTheme);
+            
+            // Atualiza propriedade (sem disparar lógica de save pois _isInitialized é false)
+            // Mas precisamos atualizar AppIsDarkMode para refletir o estado visual
+            if (savedTheme == "DarkMode")
+                AppIsDarkMode = true;
+            else if (savedTheme == "LightMode")
+                AppIsDarkMode = false;
+            else
+                AppIsDarkMode = ThemeManager.Instance.IsCurrentThemeDark();
+
+            // 3. Aplica Idioma
+            string savedLang = options.Language;
+            // O service lida com fallback se savedLang for nulo
+            LocalizationService.Instance.ApplyLanguage(savedLang);
+            
+            // Atualiza propriedade
+            AppLanguage = LocalizationService.Instance.GetCurrentLanguage();
+        }
+        finally
+        {
+            _isInitialized = true;
+        }
     }
 
     private static LesserFunctionClient? _lfc;
@@ -54,7 +138,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
     {
         get
         {
-            if(_lfc  ==  null)
+            if (_lfc == null)
                 LoadLesserFunctionClient();
             return _lfc;
         }
@@ -77,25 +161,25 @@ public partial class GlobalAppStateViewModel : ObservableObject
         _options = OptionsModel.Load();
     }
     private static bool isRedirectingToLogin = false; // Flag para evitar redirecionamentos duplos
-    
+
     public static void LoadLesserFunctionClient()
     {
         // IMPORTANTE: Configura o callback para redirecionar para login quando o token falhar em qualquer API
-        var lfc = new LesserFunctionClient(async (client) => 
+        var lfc = new LesserFunctionClient(async (client) =>
         {
             // Este callback é chamado quando uma API retorna loginFailed = true
             Console.WriteLine("LoadLesserFunctionClient: Token falhou durante chamada de API");
-            
+
             // Evita redirecionamento duplo
             if (isRedirectingToLogin)
             {
                 Console.WriteLine("LoadLesserFunctionClient: Já redirecionando, ignorando callback duplicado");
                 return null;
             }
-            
+
             isRedirectingToLogin = true;
             Console.WriteLine("LoadLesserFunctionClient: Redirecionando para login...");
-            
+
             // Redireciona para o login no UI thread com mensagem
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
             {
@@ -107,9 +191,9 @@ public partial class GlobalAppStateViewModel : ObservableObject
                         Loc.Tr("Your session has expired or is invalid. Please login again."),
                         MsBox.Avalonia.Enums.ButtonEnum.Ok
                     );
-                    
+
                     await box.ShowAsync();
-                    
+
                     // Agora redireciona
                     App.RedirectToLoginScreen();
                 }
@@ -125,22 +209,22 @@ public partial class GlobalAppStateViewModel : ObservableObject
                     isRedirectingToLogin = false;
                 }
             });
-            
+
             // Retorna null para indicar que o login não foi feito automaticamente
             return null;
         });
-        
-        lfc.InitFromFile((string ack) => 
-        { 
+
+        lfc.InitFromFile((string ack) =>
+        {
             // Callback é chamado quando o token está inválido/expirado na inicialização
             Console.WriteLine($"LoadLesserFunctionClient InitFromFile callback: {ack}");
         });
-        
+
         // CORREÇÃO: Sempre atribui o lfc, mesmo se InitFromFile falhou
         // Isso garante que temos uma instância válida para fazer login
         _lfc = lfc;
         LesserFunctionClient.DefaultClient = lfc; // Atualiza o DefaultClient também
-        
+
         if (lfc.InitFromFileFailed)
         {
             Console.WriteLine("LoadLesserFunctionClient: InitFromFile falhou, mas lfc foi criado para permitir novo login");
@@ -150,7 +234,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
             Console.WriteLine("LoadLesserFunctionClient: lfc inicializado com sucesso a partir do arquivo");
         }
     }
-    
+
     /// <summary>
     /// Reseta a instância do LesserFunctionClient.
     /// Deve ser chamado após o logout para garantir que uma nova instância seja criada no próximo login.
@@ -160,22 +244,12 @@ public partial class GlobalAppStateViewModel : ObservableObject
         Console.WriteLine("ResetLesserFunctionClient: Resetando lfc...");
         _lfc = null;
         LesserFunctionClient.DefaultClient = null;
-        
+
         // CORREÇÃO: Cria imediatamente uma nova instância limpa para permitir novo login
         // Isso evita NullReferenceException quando tentar fazer login novamente
         Console.WriteLine("ResetLesserFunctionClient: Criando nova instância limpa...");
         LoadLesserFunctionClient();
         Console.WriteLine($"ResetLesserFunctionClient: Nova instância criada: {_lfc != null}");
-    }
-    private void ChangeAppTheme(string theme)
-    {
-        var app = App.Current as App;
-        app?.SwitchCurrentTheme(theme);
-    }
-    private void ChangeAppLanguage(string lang)
-    {
-        var app = App.Current as App;
-        App.SetCurrentLang(lang);
     }
 
     public void ShowDialogOk(string msg = "", string title = "")
@@ -294,9 +368,9 @@ public partial class GlobalAppStateViewModel : ObservableObject
         try
         {
             string settingsFilePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), 
-                "Separacao", 
-                "app", 
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Separacao",
+                "app",
                 "settings.json"
             );
 
@@ -306,10 +380,10 @@ public partial class GlobalAppStateViewModel : ObservableObject
             }
 
             string json = File.ReadAllText(settingsFilePath);
-            
+
             // Deserializa diretamente para OptionsModel que já sabe mapear os campos corretamente
             var settingsModel = Newtonsoft.Json.JsonConvert.DeserializeObject<OptionsModel>(json);
-            
+
             if (settingsModel != null && !string.IsNullOrWhiteSpace(settingsModel.DefaultPathToDownloadProfessionalTaskFiles))
             {
                 return settingsModel.DefaultPathToDownloadProfessionalTaskFiles;
@@ -330,7 +404,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
     public async Task ValidateAndPromptDownloadDirectoryIfNeeded()
     {
         var (isValid, errorMessage) = ValidateDownloadDirectory();
-        
+
         if (!isValid)
         {
             await ShowInvalidDownloadDirectoryDialog(errorMessage);
@@ -364,16 +438,16 @@ public partial class GlobalAppStateViewModel : ObservableObject
                             new ButtonDefinition { Name = Loc.Tr("Select Directory") },
                         },
                     };
-                    
+
                     var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
                     var result = await bbox.ShowWindowDialogAsync(MainWindow.instance);
-                    
+
                     // O usuário só pode clicar em "Selecionar Diretório" (única opção)
                     if (result == Loc.Tr("Select Directory"))
                     {
                         // Abre o folder picker
                         bool validDirectorySelected = await OpenFolderPickerForDownloadDirectory();
-                        
+
                         if (validDirectorySelected)
                         {
                             // Verifica novamente se o diretório selecionado é válido
@@ -434,20 +508,20 @@ public partial class GlobalAppStateViewModel : ObservableObject
                 if (folder != null)
                 {
                     string selectedPath = folder.Path.LocalPath;
-                    
+
                     // Valida se o diretório existe antes de salvar
                     if (Directory.Exists(selectedPath))
                     {
                         // Salva o novo path no arquivo settings.json
                         options.DefaultPathToDownloadProfessionalTaskFiles = selectedPath;
                         options.Save();
-                        
+
                         // Recarrega as opções para garantir sincronização
                         LoadOptionsModel();
-                        
+
                         // Valida lendo diretamente do arquivo settings.json
                         var (isValid, errorMessage) = ValidateDownloadDirectory();
-                        
+
                         if (isValid)
                         {
                             ShowDialogOk(Loc.Tr("Download directory saved successfully"));
