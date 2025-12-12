@@ -38,10 +38,34 @@
             
           <SelectableTextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding SelectedCollection.originalEventsFolder}" />
           
-          <!-- Data de Deleção -->
-          <Grid Grid.Row="3" IsVisible="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource NullToBoolConverter}}" ColumnDefinitions="Auto, Auto" ColumnSpacing="5" HorizontalAlignment="Center">
-            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Tr 'Scheduled deletion date:'}" />
-            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource DateTimeToStringConverter}, ConverterParameter=deletion}" Foreground="{DynamicResource WarningTextBrush}" />
+          <!-- Data de Vencimento -->
+          <Grid Grid.Row="3" IsVisible="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource NullToBoolConverter}}" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnSpacing="8" HorizontalAlignment="Center">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Tr 'Expiration date:'}" />
+            <TextBlock Grid.Column="1" 
+                      VerticalAlignment="Center" 
+                      Text="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource DateTimeToStringConverter}, ConverterParameter=deletion}" 
+                      Foreground="{Binding DeletionDateForeground}" 
+                      FontWeight="{Binding DeletionDateFontWeight}" />
+            <TextBlock Grid.Column="2" 
+                      VerticalAlignment="Center" 
+                      FontFamily="Segoe MDL2 Assets" 
+                      Text="&#xE7BA;" 
+                      Foreground="{Binding DeletionDateForeground}"
+                      FontSize="16"
+                      Margin="5,0,0,0"
+                      Opacity="0.85"
+                      ToolTip.Tip="{Tr 'The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.'}"
+                      IsVisible="{Binding ShowDeletionDateAlertIcon}"
+                      Cursor="Hand" />
+            <Button Grid.Column="3"
+                    Command="{Binding OpenChangeDeletionDateDialogCommand}"
+                    Padding="8,4"
+                    Height="28"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    FontSize="12">
+              <TextBlock Text="{Tr 'Alterar'}" VerticalAlignment="Center" />
+            </Button>
           </Grid>
           
           <!-- ProgressBars -->
@@ -108,7 +132,7 @@
             </Button>
             <Button IsEnabled="{Binding BtDownloadHdIsEnabled}" Command="{Binding DownloadHDCommand}" Height="45" Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="{Tr 'Download Backup HD'}" VerticalAlignment="Center" />
+                <TextBlock Text="{Tr 'Download HD Storage'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtDownloadHdIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
               </StackPanel>
             </Button>
@@ -170,10 +194,15 @@
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip=""  />
                           </StackPanel>
                       </Button>
-                      <Button Width="325" Command="{Binding OpenChangeDeletionDateDialogCommand}">
+                      <Button Width="325" 
+                              Command="{Binding DeleteClassCommand}" 
+                              IsEnabled="{Binding IsDeletionDatePassed}"
+                              ToolTip.Tip="{Tr 'Delete collection if expiration date expired and do not want to extend storage or continue billing.'}"
+                              ToolTip.Placement="Right"
+                              ToolTip.ShowOnDisabled="True">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
-                              <TextBlock Text="{Tr 'Change class deletion date'}" VerticalAlignment="Center" />
-                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.'}"  />
+                              <TextBlock Text="{Tr 'Delete class'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" />
                           </StackPanel>
                       </Button>
                   </StackPanel>

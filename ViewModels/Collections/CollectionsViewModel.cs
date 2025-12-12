@@ -62,6 +62,49 @@ public partial class CollectionsViewModel : ViewModelBase
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     [ObservableProperty] public ProfessionalTask selectedCollection;
+    
+    /// <summary>
+    /// Verifica se faltam 30 dias ou menos para a deleção
+    /// </summary>
+    public bool IsDeletionDateNear => SelectedCollection?.ScheduledDeletionDate != null && 
+        (SelectedCollection.ScheduledDeletionDate.Value - DateTimeOffset.Now).TotalDays <= 300;
+    
+    /// <summary>
+    /// Retorna a cor do texto da data de deleção (vermelho vibrante se <= 30 dias)
+    /// </summary>
+    public Avalonia.Media.IBrush DeletionDateForeground
+    {
+        get
+        {
+            if (IsDeletionDateNear)
+            {
+                // Vermelho vibrante para alerta
+                return new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(255, 50, 50));
+            }
+            // Cor padrão (WarningTextBrush)
+            return Avalonia.Application.Current?.Resources["WarningTextBrush"] as Avalonia.Media.IBrush 
+                ?? Avalonia.Media.Brushes.Orange;
+        }
+    }
+    
+    /// <summary>
+    /// Indica se deve mostrar o ícone de alerta
+    /// </summary>
+    public bool ShowDeletionDateAlertIcon => IsDeletionDateNear;
+    
+    /// <summary>
+    /// Retorna o peso da fonte para a data de deleção (Bold se <= 30 dias)
+    /// </summary>
+    public Avalonia.Media.FontWeight DeletionDateFontWeight => IsDeletionDateNear 
+        ? Avalonia.Media.FontWeight.Bold 
+        : Avalonia.Media.FontWeight.Normal;
+    
+    /// <summary>
+    /// Verifica se a data de vencimento já passou (para habilitar botão de deletar turma)
+    /// </summary>
+    public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
+        SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
+    
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
         // Prevenir loops infinitos
@@ -87,6 +130,11 @@ public partial class CollectionsViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     UpdateCollectionViewSelected();
+                    // Notificar mudanças nas propriedades calculadas da data de deleção
+                    OnPropertyChanged(nameof(IsDeletionDateNear));
+                    OnPropertyChanged(nameof(DeletionDateForeground));
+                    OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+                    OnPropertyChanged(nameof(IsDeletionDatePassed));
                 });
             }
             catch (OperationCanceledException) { }
@@ -216,24 +264,86 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool isHDStorageOptionsVisible = false;
     
     /// <summary>
-    /// Checkbox para armazenamento HD por 5 anos
+    /// Opção de armazenamento HD por 3 meses
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageThreeMonths = false;
+    
+    /// <summary>
+    /// Opção de armazenamento HD por 2 anos
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageTwoYears = false;
+    
+    /// <summary>
+    /// Opção de armazenamento HD por 5 anos
     /// </summary>
     [ObservableProperty] public bool? cbHDStorageFiveYears = false;
     
     /// <summary>
-    /// Checkbox para armazenamento HD com data customizada
+    /// Data calculada para armazenamento de 3 meses
     /// </summary>
-    [ObservableProperty] public bool? cbHDStorageCustomDate = false;
+    public DateTimeOffset? HdStorageThreeMonthsDate => DateTimeOffset.Now.AddMonths(3);
     
     /// <summary>
-    /// Data customizada para armazenamento HD
+    /// Data calculada para armazenamento de 2 anos
     /// </summary>
-    [ObservableProperty] public DateTimeOffset? hdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
+    public DateTimeOffset? HdStorageTwoYearsDate => DateTimeOffset.Now.AddYears(2);
     
     /// <summary>
-    /// Texto do preço para armazenamento HD customizado
+    /// Data calculada para armazenamento de 5 anos
+    /// </summary>
+    public DateTimeOffset? HdStorageFiveYearsDate => DateTimeOffset.Now.AddYears(5);
+    
+    /// <summary>
+    /// Data selecionada para armazenamento HD (baseada na opção escolhida)
+    /// </summary>
+    public DateTimeOffset? SelectedHdStorageDate
+    {
+        get
+        {
+            if (CbHDStorageThreeMonths == true)
+                return HdStorageThreeMonthsDate;
+            if (CbHDStorageTwoYears == true)
+                return HdStorageTwoYearsDate;
+            if (CbHDStorageFiveYears == true)
+                return HdStorageFiveYearsDate;
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Texto formatado da data de 3 meses
+    /// </summary>
+    public string HdStorageThreeMonthsDateText => HdStorageThreeMonthsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto formatado da data de 2 anos
+    /// </summary>
+    public string HdStorageTwoYearsDateText => HdStorageTwoYearsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto formatado da data de 5 anos
+    /// </summary>
+    public string HdStorageFiveYearsDateText => HdStorageFiveYearsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto do preço para armazenamento HD selecionado
     /// </summary>
     [ObservableProperty] public string hdStoragePriceText = string.Empty;
+    
+    /// <summary>
+    /// Indica se o texto do preço está visível
+    /// </summary>
+    public bool IsHdStoragePriceTextVisible => !string.IsNullOrEmpty(HdStoragePriceText);
+    
+    partial void OnHdStoragePriceTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsHdStoragePriceTextVisible));
+    }
+    
+    /// <summary>
+    /// Indica se está carregando o preço
+    /// </summary>
+    [ObservableProperty] public bool isLoadingHDStoragePrice = false;
     
     /// <summary>
     /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro período)
@@ -286,15 +396,16 @@ public partial class CollectionsViewModel : ViewModelBase
         if (newValue == false)
         {
             CbEnableAutoTreatment = false;
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
             CbHDStorageFiveYears = false;
-            CbHDStorageCustomDate = false;
-            HdStoragePriceText = string.Empty;
         }
         else if (newValue == true)
         {
             // Por padrão, marcar 5 anos quando HD é habilitado
             CbHDStorageFiveYears = true;
-            CbHDStorageCustomDate = false;
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
         }
             
         // Validar período de faturamento quando tentando habilitar HD
@@ -318,43 +429,64 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
     
-    partial void OnCbHDStorageFiveYearsChanged(bool? oldValue, bool? newValue)
+    partial void OnCbHDStorageThreeMonthsChanged(bool? oldValue, bool? newValue)
     {
         if (newValue == true)
         {
-            // Se marcar 5 anos, desmarcar data customizada
-            CbHDStorageCustomDate = false;
-            HdStoragePriceText = string.Empty;
-        }
-    }
-    
-    partial void OnCbHDStorageCustomDateChanged(bool? oldValue, bool? newValue)
-    {
-        if (newValue == true)
-        {
-            // Se marcar data customizada, desmarcar 5 anos
+            // Se marcar 3 meses, desmarcar outras opções
+            CbHDStorageTwoYears = false;
             CbHDStorageFiveYears = false;
-            // Carregar preço inicial
+            // Carregar preço
             LoadHDStoragePriceAsync();
         }
         else
         {
             HdStoragePriceText = string.Empty;
         }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
     }
     
-    partial void OnHdStorageCustomDateChanged(DateTimeOffset? oldValue, DateTimeOffset? newValue)
+    partial void OnCbHDStorageTwoYearsChanged(bool? oldValue, bool? newValue)
     {
-        if (newValue.HasValue && CbHDStorageCustomDate == true)
+        if (newValue == true)
         {
-            // Recarregar preço quando a data muda
+            // Se marcar 2 anos, desmarcar outras opções
+            CbHDStorageThreeMonths = false;
+            CbHDStorageFiveYears = false;
+            // Carregar preço
             LoadHDStoragePriceAsync();
         }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
+    }
+    
+    partial void OnCbHDStorageFiveYearsChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+        {
+            // Se marcar 5 anos, desmarcar outras opções
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
+            // Carregar preço
+            LoadHDStoragePriceAsync();
+        }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
     }
     
     private async void LoadHDStoragePriceAsync()
     {
-        if (!CbHDStorageCustomDate.HasValue || CbHDStorageCustomDate != true || !HdStorageCustomDate.HasValue)
+        // Verifica se há data de armazenamento selecionada
+        if (!SelectedHdStorageDate.HasValue)
         {
             HdStoragePriceText = string.Empty;
             return;
@@ -362,44 +494,100 @@ public partial class CollectionsViewModel : ViewModelBase
         
         try
         {
+            IsLoadingHDStoragePrice = true;
             HdStoragePriceText = Loc.Tr("Loading price...");
             
-            if (GlobalAppStateViewModel.lfc == null || SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
+            if (GlobalAppStateViewModel.lfc == null)
             {
                 HdStoragePriceText = Loc.Tr("Error loading price");
                 return;
             }
             
-            var dateTimeOffset = HdStorageCustomDate.Value.ToUniversalTime();
+            // Determina se é coleção nova ou existente
+            bool isNewCollection = SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode);
+            
+            // Para coleção nova: oldScheduledDeletionDate = data de hoje, isCollectionCreation = true
+            // Para coleção existente: oldScheduledDeletionDate = ScheduledDeletionDate da coleção, isCollectionCreation = false
+            DateTimeOffset oldDate;
+            string classCodeToUse;
+            int totalPhotos;
+            
+            if (isNewCollection)
+            {
+                // Coleção nova: usa data de hoje como oldScheduledDeletionDate
+                oldDate = DateTimeOffset.Now;
+                classCodeToUse = TbCollectionName ?? "new_collection"; // Usa nome temporário se não houver classCode
+                
+                // Conta os arquivos das pastas de evento e reconhecimento
+                int eventFilesCount = 0;
+                int recFilesCount = 0;
+                
+                if (!string.IsNullOrEmpty(TbEventFolder) && Directory.Exists(TbEventFolder))
+                {
+                    var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(TbEventFolder);
+                    eventFilesCount = eventFiles?.Count ?? 0;
+                }
+                
+                if (!IsTreatmentOnlyCombo && !string.IsNullOrEmpty(TbRecFolder) && Directory.Exists(TbRecFolder))
+                {
+                    var recFiles = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
+                    recFilesCount = recFiles?.Count ?? 0;
+                }
+                
+                totalPhotos = eventFilesCount + recFilesCount;
+            }
+            else
+            {
+                // Coleção existente: usa ScheduledDeletionDate da coleção
+                oldDate = SelectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
+                classCodeToUse = SelectedCollection.classCode;
+                totalPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
+            }
+            
+            if (totalPhotos <= 0) totalPhotos = 1; // Evita multiplicação por zero
+            
+            var newDateTimeOffset = SelectedHdStorageDate.Value.ToUniversalTime();
+            
             var result = await GlobalAppStateViewModel.lfc.SimulateDeletionDeadlineExtensionCollectionPrice(
-                SelectedCollection.classCode,
-                dateTimeOffset
+                classCodeToUse,
+                oldDate.ToUniversalTime(),
+                newDateTimeOffset,
+                isNewCollection // isCollectionCreation
             );
             
             if (result != null && result.success == true && result.Content != null)
             {
-                double priceInCents = 0;
+                // O backend agora retorna o preço POR FOTO em centavos no campo 'content'
+                double pricePerPhotoInCents = 0;
                 
-                // Extrair o valor (vem em centavos) - forma simplificada
-                if (result.Content is Newtonsoft.Json.Linq.JObject jObject && jObject["value"] != null)
+                // Tenta extrair o valor numérico do content
+                if (result.Content is double d)
                 {
-                    priceInCents = jObject["value"].ToObject<double>();
+                    pricePerPhotoInCents = d;
+                }
+                else if (result.Content is int i)
+                {
+                    pricePerPhotoInCents = i;
+                }
+                else if (result.Content is long l)
+                {
+                    pricePerPhotoInCents = l;
                 }
                 else
                 {
-                    var contentJson = JsonConvert.SerializeObject(result.Content);
-                    var jObj = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(contentJson);
-                    if (jObj != null && jObj["value"] != null)
-                        priceInCents = jObj["value"].ToObject<double>();
-                    else if (result.Content is double d)
-                        priceInCents = d;
-                    else if (result.Content is int i)
-                        priceInCents = i;
+                    // Tenta converter de outras formas
+                    var contentStr = result.Content.ToString();
+                    if (double.TryParse(contentStr, out double parsed))
+                    {
+                        pricePerPhotoInCents = parsed;
+                    }
                 }
                 
-                // Dividir por 100 para converter centavos em reais
-                double priceInReais = priceInCents / 100.0;
-                HdStoragePriceText = Loc.Tr("Price:") + $" R$ {priceInReais:F2}";
+                // Calcula o valor total: (centavos / 100) * quantidade de fotos
+                double pricePerPhotoInReais = pricePerPhotoInCents / 100.0;
+                double totalPrice = pricePerPhotoInReais * totalPhotos;
+                
+                HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
             }
             else
             {
@@ -410,6 +598,28 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             HdStoragePriceText = Loc.Tr("Error loading price");
         }
+        finally
+        {
+            IsLoadingHDStoragePrice = false;
+        }
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageThreeMonths()
+    {
+        CbHDStorageThreeMonths = true;
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageTwoYears()
+    {
+        CbHDStorageTwoYears = true;
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageFiveYears()
+    {
+        CbHDStorageFiveYears = true;
     }
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
@@ -1079,6 +1289,12 @@ public partial class CollectionsViewModel : ViewModelBase
 
             SelectedCollectionIsCanceled = SelectedCollection?.BillingCancelled == true ? true : false;
 
+            // Notificar mudanças nas propriedades calculadas da data de deleção
+            OnPropertyChanged(nameof(IsDeletionDateNear));
+            OnPropertyChanged(nameof(DeletionDateForeground));
+            OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+            OnPropertyChanged(nameof(DeletionDateFontWeight));
+
             UpdateSeparationProgress();
 
             if(ServerProgressValues?.done >= ServerProgressValues?.total)
@@ -1602,10 +1818,9 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedades de armazenamento HD
         IsHDStorageOptionsVisible = false;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
-        CbHDStorageCustomDate = false;
-        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
-        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -1644,10 +1859,9 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedades de armazenamento HD
         IsHDStorageOptionsVisible = false;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
-        CbHDStorageCustomDate = false;
-        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
-        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1688,10 +1902,9 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = options.BackupHd == true ? true : false;
-        CbHDStorageCustomDate = false;
-        HdStorageCustomDate = DateTimeOffset.Now.AddYears(1);
-        HdStoragePriceText = string.Empty;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1816,6 +2029,8 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         SelectedCollection = updatedCollection;
                         UpdateCollectionViewSelected();
+                        // Notificar mudanças na data de deleção
+                        OnPropertyChanged(nameof(IsDeletionDatePassed));
                     }
                 }
             );
@@ -1836,6 +2051,14 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error"));
         }
+    }
+    
+    [RelayCommand]
+    public async Task DeleteClassCommand()
+    {
+        // Placeholder - funcionalidade será implementada posteriormente
+        // Por enquanto apenas mostra uma mensagem
+        await Task.CompletedTask;
     }
     [RelayCommand]
     public async Task CreateCollectionCommand()
@@ -1922,6 +2145,12 @@ public partial class CollectionsViewModel : ViewModelBase
             if (CbEnableAutoTreatment == true)
             {
                 pt.AutoTreatmentVersion = "2.0";
+            }
+
+            // Definir data de deleção agendada baseada na opção de armazenamento HD selecionada
+            if (CbHDBackup == true && SelectedHdStorageDate.HasValue)
+            {
+                pt.ScheduledDeletionDate = SelectedHdStorageDate.Value;
             }
 
             var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);

@@ -19,7 +19,7 @@
     "en-US": "Reports",
     "pt-BR": "Relatórios"
   },
-  "Download Backup HD": {
+  "Download HD Storage": {
     "en-US": "Download HD Storage",
     "pt-BR": "Baixar armazenamento HD"
   },
@@ -36,7 +36,7 @@
     "pt-BR": "As fotos serão colocadas novamente na fila para o reconhecimento facial"
   },
   "Request treatment of the entire collection": {
-    "en-US": "Request treatmenent of the entire collection",
+    "en-US": "Request treatment of the entire collection",
     "pt-BR": "Solicitar tratamento da coleção inteira"
   },
   "Cancel billing": {
@@ -99,8 +99,8 @@
     "en-US": "Recognize Folder:",
     "pt-BR": "Pasta de Reconhecimentos:"
   },
-  "Backup HD photos to the cloud.": {
-    "en-US": "HD storage in the cloud.",
+  "HD Storage in the cloud.": {
+    "en-US": "HD Storage in the cloud.",
     "pt-BR": "Armazenamento em HD na nuvem."
   },
   "Prices and more information": {
@@ -238,10 +238,6 @@
   "This contract name already exists...": {
     "en-US": "This contract name already exists. Do you wish to REUPLOAD it?\nThis may render the collection inaccessible if used inappropriately.\nContact suppor through contato@lesser.biz or Whatsapp +55 16 996-1234-34.\nPress YES if you are sure and if you didn't change anything in the root folder.\nand you wish to make a new attempt to upload the same photos, with no addition or removal\nand without alteration of the extension of any file of change in the name of any folder or file.",
     "pt-BR": "Esta turma já existe. Deseja fazer REUPLOAD?\nIsso pode tornar a coleção inutilizável se utilizado de maneira inapropriada.\nentre em contato com o suporte - lucas@lesser.biz ou Whatsapp (16) 996-1234-34.\nAperte SIM se tiver certeza e apenas se não tiver feito alterações na pasta onde estão as fotos\ne esteja desejando fazer nova tentativa de upload com as mesmas fotos, sem adição de nenhuma\ne nem alteração de extensão ou tipo de arquivo ou alteração de nome de pasta nem de arquivo."
-  },
-  "": {
-    "en-US": "",
-    "pt-BR": ""
   },
   "Waiting for upload...": {
     "en-US": "Waiting for upload...",
@@ -383,10 +379,6 @@
     "en-US": "Enable automatic enhancement.",
     "pt-BR": "Habilitar melhoria automática."
   },
-  "test": {
-    "en-US": "test",
-    "pt-BR": "teste"
-  },
   "Create Professional": {
     "en-US": "Create Professional",
     "pt-BR": "Criar Profissional"
@@ -499,25 +491,37 @@
     "en-US": "No combos available or failed to load.",
     "pt-BR": "Nenhum combo disponível ou falha ao carregar."
   },
-  "Scheduled deletion date:": {
-    "en-US": "Deletion date for this class:",
-    "pt-BR": "Data de deleção dessa turma:"
+  "Expiration date:": {
+    "en-US": "Expiration date:",
+    "pt-BR": "Data de vencimento:"
   },
-  "Change class deletion date": {
-    "en-US": "Change class deletion date",
-    "pt-BR": "Alterar data de deleção de turma"
+  "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.": {
+    "en-US": "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged on your invoice.",
+    "pt-BR": "O prazo de vencimento dessa turma é menor que 30 dias, renove ou será cobrado um adicional em relação a ela na sua fatura"
   },
-  "Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.": {
-    "en-US": "Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.",
-    "pt-BR": "Altere a data de deleção agendada para esta coleção. Uma nova cobrança será gerada com base na data selecionada."
+  "Collection expiration date": {
+    "en-US": "Collection expiration date",
+    "pt-BR": "Data de vencimento de coleção"
   },
-  "Select new deletion date:": {
-    "en-US": "Select new deletion date:",
-    "pt-BR": "Selecione a nova data de deleção:"
+  "Change the expiration date for this collection. A new billing will be generated based on the selected date.": {
+    "en-US": "Change the expiration date for this collection. A new billing will be generated based on the selected date.",
+    "pt-BR": "Altere a data de vencimento dessa coleção. Uma nova cobrança será gerada com base na data selecionada."
+  },
+  "New expiration date:": {
+    "en-US": "New expiration date:",
+    "pt-BR": "Nova data de vencimento:"
   },
   "Price:": {
     "en-US": "Price:",
     "pt-BR": "Preço:"
+  },
+  "Additional investment:": {
+    "en-US": "Additional investment:",
+    "pt-BR": "Investimento adicional:"
+  },
+  "Additional dates of 5 years receive a 50% discount.": {
+    "en-US": "Extending the storage period by 5 additional years grants a 50% discount on the additional investment.",
+    "pt-BR": "Ao estender o período de armazenamento por 5 anos adicionais, você recebe 50% de desconto no investimento adicional."
   },
   "Loading price...": {
     "en-US": "Loading price...",
@@ -543,6 +547,18 @@
     "en-US": "HD Storage Options",
     "pt-BR": "Opções de Armazenamento HD"
   },
+  "3 months": {
+    "en-US": "3 months",
+    "pt-BR": "3 meses"
+  },
+  "2 years": {
+    "en-US": "2 years",
+    "pt-BR": "2 anos"
+  },
+  "5 years": {
+    "en-US": "5 years",
+    "pt-BR": "5 anos"
+  },
   "5 years storage": {
     "en-US": "5 years storage",
     "pt-BR": "5 anos armazenadas"
@@ -558,5 +574,17 @@
   "Error loading price": {
     "en-US": "Error loading price",
     "pt-BR": "Erro ao carregar preço"
+  },
+  "Alterar": {
+    "en-US": "Change",
+    "pt-BR": "Alterar"
+  },
+  "Delete class": {
+    "en-US": "Delete class",
+    "pt-BR": "Deletar coleção"
+  },
+  "Delete collection if expiration date expired and do not want to extend storage or continue billing.": {
+    "en-US": "Delete the collection if the expiration date has expired and you do not wish to extend the storage expiration date or continue with the billing on your invoice.",
+    "pt-BR": "Exclua a turma caso o prazo de vencimento tenha expirado e você não deseje estender a data de vencimento do armazenamento ou continuar com a cobrança na sua fatura."
   }
 }

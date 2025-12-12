@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 namespace LesserDashboardClient.ViewModels.Collections
 {
     // Classe para o resultado do cálculo de preço
+    // NOTA: O backend agora retorna o preço POR FOTO em centavos diretamente no campo 'content'
+    // Não mais um objeto com 'value', então precisamos tratar como número diretamente
     public class PriceCalculationResult
     {
         [JsonProperty("value")]
@@ -147,12 +149,16 @@ namespace LesserDashboardClient.ViewModels.Collections
                     return;
                 }
 
-                // Converte para DateTimeOffset UTC no formato ISO 8601 padrão
-                var dateTimeOffset = SelectedDate.Value.ToUniversalTime();
+                // Para coleção existente: oldScheduledDeletionDate vem do ScheduledDeletionDate da coleção
+                // isCollectionCreation = false
+                var oldDateTimeOffset = _selectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
+                var newDateTimeOffset = SelectedDate.Value.ToUniversalTime();
                 
                 var result = await _lesserFunctionClient.SimulateDeletionDeadlineExtensionCollectionPrice(
                     _selectedCollection.classCode,
-                    dateTimeOffset
+                    oldDateTimeOffset.ToUniversalTime(),
+                    newDateTimeOffset,
+                    false // isCollectionCreation = false para coleção já existente
                 );
 
                 // Verifica se houve erro de autenticação REAL (não erro de cálculo de preço)
@@ -185,23 +191,42 @@ namespace LesserDashboardClient.ViewModels.Collections
 
                 if (result != null && result.success == true && result.Content != null)
                 {
-                    // Deserializa o Content como PriceCalculationResult
-                    var contentJson = JsonConvert.SerializeObject(result.Content);
-                    var priceResult = JsonConvert.DeserializeObject<PriceCalculationResult>(contentJson);
+                    // O backend agora retorna o preço POR FOTO em centavos no campo 'content'
+                    double pricePerPhotoInCents = 0;
                     
-                    if (priceResult != null)
+                    // Tenta extrair o valor numérico do content
+                    if (result.Content is double d)
                     {
-                        // Dividir por 100 para converter centavos em reais
-                        double priceInReais = priceResult.Value / 100.0;
-                        PriceText = $"R$ {priceInReais:F2}";
-                        IsConfirmButtonEnabled = true;
+                        pricePerPhotoInCents = d;
+                    }
+                    else if (result.Content is int i)
+                    {
+                        pricePerPhotoInCents = i;
+                    }
+                    else if (result.Content is long l)
+                    {
+                        pricePerPhotoInCents = l;
                     }
                     else
                     {
-                        ErrorMessage = Loc.Tr("Error loading price");
-                        PriceText = "---";
-                        IsConfirmButtonEnabled = false;
+                        // Tenta converter de outras formas
+                        var contentStr = result.Content.ToString();
+                        if (double.TryParse(contentStr, out double parsed))
+                        {
+                            pricePerPhotoInCents = parsed;
+                        }
                     }
+                    
+                    // Calcula o total de fotos da turma (recognitionPhotos + eventPhotos)
+                    int totalPhotos = (_selectedCollection.recognitionPhotos ?? 0) + (_selectedCollection.eventPhotos ?? 0);
+                    if (totalPhotos <= 0) totalPhotos = 1; // Evita divisão por zero ou multiplicação por zero
+                    
+                    // Calcula o valor total: (centavos / 100) * quantidade de fotos
+                    double pricePerPhotoInReais = pricePerPhotoInCents / 100.0;
+                    double totalPrice = pricePerPhotoInReais * totalPhotos;
+                    
+                    PriceText = $"R$ {totalPrice:F2}";
+                    IsConfirmButtonEnabled = true;
                 }
                 else
                 {

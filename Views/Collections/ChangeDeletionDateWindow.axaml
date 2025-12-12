@@ -7,7 +7,7 @@
         x:DataType="vm:ChangeDeletionDateViewModel"
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="400"
         x:Class="LesserDashboardClient.Views.Collections.ChangeDeletionDateWindow"
-        Title="{Tr 'Change class deletion date'}"
+        Title="{Tr 'Collection expiration date'}"
         Width="500"
         Height="450"
         WindowStartupLocation="CenterOwner"
@@ -23,8 +23,8 @@
   <Grid Margin="20" RowDefinitions="Auto,*,Auto">
     <!-- Header -->
     <StackPanel Grid.Row="0" Spacing="5">
-      <TextBlock Text="{Tr 'Change class deletion date'}" FontSize="20" FontWeight="Bold"/>
-      <TextBlock Text="{Tr 'Change the scheduled deletion date for this collection. A new billing will be generated based on the selected date.'}" 
+      <TextBlock Text="{Tr 'Collection expiration date'}" FontSize="20" FontWeight="Bold"/>
+      <TextBlock Text="{Tr 'Change the expiration date for this collection. A new billing will be generated based on the selected date.'}" 
                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                  TextWrapping="Wrap"/>
     </StackPanel>
@@ -34,14 +34,14 @@
       <StackPanel Spacing="15">
         <!-- Date Picker -->
         <StackPanel Spacing="5">
-          <TextBlock Classes="label" Text="{Tr 'Select new deletion date:'}" />
+          <TextBlock Classes="label" Text="{Tr 'New expiration date:'}" />
           <DatePicker SelectedDate="{Binding SelectedDate}"
                      IsEnabled="{Binding IsDatePickerEnabled}"/>
         </StackPanel>
 
-        <!-- Price Display -->
+        <!-- Additional Investment Display -->
         <StackPanel Spacing="5">
-          <TextBlock Classes="label" Text="{Tr 'Price:'}" />
+          <TextBlock Classes="label" Text="{Tr 'Additional investment:'}" />
           <Border Background="{DynamicResource SystemControlBackgroundAltMediumBrush}"
                   BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                   BorderThickness="1"
@@ -61,6 +61,31 @@
                          FontWeight="SemiBold"
                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
             </StackPanel>
+          </Border>
+          <!-- Discount Information -->
+          <Border Background="{DynamicResource SystemControlBackgroundAltLowBrush}"
+                  BorderBrush="{DynamicResource SystemAccentColor}"
+                  BorderThickness="1"
+                  CornerRadius="4"
+                  Padding="12"
+                  Margin="0,8,0,0"
+                  Opacity="0.9">
+            <Grid ColumnDefinitions="Auto,*">
+              <TextBlock Grid.Column="0"
+                         FontFamily="Segoe MDL2 Assets" 
+                         Text="&#xE7BA;" 
+                         FontSize="16"
+                         Foreground="{DynamicResource SystemAccentColor}"
+                         VerticalAlignment="Top"
+                         Margin="0,2,8,0"
+                         Opacity="0.85"/>
+              <TextBlock Grid.Column="1"
+                         Text="{Tr 'Additional dates of 5 years receive a 50% discount.'}" 
+                         FontSize="12"
+                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Center"/>
+            </Grid>
           </Border>
         </StackPanel>
 
