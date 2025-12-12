@@ -215,6 +215,10 @@
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
   },
+  "Price per photo:": {
+    "en-US": "Price per photo:",
+    "pt-BR": "Preço por foto:"
+  },
   "OCR on the server:": {
     "en-US": "OCR on the server:",
     "pt-BR": "OCR no servidor:"

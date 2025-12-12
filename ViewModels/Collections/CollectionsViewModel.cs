@@ -67,7 +67,7 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Verifica se faltam 30 dias ou menos para a deleção
     /// </summary>
     public bool IsDeletionDateNear => SelectedCollection?.ScheduledDeletionDate != null && 
-        (SelectedCollection.ScheduledDeletionDate.Value - DateTimeOffset.Now).TotalDays <= 300;
+        (SelectedCollection.ScheduledDeletionDate.Value - DateTimeOffset.Now).TotalDays <= 30;
     
     /// <summary>
     /// Retorna a cor do texto da data de deleção (vermelho vibrante se <= 30 dias)
@@ -587,7 +587,18 @@ public partial class CollectionsViewModel : ViewModelBase
                 double pricePerPhotoInReais = pricePerPhotoInCents / 100.0;
                 double totalPrice = pricePerPhotoInReais * totalPhotos;
                 
-                HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
+                // Para coleção nova, mostra "Preço por foto:" com 4 casas decimais (igual ao Svelte)
+                // Para coleção existente, mostra "Preço:" (total) com 2 casas decimais
+                if (isNewCollection)
+                {
+                    // Formata com 4 casas decimais e substitui ponto por vírgula (formato brasileiro)
+                    string priceFormatted = pricePerPhotoInReais.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                    HdStoragePriceText = Loc.Tr("Price per photo:") + $" R$ {priceFormatted}";
+                }
+                else
+                {
+                    HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
+                }
             }
             else
             {
