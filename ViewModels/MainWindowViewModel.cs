@@ -270,7 +270,8 @@ public partial class MainWindowViewModel : ViewModelBase
             else
             {
                 // Fallback: tentar usar AppInstaller se não encontrar versão específica
-                SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { });
+                //versão hardcoded: 188
+                SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { }, "188");
                 await installer.startApp();
             }
         }

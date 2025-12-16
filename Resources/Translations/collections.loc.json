@@ -379,6 +379,10 @@
     "en-US": "Go back to previous version",
     "pt-BR": "Voltar para versão anterior"
   },
+"Back": {
+    "en-US": "Back",
+    "pt-BR": "Voltar"
+  },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",
     "pt-BR": "Habilitar melhoria automática."

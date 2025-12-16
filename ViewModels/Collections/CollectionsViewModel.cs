@@ -1449,7 +1449,6 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
-        SelectedCollection = null;
         ActiveComponent = ActiveViews.CancelBilling;
     }
     [RelayCommand]
@@ -1625,6 +1624,13 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+             // Validação: verificar se SelectedCollection não é null antes de usar
+            if (SelectedCollection == null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleção selecionada. Por favor, selecione uma coleção antes de usar Tag/Sort.");
+                return;
+            }
+
             BtTagSortIsRunning = true;
             if (SelectedSeparationFile != null)
             {
@@ -1939,6 +1945,12 @@ public partial class CollectionsViewModel : ViewModelBase
         try 
         {
             CancelBillingIsRunning = true;
+            if (SelectedCollection == null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
+                return;
+            }
+
             if (SelectedCollectionForCancelBilling == null)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma item para para continuar.");
