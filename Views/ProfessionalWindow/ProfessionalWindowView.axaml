@@ -80,7 +80,8 @@
                 <!-- Contracts ListBox -->
                 <ListBox ItemsSource="{Binding FilteredContractsList}"
                          SelectedItem="{Binding SelectedContract}"
-                         IsVisible="{Binding !IsLoading}">
+                         IsVisible="{Binding !IsLoading}"
+                         DoubleTapped="ListBox_DoubleTapped">
                     
                     <ListBox.ItemTemplate>
                         <DataTemplate>

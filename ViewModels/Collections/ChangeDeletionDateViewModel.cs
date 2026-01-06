@@ -11,18 +11,6 @@ using Newtonsoft.Json;
 
 namespace LesserDashboardClient.ViewModels.Collections
 {
-    // Classe para o resultado do cálculo de preço
-    // NOTA: O backend agora retorna o preço POR FOTO em centavos diretamente no campo 'content'
-    // Não mais um objeto com 'value', então precisamos tratar como número diretamente
-    public class PriceCalculationResult
-    {
-        [JsonProperty("value")]
-        public double Value { get; set; }
-        
-        [JsonProperty("addedDays")]
-        public int AddedDays { get; set; }
-    }
-
     public partial class ChangeDeletionDateViewModel : ViewModelBase
     {
         private readonly LesserFunctionClient _lesserFunctionClient;
@@ -152,9 +140,10 @@ namespace LesserDashboardClient.ViewModels.Collections
                 // Para coleção existente: oldScheduledDeletionDate vem do ScheduledDeletionDate da coleção
                 // isCollectionCreation = false
                 var oldDateTimeOffset = _selectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
-                var newDateTimeOffset = SelectedDate.Value.ToUniversalTime();
+                // Sempre enviar newScheduledDeletionDate com 5 horas a mais (05:00 UTC em vez de 00:00)
+                var newDateTimeOffset = SelectedDate.Value.ToUniversalTime().AddHours(5);
                 
-                var result = await _lesserFunctionClient.SimulateDeletionDeadlineExtensionCollectionPrice(
+                var result = await _lesserFunctionClient.SimulateExtendScheduledDeletionDate(
                     _selectedCollection.classCode,
                     oldDateTimeOffset.ToUniversalTime(),
                     newDateTimeOffset,
@@ -191,39 +180,9 @@ namespace LesserDashboardClient.ViewModels.Collections
 
                 if (result != null && result.success == true && result.Content != null)
                 {
-                    // O backend agora retorna o preço POR FOTO em centavos no campo 'content'
-                    double pricePerPhotoInCents = 0;
-                    
-                    // Tenta extrair o valor numérico do content
-                    if (result.Content is double d)
-                    {
-                        pricePerPhotoInCents = d;
-                    }
-                    else if (result.Content is int i)
-                    {
-                        pricePerPhotoInCents = i;
-                    }
-                    else if (result.Content is long l)
-                    {
-                        pricePerPhotoInCents = l;
-                    }
-                    else
-                    {
-                        // Tenta converter de outras formas
-                        var contentStr = result.Content.ToString();
-                        if (double.TryParse(contentStr, out double parsed))
-                        {
-                            pricePerPhotoInCents = parsed;
-                        }
-                    }
-                    
-                    // Calcula o total de fotos da turma (recognitionPhotos + eventPhotos)
-                    int totalPhotos = (_selectedCollection.recognitionPhotos ?? 0) + (_selectedCollection.eventPhotos ?? 0);
-                    if (totalPhotos <= 0) totalPhotos = 1; // Evita divisão por zero ou multiplicação por zero
-                    
-                    // Calcula o valor total: (centavos / 100) * quantidade de fotos
-                    double pricePerPhotoInReais = pricePerPhotoInCents / 100.0;
-                    double totalPrice = pricePerPhotoInReais * totalPhotos;
+                    // Para coleção existente, usamos o valor total retornado pelo backend (em centavos),
+                    // então dividimos por 100 para converter para reais.
+                    double totalPrice = result.Content.TotalValue / 100.0;
                     
                     PriceText = $"R$ {totalPrice:F2}";
                     IsConfirmButtonEnabled = true;
@@ -287,8 +246,8 @@ namespace LesserDashboardClient.ViewModels.Collections
                     return;
                 }
 
-                // Converte para DateTimeOffset UTC no formato ISO 8601 padrão
-                var dateTimeOffset = SelectedDate.Value.ToUniversalTime();
+                // Converte para DateTimeOffset UTC e adiciona 5 horas (para manter 05:00 em vez de 00:00)
+                var dateTimeOffset = SelectedDate.Value.ToUniversalTime().AddHours(5);
                 
                 var result = await _lesserFunctionClient.UpdateDeletionDeadlineExtensionCollection(
                     _selectedCollection.classCode,

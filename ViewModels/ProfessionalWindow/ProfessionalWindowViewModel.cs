@@ -234,22 +234,21 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         [RelayCommand]
         public async Task ExitCommand()
         {
-            await Dispatcher.UIThread.InvokeAsync(async () =>
+            // Apaga o arquivo de login
+            if (LesserFunctionClient.loginFileInfo.Exists)
+            {
+                File.Delete(LesserFunctionClient.loginFileInfo.FullName);
+            }
+            
+            // Reseta a instância estática do LesserFunctionClient
+            GlobalAppStateViewModel.ResetLesserFunctionClient();
+            
+            // Encerra o aplicativo
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    var oldWindow = desktop.MainWindow;
-                    var authWindow = new AuthWindow();
-                    
-                    desktop.MainWindow = authWindow;
-                    authWindow.Show();
-                    
-                    // Espera um tick para garantir que a UI da nova janela iniciou
-                    await Task.Delay(150);
-                    
-                    // Agora fecha a janela antiga (libera Dispatcher antigo)
-                    (oldWindow?.DataContext as IDisposable)?.Dispose();
-                    oldWindow?.Close();
+                    desktop.Shutdown();
                 }
             });
         }

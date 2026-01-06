@@ -241,7 +241,7 @@
   },
   "This contract name already exists...": {
     "en-US": "This contract name already exists. Do you wish to REUPLOAD it?\nThis may render the collection inaccessible if used inappropriately.\nContact suppor through contato@lesser.biz or Whatsapp +55 16 996-1234-34.\nPress YES if you are sure and if you didn't change anything in the root folder.\nand you wish to make a new attempt to upload the same photos, with no addition or removal\nand without alteration of the extension of any file of change in the name of any folder or file.",
-    "pt-BR": "Esta turma já existe. Deseja fazer REUPLOAD?\nIsso pode tornar a coleção inutilizável se utilizado de maneira inapropriada.\nentre em contato com o suporte - lucas@lesser.biz ou Whatsapp (16) 996-1234-34.\nAperte SIM se tiver certeza e apenas se não tiver feito alterações na pasta onde estão as fotos\ne esteja desejando fazer nova tentativa de upload com as mesmas fotos, sem adição de nenhuma\ne nem alteração de extensão ou tipo de arquivo ou alteração de nome de pasta nem de arquivo."
+    "pt-BR": "ATENÇÃO: Esta turma já existe!\n\nDeseja fazer REUPLOAD?\n\nAVISO: Esta ação pode tornar a coleção inutilizável se utilizada incorretamente.\n\nAperte SIM apenas se:\n• Não alterou nenhuma foto na pasta\n• Não adicionou nem removeu fotos\n• Não mudou nomes de arquivos ou pastas\n• Não alterou extensões dos arquivos\n• Deseja tentar o upload novamente com as mesmas fotos\n\nPrecisa de ajuda? Contate o suporte:\nlucas@lesser.biz ou WhatsApp (16) 996-1234-34"
   },
   "Waiting for upload...": {
     "en-US": "Waiting for upload...",
@@ -378,6 +378,10 @@
   "Go back to previous version": {
     "en-US": "Go back to previous version",
     "pt-BR": "Voltar para versão anterior"
+  },
+  "Back": {
+    "en-US": "Back",
+    "pt-BR": "Voltar"
   },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",

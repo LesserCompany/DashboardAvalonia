@@ -158,6 +158,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty]
     private ActiveViews activeComponent = ActiveViews.NewsView;
     private ActiveViews lastActiveComponent;
+    private ProfessionalTask? _lastSelectedCollection; // Guarda a coleção selecionada ao navegar para outras views
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
@@ -165,6 +166,9 @@ public partial class CollectionsViewModel : ViewModelBase
         // Detectar navegação manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
         {
+            // Guardar a turma selecionada antes de limpar, para restaurar ao voltar
+            _lastSelectedCollection = SelectedCollection;
+            
             // Limpar a turma selecionada quando abrir o componente de mensagens
             SelectedCollection = null;
             
@@ -510,45 +514,24 @@ public partial class CollectionsViewModel : ViewModelBase
             // Para coleção existente: oldScheduledDeletionDate = ScheduledDeletionDate da coleção, isCollectionCreation = false
             DateTimeOffset oldDate;
             string classCodeToUse;
-            int totalPhotos;
             
             if (isNewCollection)
             {
                 // Coleção nova: usa data de hoje como oldScheduledDeletionDate
                 oldDate = DateTimeOffset.Now;
                 classCodeToUse = TbCollectionName ?? "new_collection"; // Usa nome temporário se não houver classCode
-                
-                // Conta os arquivos das pastas de evento e reconhecimento
-                int eventFilesCount = 0;
-                int recFilesCount = 0;
-                
-                if (!string.IsNullOrEmpty(TbEventFolder) && Directory.Exists(TbEventFolder))
-                {
-                    var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(TbEventFolder);
-                    eventFilesCount = eventFiles?.Count ?? 0;
-                }
-                
-                if (!IsTreatmentOnlyCombo && !string.IsNullOrEmpty(TbRecFolder) && Directory.Exists(TbRecFolder))
-                {
-                    var recFiles = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
-                    recFilesCount = recFiles?.Count ?? 0;
-                }
-                
-                totalPhotos = eventFilesCount + recFilesCount;
             }
             else
             {
                 // Coleção existente: usa ScheduledDeletionDate da coleção
                 oldDate = SelectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
                 classCodeToUse = SelectedCollection.classCode;
-                totalPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
             }
             
-            if (totalPhotos <= 0) totalPhotos = 1; // Evita multiplicação por zero
+            // Sempre enviar newScheduledDeletionDate com 5 horas a mais (05:00 UTC em vez de 00:00)
+            var newDateTimeOffset = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             
-            var newDateTimeOffset = SelectedHdStorageDate.Value.ToUniversalTime();
-            
-            var result = await GlobalAppStateViewModel.lfc.SimulateDeletionDeadlineExtensionCollectionPrice(
+            var result = await GlobalAppStateViewModel.lfc.SimulateExtendScheduledDeletionDate(
                 classCodeToUse,
                 oldDate.ToUniversalTime(),
                 newDateTimeOffset,
@@ -557,46 +540,23 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (result != null && result.success == true && result.Content != null)
             {
-                // O backend agora retorna o preço POR FOTO em centavos no campo 'content'
-                double pricePerPhotoInCents = 0;
-                
-                // Tenta extrair o valor numérico do content
-                if (result.Content is double d)
-                {
-                    pricePerPhotoInCents = d;
-                }
-                else if (result.Content is int i)
-                {
-                    pricePerPhotoInCents = i;
-                }
-                else if (result.Content is long l)
-                {
-                    pricePerPhotoInCents = l;
-                }
-                else
-                {
-                    // Tenta converter de outras formas
-                    var contentStr = result.Content.ToString();
-                    if (double.TryParse(contentStr, out double parsed))
-                    {
-                        pricePerPhotoInCents = parsed;
-                    }
-                }
-                
-                // Calcula o valor total: (centavos / 100) * quantidade de fotos
-                double pricePerPhotoInReais = pricePerPhotoInCents / 100.0;
-                double totalPrice = pricePerPhotoInReais * totalPhotos;
-                
-                // Para coleção nova, mostra "Preço por foto:" com 4 casas decimais (igual ao Svelte)
-                // Para coleção existente, mostra "Preço:" (total) com 2 casas decimais
+                // Para coleção nova, usamos o preço por foto retornado pelo backend
+                // Para coleção existente, usamos o valor total retornado
                 if (isNewCollection)
                 {
+                    // Para coleção nova, o backend retorna o preço por foto em centavos,
+                    // então dividimos por 100 para exibir em reais.
+                    double pricePerPhotoInReais = result.Content.PricePerPhoto / 100.0;
+                    
                     // Formata com 4 casas decimais e substitui ponto por vírgula (formato brasileiro)
                     string priceFormatted = pricePerPhotoInReais.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
                     HdStoragePriceText = Loc.Tr("Price per photo:") + $" R$ {priceFormatted}";
                 }
                 else
                 {
+                    // Para coleção existente, o backend retorna o valor total em centavos,
+                    // então dividimos por 100 para exibir em reais.
+                    double totalPrice = result.Content.TotalValue / 100.0;
                     HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
                 }
             }
@@ -709,16 +669,87 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnSelectedProfessionalChanged(Professional value)
     {
         // N�o volta para a �ltima view na primeira sele��o autom�tica
-        if (!isFirstProfessionalSelection)
+        if (value == null)
+            return;
+            
+        var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
+        
+        if (!isFirstProfessionalSelection && !wasViewingCollection)
         {
             BackLasViewCommand();
         }
         isFirstProfessionalSelection = false;
         
         if(SelectedCollection != null)
+        {
             SelectedCollection.professionalLogin = SelectedProfessional.username;
+            // Salvar a alteração do separador no servidor
+            _ = SaveCollectionSeparatorChange();
+        }
         CurrentProfessionalName = SelectedProfessional.username;
+        
+        // Se estava visualizando uma coleção, voltar para a view da coleção
+        if (wasViewingCollection)
+        {
+            ActiveComponent = ActiveViews.CollectionView;
+        }
     }
+    
+    private async Task SaveCollectionSeparatorChange()
+    {
+        if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
+            return;
+            
+        try
+        {
+            // Criar um ProfessionalTask apenas com as informações necessárias para atualizar o separador
+            ProfessionalTask pt = new ProfessionalTask()
+            {
+                professionalLogin = SelectedProfessional.username,
+                classCode = SelectedCollection.classCode,
+                companyUsername = SelectedCollection.companyUsername,
+                // Manter os valores atuais da coleção
+                originalClassFolder = SelectedCollection.originalClassFolder,
+                originalEventsFolder = SelectedCollection.originalEventsFolder,
+                originalRecFolder = SelectedCollection.originalRecFolder,
+                UploadOnTestSystem = SelectedCollection.UploadOnTestSystem ?? false,
+                EnableFaceRelevanceDetection = SelectedCollection.EnableFaceRelevanceDetection,
+                AutoTreatment = SelectedCollection.AutoTreatment,
+                UploadPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted,
+                AllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos,
+                UploadHD = SelectedCollection.UploadHD,
+                UploadComplete = SelectedCollection.UploadComplete,
+                Description = SelectedCollection.Description,
+                EnablePhotosSales = SelectedCollection.EnablePhotosSales,
+                PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
+                OCR = SelectedCollection.OCR,
+                AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
+            };
+            
+            // Atualizar apenas o separador (sem alterar as fotos)
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
+            if (r != null && r.success)
+            {
+                // Atualizar a lista de coleções para refletir a mudança
+                await UpdateProfessionalTasksList();
+                // Atualizar a coleção selecionada com os dados atualizados
+                var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == SelectedCollection.classCode);
+                if (updatedCollection != null)
+                {
+                    SelectedCollection = updatedCollection;
+                }
+            }
+            else
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Erro ao atualizar o separador da coleção.");
+            }
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao salvar alteração do separador: {ex.Message}");
+        }
+    }
+    
     [ObservableProperty] public string currentProfessionalName;
 
     //FREE TRIAL PROPERTIES
@@ -1776,7 +1807,21 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void BackLasViewCommand()
     {
-        ActiveComponent = lastActiveComponent;
+        // Se estávamos em MessagesView e tinha uma coleção selecionada antes, restaurar
+        if (ActiveComponent == ActiveViews.MessagesView && _lastSelectedCollection != null)
+        {
+            // Restaurar a coleção selecionada antes de mudar a view
+            // (evita que OnActiveComponentChanged limpe a referência)
+            var collectionToRestore = _lastSelectedCollection;
+            _lastSelectedCollection = null;
+            
+            ActiveComponent = lastActiveComponent;
+            SelectedCollection = collectionToRestore;
+        }
+        else
+        {
+            ActiveComponent = lastActiveComponent;
+        }
     }
     [RelayCommand]
     public void OpenQuickAccessViewCommand()
@@ -2007,25 +2052,107 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()
     {
-        SelectedCollection = null;
+        // Não limpar SelectedCollection se estiver visualizando uma coleção
+        // Isso permite trocar o separador de uma coleção existente
+        var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
+        
+        if (!wasViewingCollection)
+        {
+            SelectedCollection = null;
+        }
+        
         ActiveComponent = ActiveViews.SelectProfessional;
         if(Professionals == null || Professionals.Count == 0)
             await LoadProfessionals();
-        if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+        
+        // Se estiver visualizando uma coleção, selecionar o profissional atual da coleção
+        if (wasViewingCollection && SelectedCollection != null)
+        {
+            var currentProfessional = Professionals?.FirstOrDefault(p => p.username == SelectedCollection.professionalLogin);
+            if (currentProfessional != null)
+            {
+                SelectedProfessional = currentProfessional;
+            }
+            else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+            {
+                SelectedProfessional = Professionals[0];
+            }
+        }
+        else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+        {
             SelectedProfessional = Professionals[0];
+        }
     }
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
-        SelectedCollection = null;
+        // Não limpar SelectedCollection para manter a coleção selecionada na tela de cancelamento
         ActiveComponent = ActiveViews.CancelBilling;
     }
 
-    [RelayCommand]
+    /// <summary>
+    /// Atualiza um objeto ProfessionalTask na lista com os dados atualizados do servidor
+    /// Mantém a referência do objeto para evitar problemas de seleção na UI
+    /// </summary>
+    private void UpdateCollectionInList(ProfessionalTask updatedCollection, string classCode)
+    {
+        if (updatedCollection == null || string.IsNullOrEmpty(classCode))
+            return;
+
+        // Encontrar o objeto na lista CollectionsList pelo classCode
+        var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == classCode);
+        if (collectionInList != null)
+        {
+            // Atualizar todas as propriedades relevantes do objeto na lista
+            // Isso mantém a referência do objeto, evitando problemas de seleção
+            collectionInList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
+            collectionInList.BillingCancelled = updatedCollection.BillingCancelled;
+            collectionInList.UploadComplete = updatedCollection.UploadComplete;
+            collectionInList.UploadHD = updatedCollection.UploadHD;
+            collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
+            collectionInList.OCR = updatedCollection.OCR;
+            collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.Status = updatedCollection.Status;
+            collectionInList.StorageLocation = updatedCollection.StorageLocation;
+            collectionInList.CreationDate = updatedCollection.CreationDate;
+            collectionInList.DeletionDate = updatedCollection.DeletionDate;
+            collectionInList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
+            collectionInList.IsDeleted = updatedCollection.IsDeleted;
+            collectionInList.recognitionPhotos = updatedCollection.recognitionPhotos;
+            collectionInList.eventPhotos = updatedCollection.eventPhotos;
+            collectionInList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
+            
+            // Atualizar também na lista filtrada se existir
+            var collectionInFilteredList = CollectionsListFiltered.FirstOrDefault(c => c.classCode == classCode);
+            if (collectionInFilteredList != null)
+            {
+                collectionInFilteredList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
+                collectionInFilteredList.BillingCancelled = updatedCollection.BillingCancelled;
+                collectionInFilteredList.UploadComplete = updatedCollection.UploadComplete;
+                collectionInFilteredList.UploadHD = updatedCollection.UploadHD;
+                collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
+                collectionInFilteredList.OCR = updatedCollection.OCR;
+                collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.Status = updatedCollection.Status;
+                collectionInFilteredList.StorageLocation = updatedCollection.StorageLocation;
+                collectionInFilteredList.CreationDate = updatedCollection.CreationDate;
+                collectionInFilteredList.DeletionDate = updatedCollection.DeletionDate;
+                collectionInFilteredList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
+                collectionInFilteredList.IsDeleted = updatedCollection.IsDeleted;
+                collectionInFilteredList.recognitionPhotos = updatedCollection.recognitionPhotos;
+                collectionInFilteredList.eventPhotos = updatedCollection.eventPhotos;
+                collectionInFilteredList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
+            }
+        }
+    }
+
     public async Task OpenChangeDeletionDateDialogCommand()
     {
         if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
             return;
+
+        // Salvar o classCode antes de abrir o diálogo
+        var currentClassCode = SelectedCollection.classCode;
 
         try
         {
@@ -2034,14 +2161,58 @@ public partial class CollectionsViewModel : ViewModelBase
                 SelectedCollection,
                 async () =>
                 {
-                    // Atualiza a coleção após sucesso
-                    var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(SelectedCollection.classCode);
-                    if (updatedCollection != null)
+                    try
                     {
-                        SelectedCollection = updatedCollection;
-                        UpdateCollectionViewSelected();
-                        // Notificar mudanças na data de deleção
-                        OnPropertyChanged(nameof(IsDeletionDatePassed));
+                        // Busca a coleção atualizada do servidor
+                        var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(currentClassCode);
+                        if (updatedCollection != null)
+                        {
+                            // Atualizar o objeto na lista com os dados do servidor
+                            // Isso mantém a referência do objeto, evitando problemas de seleção
+                            UpdateCollectionInList(updatedCollection, currentClassCode);
+                            
+                            // Garantir que SelectedCollection ainda aponta para o objeto na lista
+                            // Se o classCode ainda corresponde, manter a referência atual
+                            if (SelectedCollection?.classCode == currentClassCode)
+                            {
+                                // Encontrar o objeto atualizado na lista
+                                var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == currentClassCode);
+                                if (collectionInList != null && SelectedCollection != collectionInList)
+                                {
+                                    // Atualizar a referência apenas se for diferente
+                                    // Isso notifica a UI sem perder a seleção
+                                    _isUpdatingSelectedCollection = true;
+                                    SelectedCollection = collectionInList;
+                                    _isUpdatingSelectedCollection = false;
+                                }
+                                else if (collectionInList != null)
+                                {
+                                    // Se já é a mesma referência, apenas notificar mudanças nas propriedades
+                                    // Isso força a UI a atualizar sem perder a seleção
+                                    OnPropertyChanged(nameof(SelectedCollection));
+                                }
+                            }
+                            
+                            // Atualizar a view da coleção selecionada de forma síncrona
+                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                UpdateCollectionViewSelected();
+                                
+                                // Notificar mudanças nas propriedades relacionadas à data de deleção
+                                OnPropertyChanged(nameof(IsDeletionDatePassed));
+                                OnPropertyChanged(nameof(IsDeletionDateNear));
+                                OnPropertyChanged(nameof(DeletionDateForeground));
+                                OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+                                OnPropertyChanged(nameof(DeletionDateFontWeight));
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao atualizar a coleção: {ex.Message}", Loc.Tr("Error"));
+                        });
                     }
                 }
             );
@@ -2125,9 +2296,19 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             if (CheckIfClassAlreadyExists(TbCollectionName))
             {
-                var result = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(Loc.Tr("This contract name already exists...", "This contract name already exists, do you want to update it?"));
-                if(result != true)
-                    return;
+                var dialog = new ReuploadWarningDialog();
+                if (MainWindow.instance != null)
+                {
+                    await dialog.ShowDialog(MainWindow.instance);
+                    if (dialog.Result != true)
+                        return;
+                }
+                else
+                {
+                    var result = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(Loc.Tr("This contract name already exists...", "This contract name already exists, do you want to update it?"));
+                    if(result != true)
+                        return;
+                }
             }
 
             CollectionCreationQueue.Enqueue(TbCollectionName);
@@ -2161,7 +2342,8 @@ public partial class CollectionsViewModel : ViewModelBase
             // Definir data de deleção agendada baseada na opção de armazenamento HD selecionada
             if (CbHDBackup == true && SelectedHdStorageDate.HasValue)
             {
-                pt.ScheduledDeletionDate = SelectedHdStorageDate.Value;
+                // Armazenar a data de deleção com 5 horas a mais, para manter 05:00 em vez de 00:00
+                pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             }
 
             var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
@@ -2211,7 +2393,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Voc� esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estar�o sujeitas a cobran�a.", "Limite m�ximo de fotos gratuitas atingido.");
+                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
                     if (dialog != true)
                         return;
                 }
@@ -2241,6 +2423,13 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 if(RemainingFreeTrialPhotosResult.IsFreeTrialActive == true)
                     GetInfosAboutFreeTrialPeriod();
+                
+                // Verifica se há novas mensagens após criar a turma
+                // Se houver mais mensagens não lidas do que antes, abre o componente de mensagens
+                if (MainWindowViewModel.Instance != null)
+                {
+                    _ = MainWindowViewModel.Instance.CheckForNewMessagesAfterCollectionCreationAsync();
+                }
 
             }
             else
@@ -2270,6 +2459,13 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+            // Validação: verificar se SelectedCollection não é null antes de usar
+            if (SelectedCollection == null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleção selecionada. Por favor, selecione uma coleção antes de usar Tag/Sort.");
+                return;
+            }
+
             BtTagSortIsRunning = true;
             if (SelectedSeparationFile != null)
             {
@@ -2584,6 +2780,12 @@ public partial class CollectionsViewModel : ViewModelBase
         try 
         {
             CancelBillingIsRunning = true;
+            if (SelectedCollection == null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
+                return;
+            }
+            
             if (SelectedCollectionForCancelBilling == null)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma item para para continuar.");

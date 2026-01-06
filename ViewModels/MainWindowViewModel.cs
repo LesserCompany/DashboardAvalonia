@@ -59,6 +59,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _messagesLoaded = false;
     
     /// <summary>
+    /// Guarda o número de mensagens não lidas antes da última verificação (para detectar novas mensagens)
+    /// </summary>
+    private int _previousUnreadMessagesCount = 0;
+    
+    /// <summary>
     /// Indica se as mensagens já foram carregadas da API
     /// </summary>
     public bool MessagesLoaded => _messagesLoaded;
@@ -601,6 +606,53 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao abrir mensagens: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Verifica se há novas mensagens não lidas após criar uma turma.
+    /// Se houver MAIS mensagens não lidas do que antes, abre o componente de mensagens.
+    /// Se o número for o mesmo ou menor, não abre.
+    /// </summary>
+    public async Task CheckForNewMessagesAfterCollectionCreationAsync()
+    {
+        try
+        {
+            // Guarda o número atual de mensagens não lidas antes de recarregar
+            int previousCount = UnreadMessagesCount;
+            
+            // Recarrega as mensagens do servidor
+            await LoadUserMessagesAsync();
+            
+            // Após carregar, verifica se há MAIS mensagens não lidas do que antes
+            int newCount = UnreadMessagesCount;
+            
+            if (newCount > previousCount)
+            {
+                // Há novas mensagens! Abre o componente de mensagens
+                Console.WriteLine($"Novas mensagens detectadas: {previousCount} -> {newCount}. Abrindo componente de mensagens.");
+                
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Navega para a aba de Collections (índice 0)
+                    SelectedTabIndex = 0;
+                    
+                    // Abre a view de mensagens
+                    var collectionsViewModel = CollectionsViewModel.Instance;
+                    if (collectionsViewModel != null)
+                    {
+                        collectionsViewModel.ActiveComponent = CollectionsViewModel.ActiveViews.MessagesView;
+                    }
+                });
+            }
+            else
+            {
+                Console.WriteLine($"Nenhuma mensagem nova: {previousCount} -> {newCount}. Mantendo na view atual.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao verificar novas mensagens após criação de coleção: {ex.Message}");
         }
     }
 
