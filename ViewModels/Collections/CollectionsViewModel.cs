@@ -2454,6 +2454,78 @@ public partial class CollectionsViewModel : ViewModelBase
             IsCreatingCollection = false;
         }
     }
+
+    /// <summary>
+    /// Verifica se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor.
+    /// Se houver divergência, atualiza a contagem de fotos via endpoint UpdateCollectionPhotoCount.
+    /// </summary>
+    /// <returns>True se pode prosseguir com a operação, False se houve erro na atualização</returns>
+    private async Task<bool> VerifyAndUpdatePhotoCountIfNeeded()
+    {
+        if (SelectedCollection == null || ServerProgressValues == null)
+            return true;
+
+        // Total de fotos da coleção (somatório de fotos de reconhecimento + eventos)
+        int collectionTotalPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
+        
+        // Total de fotos do reconhecimento no servidor (ServerProgress.total)
+        int serverTotalPhotos = ServerProgressValues.total ?? 0;
+
+        // Se os valores são iguais, segue o fluxo normal
+        if (collectionTotalPhotos == serverTotalPhotos)
+            return true;
+
+        // Valores diferentes - precisa atualizar a contagem de fotos
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.UpdateCollectionPhotoCount(SelectedCollection.classCode);
+            
+            if (result != null && result.success)
+            {
+                // Atualização bem-sucedida - atualiza a lista de coleções para refletir as mudanças
+                var classCodeToUpdate = SelectedCollection.classCode;
+                await UpdateProfessionalTasksList();
+                
+                // Restaurar a coleção selecionada após atualizar a lista
+                if (!string.IsNullOrEmpty(classCodeToUpdate))
+                {
+                    var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == classCodeToUpdate);
+                    if (updatedCollection != null)
+                    {
+                        SelectedCollection = updatedCollection;
+                    }
+                }
+                
+                // Atualiza os valores locais e as barras de progresso
+                await UpdateProgressBars();
+                return true;
+            }
+            else
+            {
+                // Não foi possível atualizar a contagem, mas o fluxo continua normalmente
+                // Mostra mensagem amigável informando que pode continuar
+                var message = result?.message;
+                if (string.IsNullOrEmpty(message))
+                {
+                    message = "Não foi possível sincronizar a contagem de fotos automaticamente, mas você pode continuar normalmente.";
+                }
+                else
+                {
+                    message = $"{message}\n\nVocê pode continuar normalmente com a operação.";
+                }
+                GlobalAppStateViewModel.Instance.ShowDialogOk(message);
+                return true; // Continua o fluxo mesmo se não conseguiu atualizar
+            }
+        }
+        catch (Exception ex)
+        {
+            // Em caso de exceção, também continua o fluxo com mensagem amigável
+            GlobalAppStateViewModel.Instance.ShowDialogOk(
+                "Não foi possível verificar a contagem de fotos automaticamente, mas você pode continuar normalmente com a operação.");
+            return true; // Continua o fluxo mesmo em caso de erro
+        }
+    }
+
     [RelayCommand]
     public async Task TagSortCommand() 
     {
@@ -2467,6 +2539,11 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
             BtTagSortIsRunning = true;
+
+            // Verificar se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor
+            if (!await VerifyAndUpdatePhotoCountIfNeeded())
+                return;
+
             if (SelectedSeparationFile != null)
             {
                 BtTagSortIsEnabled = false;

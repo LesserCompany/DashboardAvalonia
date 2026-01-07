@@ -29,9 +29,42 @@ public partial class NewCollection : UserControl
     {
         _tbCollectionName = this.FindControl<TextBox>("tbCollectionName");
         
+        // Bloqueia espaços: KeyDown para tecla, TextChanged para colar
+        if (_tbCollectionName != null)
+        {
+            _tbCollectionName.KeyDown += TbCollectionName_KeyDown;
+            _tbCollectionName.TextChanged += TbCollectionName_TextChanged;
+        }
+        
         if (DataContext is CollectionsViewModel vm)
         {
             vm.PropertyChanged += Vm_PropertyChanged;
+        }
+    }
+    
+    private void TbCollectionName_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        // Bloqueia a tecla espaço completamente
+        if (e.Key == Avalonia.Input.Key.Space)
+        {
+            e.Handled = true;
+        }
+    }
+    
+    private void TbCollectionName_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
+    {
+        // Remove espaços automaticamente (ex: ao colar texto)
+        if (sender is TextBox textBox && !string.IsNullOrEmpty(textBox.Text) && textBox.Text.Contains(' '))
+        {
+            int caretIndex = textBox.CaretIndex;
+            string original = textBox.Text;
+            string semEspacos = original.Replace(" ", "");
+            
+            // Calcula quantos espaços foram removidos antes do cursor
+            int espacosAntesCursor = original.Substring(0, Math.Min(caretIndex, original.Length)).Count(c => c == ' ');
+            
+            textBox.Text = semEspacos;
+            textBox.CaretIndex = Math.Max(0, caretIndex - espacosAntesCursor);
         }
     }
 
@@ -65,6 +98,14 @@ public partial class NewCollection : UserControl
         {
             if(string.IsNullOrEmpty(e.Text))
                 return;
+            
+            // Bloqueia espaços na entrada
+            if (e.Text.Contains(" "))
+            {
+                e.Handled = true;
+                return;
+            }
+            
             if (!vm.IsTextAllowed(e.Text))
             {
                 e.Handled = true;
