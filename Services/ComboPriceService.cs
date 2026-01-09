@@ -134,8 +134,8 @@ namespace LesserDashboardClient.Services
         {
             var name = comboName.ToLower();
             
-            // Combos que são apenas tratamento - deve conter especificamente "apenas tratamento"
-            return name.Contains("apenas tratamento");
+            // Combos que são apenas tratamento - verifica em português e inglês
+            return name.Contains("apenas tratamento") || name.Contains("treatment only");
         }
 
         /// <summary>

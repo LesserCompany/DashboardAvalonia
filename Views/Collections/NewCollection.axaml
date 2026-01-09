@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -231,92 +231,97 @@
                     
                   
                   <CheckBox IsChecked="{Binding CbEnableAutoExclusion, FallbackValue=False}"  Content="{Tr 'Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)'}" />
-                  <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" Content="{Tr 'The photos are already separated'}" />
+                  <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" 
+                           IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
+                           Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
                     
-                  <Button Command="{Binding InsertDataBasedOnRecFolderCommand}" Content="{Tr 'Insert graduates names based on the recognitions folder'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                  <Button Command="{Binding GenerateExcelBasedOnDataCommand}" Content="{Tr 'Edit data in excel'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-                    
-                    <!-- Drop File -->
-                    <Border Grid.Row="7"
-                            Height="100"
-                            BorderThickness="2"
-                            BorderBrush="{StaticResource AccentButtonBackground}"
-                            Background="Transparent"
-                            CornerRadius="6"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Center"
-                            Margin="10">
-                        <Grid DragDrop.AllowDrop="True"
-                              DragDrop.Drop="Border_OnDrop"
-                              DragDrop.DragOver="Border_OnDragOver"
-                              Background="Transparent">
-                            <StackPanel VerticalAlignment="Center" IsHitTestVisible="False">
-                                <Svg Path="/Assets/icons/drop-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
-                                <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-                    
-                    <!-- Table -->
-                  <Grid Grid.Row="8">
-                      <DataGrid  Margin="20" ItemsSource="{Binding GraduatesData}"        
-                                GridLinesVisibility="All"
-                                CanUserResizeColumns="True"
-                                IsReadOnly="{Binding !CanAddCPFs}"
-                                BorderThickness="1" BorderBrush="Gray">
-                          <DataGrid.Columns>
-                              <DataGridTextColumn Header="{Tr 'Photo'}"    Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
-                              <DataGridTextColumn Header="{Tr 'CPF'}"  Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
-                              <DataGridTextColumn Header="{Tr 'Email'}"  Binding="{Binding Email}" FontSize="8" />
-                            <DataGridTextColumn Header="{Tr 'Max photos'}"  Binding="{Binding MaxPhotos}" FontSize="8" />
+                  <!-- Graduates Section - Oculto quando for apenas tratamento -->
+                  <StackPanel IsVisible="{Binding !IsTreatmentOnlyCombo}" Spacing="6">
+                    <Button Command="{Binding InsertDataBasedOnRecFolderCommand}" Content="{Tr 'Insert graduates names based on the recognitions folder'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                    <Button Command="{Binding GenerateExcelBasedOnDataCommand}" Content="{Tr 'Edit data in excel'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                      
+                      <!-- Drop File -->
+                      <Border Grid.Row="7"
+                              Height="100"
+                              BorderThickness="2"
+                              BorderBrush="{StaticResource AccentButtonBackground}"
+                              Background="Transparent"
+                              CornerRadius="6"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              Margin="10">
+                          <Grid DragDrop.AllowDrop="True"
+                                DragDrop.Drop="Border_OnDrop"
+                                DragDrop.DragOver="Border_OnDragOver"
+                                Background="Transparent">
+                              <StackPanel VerticalAlignment="Center" IsHitTestVisible="False">
+                                  <Svg Path="/Assets/icons/drop-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
+                                  <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False" />
+                              </StackPanel>
+                          </Grid>
+                      </Border>
+                      
+                      <!-- Table -->
+                    <Grid Grid.Row="8">
+                        <DataGrid  Margin="20" ItemsSource="{Binding GraduatesData}"        
+                                  GridLinesVisibility="All"
+                                  CanUserResizeColumns="True"
+                                  IsReadOnly="{Binding !CanAddCPFs}"
+                                  BorderThickness="1" BorderBrush="Gray">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="{Tr 'Photo'}"    Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
+                                <DataGridTextColumn Header="{Tr 'CPF'}"  Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+                                <DataGridTextColumn Header="{Tr 'Email'}"  Binding="{Binding Email}" FontSize="8" />
+                              <DataGridTextColumn Header="{Tr 'Max photos'}"  Binding="{Binding MaxPhotos}" FontSize="8" />
 
-                            <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
-                              <DataGridTextColumn.Header>
-                                <TextBlock Text="{Tr 'Max photos to enhancement'}"
-                                           TextWrapping="Wrap"
-                                           MaxWidth="100"
-                                           TextAlignment="Center"/>
-                              </DataGridTextColumn.Header>
-                            </DataGridTextColumn>
-                            
-                            
-                              <DataGridCheckBoxColumn Header="{Tr 'Blocked'}"  Binding="{Binding Blocked, TargetNullValue=False}" />
-                              <DataGridTemplateColumn Header="{Tr 'Block type'}">
-                                  <DataGridTemplateColumn.CellTemplate>
-                                      <DataTemplate>
-                                        <!--BlockType-->
-                                        <StackPanel>
-                                        <TextBlock Text="{Tr 'None'}" IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
-                                        <ComboBox
-                                          IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
-                                          ItemsSource="{Binding #root.DataContext.BlockTypeOptions}"
-                                          SelectedItem="{Binding BlockType, Mode=TwoWay}"   
-                                          FontSize="10"  MaxDropDownHeight="100" 
-                                          Margin="4" 
-                                          VerticalAlignment="Center" 
-                                          HorizontalAlignment="Center" >
-                                          <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                              <ContentControl Content="{Binding .}">
-                                                <ContentControl.ContentTemplate>
-                                                  <DataTemplate>
-                                                    <TextBlock Text="{Binding .}"/>
-                                                  </DataTemplate>
-                                                </ContentControl.ContentTemplate>
-                                              </ContentControl>
-                                            </DataTemplate>
-                                          </ComboBox.ItemTemplate>
-                                          </ComboBox>
-                                        </StackPanel>
-                                      </DataTemplate>
-                                  </DataGridTemplateColumn.CellTemplate>
-                              </DataGridTemplateColumn>
-                          </DataGrid.Columns>
-                      </DataGrid>
-                  </Grid>
+                              <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
+                                <DataGridTextColumn.Header>
+                                  <TextBlock Text="{Tr 'Max photos to enhancement'}"
+                                             TextWrapping="Wrap"
+                                             MaxWidth="100"
+                                             TextAlignment="Center"/>
+                                </DataGridTextColumn.Header>
+                              </DataGridTextColumn>
+                              
+                              
+                                <DataGridCheckBoxColumn Header="{Tr 'Blocked'}"  Binding="{Binding Blocked, TargetNullValue=False}" />
+                                <DataGridTemplateColumn Header="{Tr 'Block type'}">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                          <!--BlockType-->
+                                          <StackPanel>
+                                          <TextBlock Text="{Tr 'None'}" IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
+                                          <ComboBox
+                                            IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                            ItemsSource="{Binding #root.DataContext.BlockTypeOptions}"
+                                            SelectedItem="{Binding BlockType, Mode=TwoWay}"   
+                                            FontSize="10"  MaxDropDownHeight="100" 
+                                            Margin="4" 
+                                            VerticalAlignment="Center" 
+                                            HorizontalAlignment="Center" >
+                                            <ComboBox.ItemTemplate>
+                                              <DataTemplate>
+                                                <ContentControl Content="{Binding .}">
+                                                  <ContentControl.ContentTemplate>
+                                                    <DataTemplate>
+                                                      <TextBlock Text="{Binding .}"/>
+                                                    </DataTemplate>
+                                                  </ContentControl.ContentTemplate>
+                                                </ContentControl>
+                                              </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                          </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                  </StackPanel>
                 </StackPanel>
             </Expander>
             

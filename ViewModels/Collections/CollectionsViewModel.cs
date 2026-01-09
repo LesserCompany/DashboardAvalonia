@@ -240,6 +240,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string tbRecFolder;
     partial void OnTbRecFolderChanged(string value)
     {
+        // Se for apenas tratamento, não processar pasta de reconhecimentos
+        if (IsTreatmentOnlyCombo)
+        {
+            TbRecFolderError = false;
+            return;
+        }
+
         if (Directory.Exists(value))
         {
             TbRecFolderError = false;
@@ -364,6 +371,12 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     public bool cbEnableAutoTreatmentIsDisabled = false;
+    
+    /// <summary>
+    /// Indica se o checkbox "já estão separados" está desabilitado durante reupload
+    /// </summary>
+    [ObservableProperty]
+    public bool cbUploadedPhotosAreAlreadySortedIsDisabled = false;
     
     /// <summary>
     /// Mensagem de erro para exibir quando AutoTreatment não pode ser habilitado
@@ -540,17 +553,21 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (result != null && result.success == true && result.Content != null)
             {
-                // Para coleção nova, usamos o preço por foto retornado pelo backend
+                // Para coleção nova, usamos o preço diário por foto retornado pelo backend
                 // Para coleção existente, usamos o valor total retornado
                 if (isNewCollection)
                 {
-                    // Para coleção nova, o backend retorna o preço por foto em centavos,
+                    // Para coleção nova, o backend retorna o preço diário por foto em centavos,
                     // então dividimos por 100 para exibir em reais.
-                    double pricePerPhotoInReais = result.Content.PricePerPhoto / 100.0;
+                    double dailyPricePerPhotoInReais = result.Content.DailyPricePerPhoto / 100.0;
+                    
+                    // Calcula o preço por mês (assumindo 30 dias por mês)
+                    int daysPerMonth = 30;
+                    double monthlyPricePerPhoto = dailyPricePerPhotoInReais * daysPerMonth;
                     
                     // Formata com 4 casas decimais e substitui ponto por vírgula (formato brasileiro)
-                    string priceFormatted = pricePerPhotoInReais.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
-                    HdStoragePriceText = Loc.Tr("Price per photo:") + $" R$ {priceFormatted}";
+                    string monthlyPriceFormatted = monthlyPricePerPhoto.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                    HdStoragePriceText = Loc.Tr("Price per photo per month:") + $" R$ {monthlyPriceFormatted}";
                 }
                 else
                 {
@@ -703,15 +720,16 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             // Criar um ProfessionalTask apenas com as informações necessárias para atualizar o separador
+            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
             ProfessionalTask pt = new ProfessionalTask()
             {
                 professionalLogin = SelectedProfessional.username,
                 classCode = SelectedCollection.classCode,
                 companyUsername = SelectedCollection.companyUsername,
-                // Manter os valores atuais da coleção
-                originalClassFolder = SelectedCollection.originalClassFolder,
-                originalEventsFolder = SelectedCollection.originalEventsFolder,
-                originalRecFolder = SelectedCollection.originalRecFolder,
+                // Manter os valores atuais da coleção (normalizados)
+                originalClassFolder = SelectedCollection.originalClassFolder?.TrimEnd('\\', '/'),
+                originalEventsFolder = SelectedCollection.originalEventsFolder?.TrimEnd('\\', '/'),
+                originalRecFolder = SelectedCollection.originalRecFolder?.TrimEnd('\\', '/'),
                 UploadOnTestSystem = SelectedCollection.UploadOnTestSystem ?? false,
                 EnableFaceRelevanceDetection = SelectedCollection.EnableFaceRelevanceDetection,
                 AutoTreatment = SelectedCollection.AutoTreatment,
@@ -1438,8 +1456,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
 
         // Validação: Verificar se há pelo menos 1 foto na pasta de reconhecimento
-        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true)
-        if (!(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
+        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true) ou quando for apenas tratamento
+        if (!(pt.IsTreatmentOnly ?? false) && !(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
         {
             return (false, "É necessário ter pelo menos 1 foto na pasta de reconhecimento para criar a coleção. Se as fotos já foram separadas, marque a opção 'Fotos já foram separadas'.");
         }
@@ -1531,6 +1549,13 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 classFolder = inputDir;
             }
+            // Se for apenas tratamento, não buscar pasta de reconhecimentos
+            if (IsTreatmentOnlyCombo)
+            {
+                TbRecFolder = "";
+                return;
+            }
+
             DirectoryInfo parentFolder = classFolder.Parent;
 
             if (parentFolder == null)
@@ -1655,6 +1680,12 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     public void UpdateGraduateDataFromFile(FileInfo f)
     {
+        // Se for apenas tratamento, não processar dados de reconhecimento
+        if (IsTreatmentOnlyCombo)
+        {
+            return;
+        }
+
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
@@ -1871,6 +1902,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        CbUploadedPhotosAreAlreadySortedIsDisabled = false;
         
         // Resetar propriedades de armazenamento HD
         IsHDStorageOptionsVisible = false;
@@ -1912,6 +1944,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        CbUploadedPhotosAreAlreadySortedIsDisabled = false;
         
         // Resetar propriedades de armazenamento HD
         IsHDStorageOptionsVisible = false;
@@ -1989,6 +2022,8 @@ public partial class CollectionsViewModel : ViewModelBase
             TbEventFolder = SelectedCollection.originalEventsFolder;
             TbRecFolder = SelectedCollection.originalRecFolder;
             CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
+            // Desabilitar a opção de "já estão separados" durante reupload
+            CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
@@ -2039,6 +2074,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbEnableAutoTreatmentErrorMessage = string.Empty;
                 CanAddCPFs = true;
                 CPFsErrorMessage = string.Empty;
+                // Manter desabilitado durante reupload
+                CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             }
             
             LoadGraduatesData(SelectedCollection);
@@ -2312,6 +2349,11 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
             CollectionCreationQueue.Enqueue(TbCollectionName);
+            
+            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
+            var normalizedEventFolder = TbEventFolder?.TrimEnd('\\', '/') ?? string.Empty;
+            var normalizedRecFolder = IsTreatmentOnlyCombo ? string.Empty : (TbRecFolder?.TrimEnd('\\', '/') ?? string.Empty);
+            
             ProfessionalTask pt = new ProfessionalTask()
             {
                 professionalLogin = CurrentProfessionalName,
@@ -2319,8 +2361,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 classCode = TbCollectionName,
                 UploadOnTestSystem = CbUploadOnTestSystem ?? false,
                 companyUsername = GlobalAppStateViewModel.lfc.loginResult.User.company,
-                originalEventsFolder = TbEventFolder,
-                originalRecFolder = IsTreatmentOnlyCombo ? string.Empty : TbRecFolder,
+                originalEventsFolder = normalizedEventFolder,
+                originalRecFolder = normalizedRecFolder,
                 EnableFaceRelevanceDetection = CbEnableAutoExclusion,
                 AutoTreatment = CbEnableAutoTreatment,
                 UploadPhotosAreAlreadySorted = CbUploadedPhotosAreAlreadySorted,
@@ -2332,7 +2374,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 OCR = CbOcr,
                 AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
-                
+
+                 IsTreatmentOnly = IsTreatmentOnlyCombo,
             };
             if (CbEnableAutoTreatment == true)
             {
@@ -2372,8 +2415,16 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
 
-            var eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(pt.originalEventsFolder.Length)).ToList();
-            var recFilesShortPaths = recFiles.Select(x => x.FullName.Substring(pt.originalRecFolder.Length)).ToList();
+            // CORREÇÃO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
+            // O Beta não tem barra final no originalEventsFolder, então os shortPaths ficam com \ no início
+            // O Alpha tinha barra final, então os shortPaths ficavam sem \ no início, causando duplicação no backend
+            var eventsBase = pt.originalEventsFolder.TrimEnd('\\', '/');
+            var recBase = string.IsNullOrEmpty(pt.originalRecFolder) ? "" : pt.originalRecFolder.TrimEnd('\\', '/');
+            
+            var eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(eventsBase.Length)).ToList();
+            var recFilesShortPaths = string.IsNullOrEmpty(recBase) 
+                ? new List<string>() 
+                : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
             bool shouldNotifyPipedriveAboutFirstUse = false;
             bool shouldNotifyPipedriveAboutFreeTrial50PercentReached = false;
@@ -2715,6 +2766,12 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void InsertDataBasedOnRecFolderCommand()
     {
+        // Se for apenas tratamento, não buscar dados de reconhecimento
+        if (IsTreatmentOnlyCombo)
+        {
+            return;
+        }
+
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
@@ -2764,6 +2821,12 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+            // Se for apenas tratamento, não permitir gerar Excel baseado em reconhecimento
+            if (IsTreatmentOnlyCombo)
+            {
+                return;
+            }
+
             // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
             if (!CanAddCPFs)
             {

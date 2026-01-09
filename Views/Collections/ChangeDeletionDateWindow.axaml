@@ -62,31 +62,6 @@
                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
             </StackPanel>
           </Border>
-          <!-- Discount Information -->
-          <Border Background="{DynamicResource SystemControlBackgroundAltLowBrush}"
-                  BorderBrush="{DynamicResource SystemAccentColor}"
-                  BorderThickness="1"
-                  CornerRadius="4"
-                  Padding="12"
-                  Margin="0,8,0,0"
-                  Opacity="0.9">
-            <Grid ColumnDefinitions="Auto,*">
-              <TextBlock Grid.Column="0"
-                         FontFamily="Segoe MDL2 Assets" 
-                         Text="&#xE7BA;" 
-                         FontSize="16"
-                         Foreground="{DynamicResource SystemAccentColor}"
-                         VerticalAlignment="Top"
-                         Margin="0,2,8,0"
-                         Opacity="0.85"/>
-              <TextBlock Grid.Column="1"
-                         Text="{Tr 'Additional dates of 5 years receive a 50% discount.'}" 
-                         FontSize="12"
-                         Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                         TextWrapping="Wrap"
-                         VerticalAlignment="Center"/>
-            </Grid>
-          </Border>
         </StackPanel>
 
         <!-- Error Message -->

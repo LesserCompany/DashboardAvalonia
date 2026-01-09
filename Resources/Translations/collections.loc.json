@@ -1,4 +1,4 @@
-﻿{
+{
   "Recognition on the server:": {
     "en-US": "Recognition on the server:",
     "pt-BR": "Reconhecimento no servidor:"
@@ -218,6 +218,10 @@
   "Price per photo:": {
     "en-US": "Price per photo:",
     "pt-BR": "Preço por foto:"
+  },
+  "Price per photo per month:": {
+    "en-US": "Price per photo per month:",
+    "pt-BR": "Preço por foto por mês:"
   },
   "OCR on the server:": {
     "en-US": "OCR on the server:",
@@ -501,7 +505,7 @@
   },
   "Expiration date:": {
     "en-US": "Expiration date:",
-    "pt-BR": "Data de vencimento:"
+    "pt-BR": "Periodo de Armazenamento ate:"
   },
   "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.": {
     "en-US": "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged on your invoice.",
@@ -509,15 +513,15 @@
   },
   "Collection expiration date": {
     "en-US": "Collection expiration date",
-    "pt-BR": "Data de vencimento de coleção"
+    "pt-BR": "Periodo de Armazenamento da coleção"
   },
   "Change the expiration date for this collection. A new billing will be generated based on the selected date.": {
     "en-US": "Change the expiration date for this collection. A new billing will be generated based on the selected date.",
-    "pt-BR": "Altere a data de vencimento dessa coleção. Uma nova cobrança será gerada com base na data selecionada."
+    "pt-BR": "Altere o período de armazenamento dessa coleção. A cobrança relativa à sua operação será adicionada a sua próxima fatura."
   },
   "New expiration date:": {
     "en-US": "New expiration date:",
-    "pt-BR": "Nova data de vencimento:"
+    "pt-BR": "Periodo de Armazenamento ate:"
   },
   "Price:": {
     "en-US": "Price:",
@@ -529,7 +533,7 @@
   },
   "Additional dates of 5 years receive a 50% discount.": {
     "en-US": "Extending the storage period by 5 additional years grants a 50% discount on the additional investment.",
-    "pt-BR": "Ao estender o período de armazenamento por 5 anos adicionais, você recebe 50% de desconto no investimento adicional."
+    "pt-BR": ""
   },
   "Loading price...": {
     "en-US": "Loading price...",
