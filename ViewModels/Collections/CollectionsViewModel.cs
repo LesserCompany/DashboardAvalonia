@@ -744,6 +744,9 @@ public partial class CollectionsViewModel : ViewModelBase
                 AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
             };
             
+            // Salvar o classCode antes de atualizar a lista (para evitar NullReferenceException)
+            var currentClassCode = SelectedCollection.classCode;
+            
             // Atualizar apenas o separador (sem alterar as fotos)
             var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
             if (r != null && r.success)
@@ -751,10 +754,15 @@ public partial class CollectionsViewModel : ViewModelBase
                 // Atualizar a lista de coleções para refletir a mudança
                 await UpdateProfessionalTasksList();
                 // Atualizar a coleção selecionada com os dados atualizados
-                var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == SelectedCollection.classCode);
-                if (updatedCollection != null)
+                // CORREÇÃO: Usar o classCode salvo ao invés de acessar SelectedCollection.classCode
+                // pois SelectedCollection pode ficar null após UpdateProfessionalTasksList()
+                if (!string.IsNullOrEmpty(currentClassCode))
                 {
-                    SelectedCollection = updatedCollection;
+                    var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == currentClassCode);
+                    if (updatedCollection != null)
+                    {
+                        SelectedCollection = updatedCollection;
+                    }
                 }
             }
             else
