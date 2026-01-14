@@ -40,5 +40,26 @@ namespace LesserDashboardClient.ViewModels.Invoices
                 return _url;
             }
         }
+
+        // URL para abrir na web (sem hideNavbar)
+        public string UrlWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + $"?token={loginToken}" + "&darkMode=false";
+                }
+            }
+        }
     }
 }

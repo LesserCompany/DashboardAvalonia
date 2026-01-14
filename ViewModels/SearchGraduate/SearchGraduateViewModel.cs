@@ -81,5 +81,107 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
                 return _urlPhotosForTreatment;
             }
         }
+        private string _urlPersonalize = "";
+        public string UrlPersonalize
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "about:blank";
+                }
+                
+                if (IsDarkMode)
+                {
+                    _urlPersonalize = baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";
+                }
+                else
+                {
+                    _urlPersonalize = baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=false" + "&hideNavbar=true";
+                }
+                return _urlPersonalize;
+            }
+        }
+
+        // URLs para abrir na web (sem hideNavbar)
+        public string UrlSearchCPFWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + "/search-graduates/" + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + "/search-graduates/" + $"?token={loginToken}" + "&darkMode=false";
+                }
+            }
+        }
+
+        public string UrlReviewPhotosWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + "/photos-chosen-by-cpfs/" + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + "/photos-chosen-by-cpfs/" + $"?token={loginToken}" + "&darkMode=false";
+                }
+            }
+        }
+
+        public string UrlPhotosForTreatmentWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + "/photos-for-treatment/" + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + "/photos-for-treatment/" + $"?token={loginToken}" + "&darkMode=false";
+                }
+            }
+        }
+
+        public string UrlPersonalizeWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=false";
+                }
+            }
+        }
     }
 }

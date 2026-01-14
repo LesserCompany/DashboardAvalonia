@@ -265,7 +265,7 @@
   },
   "WATERMARK": {
     "en-US": "WATERMARK",
-    "pt-BR": "MARCA D'AGUA"
+    "pt-BR": "MARCA D'ÁGUA"
   },
   "ACCESS DENIED": {
     "en-US": "ACCESS DENIED",
@@ -505,7 +505,7 @@
   },
   "Expiration date:": {
     "en-US": "Expiration date:",
-    "pt-BR": "Periodo de Armazenamento ate:"
+    "pt-BR": "Período de Armazenamento até:"
   },
   "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.": {
     "en-US": "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged on your invoice.",
@@ -513,7 +513,7 @@
   },
   "Collection expiration date": {
     "en-US": "Collection expiration date",
-    "pt-BR": "Periodo de Armazenamento da coleção"
+    "pt-BR": "Período de Armazenamento da coleção"
   },
   "Change the expiration date for this collection. A new billing will be generated based on the selected date.": {
     "en-US": "Change the expiration date for this collection. A new billing will be generated based on the selected date.",
@@ -521,7 +521,7 @@
   },
   "New expiration date:": {
     "en-US": "New expiration date:",
-    "pt-BR": "Periodo de Armazenamento ate:"
+    "pt-BR": "Período de Armazenamento até:"
   },
   "Price:": {
     "en-US": "Price:",
