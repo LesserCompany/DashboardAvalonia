@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
@@ -10,11 +10,8 @@ namespace LesserDashboardClient.ViewModels.Invoices
 {
     public partial class InvoicesViewModel : ViewModelBase
     {
-        public bool IsDarkMode
-        {
-            get => GlobalAppStateViewModel.Instance.AppIsDarkMode;
-            set => GlobalAppStateViewModel.Instance.AppIsDarkMode = value;
-        }
+        // Somente leitura - evita loops de binding
+        public bool IsDarkMode => GlobalAppStateViewModel.Instance.AppIsDarkMode;
         public string loginToken
         {
             get => LesserFunctionClient.loginFileResult?.User?.loginToken ?? "";
@@ -41,6 +38,27 @@ namespace LesserDashboardClient.ViewModels.Invoices
                     _url = baseUrl + $"?token={loginToken}" + "&darkMode=false" + "&hideNavbar=true";
                 }
                 return _url;
+            }
+        }
+
+        // URL para abrir na web (sem hideNavbar)
+        public string UrlWeb
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(loginToken))
+                {
+                    return "";
+                }
+                
+                if (IsDarkMode)
+                {
+                    return baseUrl + $"?token={loginToken}" + "&darkMode=true";
+                }
+                else
+                {
+                    return baseUrl + $"?token={loginToken}" + "&darkMode=false";
+                }
             }
         }
     }

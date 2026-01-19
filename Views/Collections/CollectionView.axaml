@@ -30,15 +30,56 @@
         <StackPanel Grid.Row="0" Margin="0 50 0 0"  Spacing="{DynamicResource DefaultRowSpacing}">
           <TextBlock Text="{Tr 'Canceled'}" FontSize="18" TextAlignment="Center" Foreground="Red" IsVisible="{Binding SelectedCollectionIsCanceled}" />
           <Grid RowDefinitions="80" ColumnDefinitions="200, * " Grid.Row="0" >
-                <local:ProfessionalRepresentation Grid.Column="0"   ProfessionalName="{Binding SelectedCollection.professionalLogin}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                <Grid Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
+                    <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
+                            VerticalAlignment="Center"
+                            Padding="8,4"
+                            MinHeight="32">
+                      <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding SelectedCollection.professionalLogin}" />
+                    </Button>
+                  </StackPanel>
+                </Grid>
                 <SelectableTextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="18" HorizontalAlignment="Center" Text="{Binding SelectedCollection.classCode}"></SelectableTextBlock>
           </Grid>
           
           <TextBlock Grid.Row="1" IsVisible="{Binding !UploadComplete}" TextWrapping="Wrap" TextAlignment="Center" Text="{Tr 'Upload incomplete ...'}" />
             
           <SelectableTextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding SelectedCollection.originalEventsFolder}" />
+          
+          <!-- Data de Vencimento -->
+          <Grid Grid.Row="3" IsVisible="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource NullToBoolConverter}}" ColumnDefinitions="Auto, Auto, Auto, Auto, Auto" ColumnSpacing="8" HorizontalAlignment="Center">
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Tr 'Expiration date:'}" />
+            <TextBlock Grid.Column="1" 
+                      VerticalAlignment="Center" 
+                      Text="{Binding SelectedCollection.ScheduledDeletionDate, Converter={StaticResource DateTimeToStringConverter}, ConverterParameter=deletion}" 
+                      Foreground="{Binding DeletionDateForeground}" 
+                      FontWeight="{Binding DeletionDateFontWeight}" />
+            <TextBlock Grid.Column="2" 
+                      VerticalAlignment="Center" 
+                      FontFamily="Segoe MDL2 Assets" 
+                      Text="&#xE7BA;" 
+                      Foreground="{Binding DeletionDateForeground}"
+                      FontSize="16"
+                      Margin="5,0,0,0"
+                      Opacity="0.85"
+                      ToolTip.Tip="{Tr 'The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.'}"
+                      IsVisible="{Binding ShowDeletionDateAlertIcon}"
+                      Cursor="Hand" />
+            <Button Grid.Column="3"
+                    Command="{Binding OpenChangeDeletionDateDialogCommand}"
+                    Padding="8,4"
+                    Height="28"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    FontSize="12">
+              <TextBlock Text="{Tr 'Alterar'}" VerticalAlignment="Center" />
+            </Button>
+          </Grid>
+          
           <!-- ProgressBars -->
-          <Grid Grid.Row="3" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="200, *" ColumnSpacing="5" RowSpacing="{DynamicResource DefaultRowSpacing}">
+          <Grid Grid.Row="4" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="200, *" ColumnSpacing="5" RowSpacing="{DynamicResource DefaultRowSpacing}">
               <!-- Row 1 - Recognition Progress Bar (hidden when photos are already sorted) -->
               <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" IsVisible="{Binding !SelectedCollection.UploadPhotosAreAlreadySorted, Converter={StaticResource NullToBoolConverter}}" ColumnSpacing="5" RowDefinitions="Auto" ColumnDefinitions="200, *" HorizontalAlignment="Stretch">
                 <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Right" Text="{Tr 'Recognition on the server:'}" />
@@ -59,7 +100,7 @@
           </Grid>
             
             <!-- SeparationFiles -->
-          <Grid Grid.Row="4" RowDefinitions="Auto, Auto" RowSpacing="6" Margin="4" IsVisible="{Binding ClassSeparationFilesIsVisible}">
+          <Grid Grid.Row="5" RowDefinitions="Auto, Auto" RowSpacing="6" Margin="4" IsVisible="{Binding ClassSeparationFilesIsVisible}">
             <TextBlock Grid.Row="0" Text="{Tr 'Choose the separation file you want to work with:'}" FontSize="12" />
             
             <ListBox Grid.Row="1" BorderBrush="Black" BorderThickness="0.6"  x:Name="ListBox" ItemsSource="{Binding ClassSeparationFiles}" SelectedItem="{Binding SelectedSeparationFile}" FontSize="11" >
@@ -81,7 +122,7 @@
           
             
           <!-- Buttons -->
-          <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="5" ColumnSpacing="5">
+          <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="6" ColumnSpacing="5">
             <Button IsEnabled="{Binding BtTagSortIsEnabled}" Command="{Binding TagSortCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Tag/Sort'}" VerticalAlignment="Center" />
@@ -101,7 +142,7 @@
             </Button>
             <Button IsEnabled="{Binding BtDownloadHdIsEnabled}" Command="{Binding DownloadHDCommand}" Height="45" Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
-                <TextBlock Text="{Tr 'Download Backup HD'}" VerticalAlignment="Center" />
+                <TextBlock Text="{Tr 'Download HD Storage'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtDownloadHdIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
               </StackPanel>
             </Button>
@@ -134,7 +175,7 @@
           <!-- Resume SeparationFile -->
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
-          <Grid Grid.Row="6">
+          <Grid Grid.Row="7">
               <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding !SelectedCollection.BillingCancelled}" >
                   <StackPanel Spacing="6">
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
@@ -161,6 +202,17 @@
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Cancel billing'}" VerticalAlignment="Center" />
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip=""  />
+                          </StackPanel>
+                      </Button>
+                      <Button Width="325" 
+                              Command="{Binding DeleteClassCommand}" 
+                              IsEnabled="{Binding IsDeletionDatePassed}"
+                              ToolTip.Tip="{Tr 'Delete collection if expiration date expired and do not want to extend storage or continue billing.'}"
+                              ToolTip.Placement="Right"
+                              ToolTip.ShowOnDisabled="True">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Delete class'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" />
                           </StackPanel>
                       </Button>
                   </StackPanel>

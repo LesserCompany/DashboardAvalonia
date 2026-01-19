@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels"
+             x:DataType="vm:MainWindowViewModel"
+             mc:Ignorable="d" d:DesignWidth="40" d:DesignHeight="40"
+             x:Class="LesserDashboardClient.Views.UserMessagesButton">
+  <Button Command="{Binding OpenMessagesCommand}" 
+          VerticalAlignment="Center" 
+          HorizontalAlignment="Center"
+          Background="Transparent"
+          BorderThickness="0"
+          Padding="4"
+          ToolTip.Tip="{Tr 'Messages'}">
+    <Grid>
+      <!-- Ícone de notificação (bell) - tamanho normal quando não há mensagens -->
+      <Svg Path="/Assets/icons/bell.svg" 
+           Width="16" 
+           Height="16" 
+           Cursor="Hand"
+           IsVisible="{Binding !HasUnreadMessages}" />
+      
+      <!-- Ícone de notificação (bell) - tamanho maior quando há mensagens não lidas -->
+      <Svg Path="/Assets/icons/bell.svg" 
+           Width="20" 
+           Height="20" 
+           Cursor="Hand"
+           IsVisible="{Binding HasUnreadMessages}" />
+      
+      <!-- Badge com contagem de mensagens não lidas -->
+      <Border IsVisible="{Binding HasUnreadMessages}"
+              Width="22" 
+              Height="22"
+              CornerRadius="11"
+              Background="#FF4444"
+              BorderBrush="White"
+              BorderThickness="2"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Margin="0,-2,-2,0">
+        <TextBlock Text="{Binding UnreadMessagesCount}" 
+                   FontSize="12"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
+      </Border>
+    </Grid>
+  </Button>
+</UserControl>

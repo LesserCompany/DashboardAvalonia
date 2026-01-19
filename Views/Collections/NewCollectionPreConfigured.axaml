@@ -40,13 +40,19 @@
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
         <StackPanel Grid.Row="1" Grid.Column="1">
-          <TextBox  Text="{Binding TbEventFolder}" VerticalAlignment="Center" />
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBox Grid.Column="0" Text="{Binding TbEventFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
+            <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenEventFolderDialog_Click" Cursor="Hand" />
+          </Grid>
           <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
         </StackPanel>
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center" IsVisible="{Binding !IsTreatmentOnlyCombo}" />
         <StackPanel Grid.Row="2"  Grid.Column="1" IsVisible="{Binding !IsTreatmentOnlyCombo}">
-          <TextBox  Text="{Binding TbRecFolder}" VerticalAlignment="Center" />
+          <Grid ColumnDefinitions="*, Auto">
+            <TextBox Grid.Column="0" Text="{Binding TbRecFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
+            <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenRecFolderDialog_Click" Cursor="Hand" />
+          </Grid>
           <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
         </StackPanel>
         
@@ -75,7 +81,7 @@
         </Grid>
       </Grid>
       
-      <Expander Header="{Tr 'Graduates'}" IsExpanded="True" Margin="30"  HorizontalAlignment="Stretch">
+      <Expander Header="{Tr 'Graduates'}" IsExpanded="True" Margin="30"  HorizontalAlignment="Stretch" IsVisible="{Binding !IsTreatmentOnlyCombo}">
         <StackPanel Spacing="6">
           <Button Command="{Binding InsertDataBasedOnRecFolderCommand}" Content="{Tr 'Insert graduates names based on the recognitions folder'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
           <Button Command="{Binding GenerateExcelBasedOnDataCommand}" Content="{Tr 'Edit data in excel'}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
@@ -173,7 +179,7 @@
             </Grid>
 
 
-            <CheckBox Content="{Tr 'Backup HD photos to the cloud.'}" 
+            <CheckBox Content="{Tr 'HD Storage in the cloud.'}" 
                      IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
                      IsEnabled="{Binding !CbHDBackupIsDisabled}"
                      VerticalAlignment="Center" />
@@ -186,6 +192,104 @@
                       HorizontalAlignment="Center" 
                       Margin="0,5,0,0" 
                       TextWrapping="Wrap" />
+            
+            <!-- Opções de Armazenamento HD -->
+            <StackPanel IsVisible="{Binding IsHDStorageOptionsVisible}" 
+                       Margin="0,10,0,0"
+                       Spacing="8">
+                <TextBlock Text="{Tr 'HD Storage Options'}" FontWeight="Bold" FontSize="14" Margin="0,0,0,5" />
+                
+                <StackPanel Orientation="Horizontal" Spacing="15" Margin="0,5,0,0" HorizontalAlignment="Center">
+                    <ToggleButton IsChecked="{Binding CbHDStorageThreeMonths}" 
+                                 Command="{Binding SelectHDStorageThreeMonthsCommand}"
+                                 HorizontalContentAlignment="Center"
+                                 VerticalContentAlignment="Center"
+                                 Padding="20,12"
+                                 MinWidth="160"
+                                 MinHeight="80"
+                                 CornerRadius="8"
+                                 BorderThickness="1">
+                        <ToggleButton.Styles>
+                            <Style Selector="ToggleButton:checked">
+                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderThickness" Value="3" />
+                            </Style>
+                            <Style Selector="ToggleButton:checked TextBlock">
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                        </ToggleButton.Styles>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Tr '3 months'}" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding HdStorageThreeMonthsDateText}" 
+                                     FontSize="12" 
+                                     HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    
+                    <ToggleButton IsChecked="{Binding CbHDStorageTwoYears}" 
+                                 Command="{Binding SelectHDStorageTwoYearsCommand}"
+                                 HorizontalContentAlignment="Center"
+                                 VerticalContentAlignment="Center"
+                                 Padding="20,12"
+                                 MinWidth="160"
+                                 MinHeight="80"
+                                 CornerRadius="8"
+                                 BorderThickness="1">
+                        <ToggleButton.Styles>
+                            <Style Selector="ToggleButton:checked">
+                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderThickness" Value="3" />
+                            </Style>
+                            <Style Selector="ToggleButton:checked TextBlock">
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                        </ToggleButton.Styles>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Tr '2 years'}" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding HdStorageTwoYearsDateText}" 
+                                     FontSize="12" 
+                                     HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    
+                    <ToggleButton IsChecked="{Binding CbHDStorageFiveYears}" 
+                                 Command="{Binding SelectHDStorageFiveYearsCommand}"
+                                 HorizontalContentAlignment="Center"
+                                 VerticalContentAlignment="Center"
+                                 Padding="20,12"
+                                 MinWidth="160"
+                                 MinHeight="80"
+                                 CornerRadius="8"
+                                 BorderThickness="1">
+                        <ToggleButton.Styles>
+                            <Style Selector="ToggleButton:checked">
+                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                                <Setter Property="BorderThickness" Value="3" />
+                            </Style>
+                            <Style Selector="ToggleButton:checked TextBlock">
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                        </ToggleButton.Styles>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{Tr '5 years'}" FontWeight="Bold" HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding HdStorageFiveYearsDateText}" 
+                                     FontSize="12" 
+                                     HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                </StackPanel>
+                
+                <TextBlock Text="{Binding HdStoragePriceText}" 
+                         Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" 
+                         FontWeight="Bold"
+                         FontSize="14"
+                         HorizontalAlignment="Center"
+                         Margin="0,10,0,0"
+                         IsVisible="{Binding IsHdStoragePriceTextVisible}" />
+            </StackPanel>
                       
             <StackPanel Spacing="4">
               <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
@@ -201,7 +305,9 @@
                         IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" />
             </StackPanel>
             <CheckBox IsChecked="{Binding CbEnableAutoExclusion, FallbackValue=False}"  Content="{Tr 'Enable automatic removal of blurred faces in low-quality backgrounds. (Feature under development; does not work well with group photos yet.)'}" />
-            <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" Content="{Tr 'The photos are already separated'}" />
+            <CheckBox IsChecked="{Binding CbUploadedPhotosAreAlreadySorted, FallbackValue=False}" 
+                     IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
+                     Content="{Tr 'The photos are already separated'}" />
             <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
             <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
             <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />

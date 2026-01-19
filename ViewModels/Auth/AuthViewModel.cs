@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Svg.Skia;
 using Avalonia.Threading;
@@ -21,11 +21,8 @@ namespace LesserDashboardClient.ViewModels.Auth
 {
     public partial class AuthViewModel : ViewModelBase
     {
-        public bool IsDarkMode
-        {
-            get => GlobalAppStateViewModel.Instance.AppIsDarkMode;
-            set => GlobalAppStateViewModel.Instance.AppIsDarkMode = value;
-        }
+        // Somente leitura - evita loops de binding
+        public bool IsDarkMode => GlobalAppStateViewModel.Instance.AppIsDarkMode;
 
         public string Lang
         {
@@ -151,11 +148,8 @@ namespace LesserDashboardClient.ViewModels.Auth
                     {
                         var oldWindow = desktop.MainWindow;
                         
-                        // Reaplica as configurações de tema e idioma antes de criar a nova janela
-                        App.ReapplySettings();
-                        
-                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
-                        await Task.Delay(100);
+                        // NÃO reinicializar configurações - elas já estão aplicadas
+                        // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
                         // Verifica o tipo de usuário para determinar qual janela mostrar
                         if (GlobalAppStateViewModel.lfc.loginResult.User.userType == "professionals")
@@ -164,10 +158,6 @@ namespace LesserDashboardClient.ViewModels.Auth
                             var professionalWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
                             desktop.MainWindow = professionalWindow;
                             professionalWindow.Show();
-                            
-                            // Reaplica as configurações NOVAMENTE após criar a janela para garantir que o tema seja aplicado
-                            await Task.Delay(50);
-                            App.ReapplySettings();
                         }
                         else
                         {
@@ -178,10 +168,6 @@ namespace LesserDashboardClient.ViewModels.Auth
                             };
                             desktop.MainWindow = mainWindow;
                             mainWindow.Show();
-                            
-                            // Reaplica as configurações NOVAMENTE após criar a janela para garantir que o tema seja aplicado
-                            await Task.Delay(50);
-                            App.ReapplySettings();
                         }
                         
                         // Espera um tick para garantir que a UI da nova janela iniciou

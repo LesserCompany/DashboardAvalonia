@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CodingSeb.Localization;
 using Avalonia.Threading;
@@ -28,33 +28,49 @@ public partial class OptionsControlViewModel : ViewModelBase
         }
     }
 
-    public bool IsDarkMode
+    // Usa OneWay binding - só leitura, não dispara sets durante inicialização
+    public bool IsDarkMode => GlobalAppStateViewModel.Instance.AppIsDarkMode;
+    public bool IsLightMode => !GlobalAppStateViewModel.Instance.AppIsDarkMode;
+    
+    // Comandos para mudança manual pelo usuário (evita loops de binding TwoWay)
+    [RelayCommand]
+    private void SetDarkMode()
     {
-        get => GlobalAppStateViewModel.Instance.AppIsDarkMode;
-        set => GlobalAppStateViewModel.Instance.AppIsDarkMode = value;
+        if (!GlobalAppStateViewModel.Instance.AppIsDarkMode)
+        {
+            GlobalAppStateViewModel.Instance.AppIsDarkMode = true;
+        }
+    }
+    
+    [RelayCommand]
+    private void SetLightMode()
+    {
+        if (GlobalAppStateViewModel.Instance.AppIsDarkMode)
+        {
+            GlobalAppStateViewModel.Instance.AppIsDarkMode = false;
+        }
     }
 
-    public bool IsLanguageEnglish
+    public bool IsLanguageEnglish => GlobalAppStateViewModel.Instance.AppLanguage == "en-US";
+    public bool IsLanguagePortuguese => GlobalAppStateViewModel.Instance.AppLanguage == "pt-BR";
+    
+    [RelayCommand]
+    private void SetLanguageEnglish()
     {
-        get
+        if (GlobalAppStateViewModel.Instance.AppLanguage != "en-US")
         {
-            if(GlobalAppStateViewModel.Instance.AppLanguage == "en-US")
-                return true;
-            else
-                return false;
+            Console.WriteLine($"OptionsControlViewModel: Alterando idioma para 'en-US'");
+            GlobalAppStateViewModel.Instance.AppLanguage = "en-US";
         }
-        set
+    }
+    
+    [RelayCommand]
+    private void SetLanguagePortuguese()
+    {
+        if (GlobalAppStateViewModel.Instance.AppLanguage != "pt-BR")
         {
-            string newLanguage = value ? "en-US" : "pt-BR";
-            string currentLanguage = GlobalAppStateViewModel.Instance.AppLanguage;
-            
-            if (currentLanguage != newLanguage)
-            {
-                Console.WriteLine($"OptionsControlViewModel: Alterando idioma de '{currentLanguage}' para '{newLanguage}'");
-                
-                // Alterar o idioma usando o método do App para disparar eventos
-                App.SetCurrentLang(newLanguage);
-            }
+            Console.WriteLine($"OptionsControlViewModel: Alterando idioma para 'pt-BR'");
+            GlobalAppStateViewModel.Instance.AppLanguage = "pt-BR";
         }
     }
 

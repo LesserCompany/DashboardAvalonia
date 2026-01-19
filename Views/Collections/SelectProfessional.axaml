@@ -9,13 +9,27 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Name="Root"
              x:Class="LesserDashboardClient.Views.Collections.SelectProfessional">
-  <Grid RowDefinitions="*, Auto">
+  <Grid RowDefinitions="Auto, *, Auto">
+    <!-- Botão de voltar -->
+    <Button Grid.Row="0" 
+            Command="{Binding BackLasViewCommand}" 
+            HorizontalAlignment="Left" 
+            VerticalAlignment="Top"
+            Margin="10"
+            Padding="8,4"
+            Background="Transparent"
+            BorderThickness="0">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <TextBlock Text="←" FontSize="16" VerticalAlignment="Center" />
+        <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
+      </StackPanel>
+    </Button>
     
-    <Grid Grid.Row="0" IsVisible="{Binding LoadProfessionalsIsRunning}">
+    <Grid Grid.Row="1" IsVisible="{Binding LoadProfessionalsIsRunning}">
       <ui:ProgressRing IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding LoadProfessionalsIsRunning}" />
     </Grid>
 
-    <ScrollViewer Margin="10" Grid.Row="0" IsVisible="{Binding !LoadProfessionalsIsRunning}">
+    <ScrollViewer Margin="10" Grid.Row="1" IsVisible="{Binding !LoadProfessionalsIsRunning}">
       <ListBox ItemsSource="{Binding Professionals}" SelectedItem="{Binding SelectedProfessional}">
         <ListBox.ItemsPanel>
           <ItemsPanelTemplate>
@@ -31,7 +45,7 @@
         </ListBox.ItemTemplate>
       </ListBox>
     </ScrollViewer>
-    <StackPanel Grid.Row="1" Margin="10">
+    <StackPanel Grid.Row="2" Margin="10">
       <Button VerticalAlignment="Center" HorizontalAlignment="Center" Command="{Binding OpenAddNewProfessionalDialogCommand}">
         <StackPanel Orientation="Horizontal">
           <Svg Path="/Assets/icons/person-add.svg" Width="16" Height="16" VerticalAlignment="Center" />

@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using SharedClientSide.Helpers;
 using System;

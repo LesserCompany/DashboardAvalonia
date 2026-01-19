@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Shared"
+             mc:Ignorable="d" d:DesignWidth="120" d:DesignHeight="32"
+             x:DataType="vm:OpenInWebButtonViewModel"
+             x:Class="LesserDashboardClient.Views.Shared.OpenInWebButton">
+  <UserControl.DataContext>
+    <vm:OpenInWebButtonViewModel />
+  </UserControl.DataContext>
+  <Button Command="{Binding OpenInWebCommand}" 
+          HorizontalAlignment="Stretch" 
+          VerticalAlignment="Stretch"
+          Padding="8,4"
+          FontSize="11"
+          Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+          BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+          BorderThickness="1"
+          ToolTip.Tip="Abrir na web"
+          Cursor="Hand"
+          IsVisible="True"
+          Opacity="0.9">
+    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <TextBlock Text="🌐" FontSize="12" VerticalAlignment="Center" />
+      <TextBlock Text="Abrir na web" VerticalAlignment="Center" />
+    </StackPanel>
+  </Button>
+</UserControl>
