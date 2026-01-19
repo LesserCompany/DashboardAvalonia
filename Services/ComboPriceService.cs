@@ -96,7 +96,7 @@ namespace LesserDashboardClient.Services
                 AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
                 Ocr = serverCombo.Features.OCR,
                 UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
-                IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo.ComboName),
+                IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo),
                 ComboId = serverCombo.Id,
                 CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };
@@ -136,6 +136,16 @@ namespace LesserDashboardClient.Services
             
             // Combos que são apenas tratamento - verifica em português e inglês
             return name.Contains("apenas tratamento") || name.Contains("treatment only");
+        }
+        private static bool IsTreatmentOnlyCombo(ServerCombo serverCombo)
+        {
+            bool isOnlyTreatment = (
+                serverCombo.Features.AutoTreatment &&
+                serverCombo.Features.UploadHD &&
+                serverCombo.Features.UploadPhotosAreAlreadySorted
+                );
+
+            return isOnlyTreatment;
         }
 
         /// <summary>
