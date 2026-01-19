@@ -2131,7 +2131,6 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
-        // Não limpar SelectedCollection para manter a coleção selecionada na tela de cancelamento
         ActiveComponent = ActiveViews.CancelBilling;
     }
 
@@ -2590,13 +2589,6 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
-            // Validação: verificar se SelectedCollection não é null antes de usar
-            if (SelectedCollection == null)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleção selecionada. Por favor, selecione uma coleção antes de usar Tag/Sort.");
-                return;
-            }
-
             BtTagSortIsRunning = true;
 
             // Verificar se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor
