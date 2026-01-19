@@ -38,6 +38,7 @@ namespace LesserDashboardClient.ViewModels.Collections;
 
 public partial class CollectionsViewModel : ViewModelBase
 {
+    public static CollectionsViewModel Instance { get; set; }
     private static Queue<string> CollectionCreationQueue = new Queue<string>();
 
     public class GraduateReportInfo
@@ -61,6 +62,49 @@ public partial class CollectionsViewModel : ViewModelBase
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     [ObservableProperty] public ProfessionalTask selectedCollection;
+    
+    /// <summary>
+    /// Verifica se faltam 30 dias ou menos para a deleção
+    /// </summary>
+    public bool IsDeletionDateNear => SelectedCollection?.ScheduledDeletionDate != null && 
+        (SelectedCollection.ScheduledDeletionDate.Value - DateTimeOffset.Now).TotalDays <= 30;
+    
+    /// <summary>
+    /// Retorna a cor do texto da data de deleção (vermelho vibrante se <= 30 dias)
+    /// </summary>
+    public Avalonia.Media.IBrush DeletionDateForeground
+    {
+        get
+        {
+            if (IsDeletionDateNear)
+            {
+                // Vermelho vibrante para alerta
+                return new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(255, 50, 50));
+            }
+            // Cor padrão (WarningTextBrush)
+            return Avalonia.Application.Current?.Resources["WarningTextBrush"] as Avalonia.Media.IBrush 
+                ?? Avalonia.Media.Brushes.Orange;
+        }
+    }
+    
+    /// <summary>
+    /// Indica se deve mostrar o ícone de alerta
+    /// </summary>
+    public bool ShowDeletionDateAlertIcon => IsDeletionDateNear;
+    
+    /// <summary>
+    /// Retorna o peso da fonte para a data de deleção (Bold se <= 30 dias)
+    /// </summary>
+    public Avalonia.Media.FontWeight DeletionDateFontWeight => IsDeletionDateNear 
+        ? Avalonia.Media.FontWeight.Bold 
+        : Avalonia.Media.FontWeight.Normal;
+    
+    /// <summary>
+    /// Verifica se a data de vencimento já passou (para habilitar botão de deletar turma)
+    /// </summary>
+    public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
+        SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
+    
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
         // Prevenir loops infinitos
@@ -86,6 +130,11 @@ public partial class CollectionsViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     UpdateCollectionViewSelected();
+                    // Notificar mudanças nas propriedades calculadas da data de deleção
+                    OnPropertyChanged(nameof(IsDeletionDateNear));
+                    OnPropertyChanged(nameof(DeletionDateForeground));
+                    OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+                    OnPropertyChanged(nameof(IsDeletionDatePassed));
                 });
             }
             catch (OperationCanceledException) { }
@@ -99,6 +148,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         QuickAccess,
         NewsView,
+        MessagesView,
         NewCollection,
         NewCollectionPreConfigured,
         CollectionView,
@@ -108,9 +158,31 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty]
     private ActiveViews activeComponent = ActiveViews.NewsView;
     private ActiveViews lastActiveComponent;
+    private ProfessionalTask? _lastSelectedCollection; // Guarda a coleção selecionada ao navegar para outras views
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
+
+        // Detectar navegação manual para MessagesView
+        if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
+        {
+            // Guardar a turma selecionada antes de limpar, para restaurar ao voltar
+            _lastSelectedCollection = SelectedCollection;
+            
+            // Limpar a turma selecionada quando abrir o componente de mensagens
+            SelectedCollection = null;
+            
+            // Se não foi a primeira verificação inicial, é navegação manual
+            if (_hasCheckedInitialMessages)
+            {
+                _userManuallyNavigatedToMessages = true;
+            }
+        }
+        // Se sair de MessagesView, resetar flag de navegação manual
+        else if (oldValue == ActiveViews.MessagesView && newValue != ActiveViews.MessagesView)
+        {
+            _userManuallyNavigatedToMessages = false;
+        }
 
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
@@ -119,6 +191,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
         OnPropertyChanged(nameof(ComponentCancelBillingIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
+        OnPropertyChanged(nameof(ComponentMessagesViewIsVisible));
     }
     public bool ComponentQuickAccessIsVisible => ActiveComponent == ActiveViews.QuickAccess;
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
@@ -127,6 +200,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
+    public bool ComponentMessagesViewIsVisible => ActiveComponent == ActiveViews.MessagesView;
 
     #endregion
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsList = new();
@@ -166,6 +240,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string tbRecFolder;
     partial void OnTbRecFolderChanged(string value)
     {
+        // Se for apenas tratamento, não processar pasta de reconhecimentos
+        if (IsTreatmentOnlyCombo)
+        {
+            TbRecFolderError = false;
+            return;
+        }
+
         if (Directory.Exists(value))
         {
             TbRecFolderError = false;
@@ -189,6 +270,93 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
     
     /// <summary>
+    /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
+    /// </summary>
+    [ObservableProperty] public bool isHDStorageOptionsVisible = false;
+    
+    /// <summary>
+    /// Opção de armazenamento HD por 3 meses
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageThreeMonths = false;
+    
+    /// <summary>
+    /// Opção de armazenamento HD por 2 anos
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageTwoYears = false;
+    
+    /// <summary>
+    /// Opção de armazenamento HD por 5 anos
+    /// </summary>
+    [ObservableProperty] public bool? cbHDStorageFiveYears = false;
+    
+    /// <summary>
+    /// Data calculada para armazenamento de 3 meses
+    /// </summary>
+    public DateTimeOffset? HdStorageThreeMonthsDate => DateTimeOffset.Now.AddMonths(3);
+    
+    /// <summary>
+    /// Data calculada para armazenamento de 2 anos
+    /// </summary>
+    public DateTimeOffset? HdStorageTwoYearsDate => DateTimeOffset.Now.AddYears(2);
+    
+    /// <summary>
+    /// Data calculada para armazenamento de 5 anos
+    /// </summary>
+    public DateTimeOffset? HdStorageFiveYearsDate => DateTimeOffset.Now.AddYears(5);
+    
+    /// <summary>
+    /// Data selecionada para armazenamento HD (baseada na opção escolhida)
+    /// </summary>
+    public DateTimeOffset? SelectedHdStorageDate
+    {
+        get
+        {
+            if (CbHDStorageThreeMonths == true)
+                return HdStorageThreeMonthsDate;
+            if (CbHDStorageTwoYears == true)
+                return HdStorageTwoYearsDate;
+            if (CbHDStorageFiveYears == true)
+                return HdStorageFiveYearsDate;
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Texto formatado da data de 3 meses
+    /// </summary>
+    public string HdStorageThreeMonthsDateText => HdStorageThreeMonthsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto formatado da data de 2 anos
+    /// </summary>
+    public string HdStorageTwoYearsDateText => HdStorageTwoYearsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto formatado da data de 5 anos
+    /// </summary>
+    public string HdStorageFiveYearsDateText => HdStorageFiveYearsDate?.ToString("dd/MM/yyyy") ?? "";
+    
+    /// <summary>
+    /// Texto do preço para armazenamento HD selecionado
+    /// </summary>
+    [ObservableProperty] public string hdStoragePriceText = string.Empty;
+    
+    /// <summary>
+    /// Indica se o texto do preço está visível
+    /// </summary>
+    public bool IsHdStoragePriceTextVisible => !string.IsNullOrEmpty(HdStoragePriceText);
+    
+    partial void OnHdStoragePriceTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsHdStoragePriceTextVisible));
+    }
+    
+    /// <summary>
+    /// Indica se está carregando o preço
+    /// </summary>
+    [ObservableProperty] public bool isLoadingHDStoragePrice = false;
+    
+    /// <summary>
     /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro período)
     /// </summary>
     [ObservableProperty] public bool canAddCPFs = true;
@@ -203,6 +371,12 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     [ObservableProperty]
     public bool cbEnableAutoTreatmentIsDisabled = false;
+    
+    /// <summary>
+    /// Indica se o checkbox "já estão separados" está desabilitado durante reupload
+    /// </summary>
+    [ObservableProperty]
+    public bool cbUploadedPhotosAreAlreadySortedIsDisabled = false;
     
     /// <summary>
     /// Mensagem de erro para exibir quando AutoTreatment não pode ser habilitado
@@ -232,6 +406,25 @@ public partial class CollectionsViewModel : ViewModelBase
         if (_isLoadingReuploadData)
             return;
             
+        // Mostrar/esconder opções de armazenamento quando HD é marcado/desmarcado
+        IsHDStorageOptionsVisible = newValue == true;
+        
+        // Se desmarcar HD, resetar opções de armazenamento
+        if (newValue == false)
+        {
+            CbEnableAutoTreatment = false;
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
+            CbHDStorageFiveYears = false;
+        }
+        else if (newValue == true)
+        {
+            // Por padrão, marcar 5 anos quando HD é habilitado
+            CbHDStorageFiveYears = true;
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
+        }
+            
         // Validar período de faturamento quando tentando habilitar HD
         if (newValue == true && IsReupload && SelectedCollection != null)
         {
@@ -243,6 +436,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 
                 // Reverter o valor para false
                 CbHDBackup = false;
+                IsHDStorageOptionsVisible = false;
                 
                 // Bloquear adição de CPFs quando não é HD
                 CanAddCPFs = false;
@@ -250,11 +444,170 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
             }
         }
-        
-        if (newValue == false)
+    }
+    
+    partial void OnCbHDStorageThreeMonthsChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
         {
-            CbEnableAutoTreatment = false;
+            // Se marcar 3 meses, desmarcar outras opções
+            CbHDStorageTwoYears = false;
+            CbHDStorageFiveYears = false;
+            // Carregar preço
+            LoadHDStoragePriceAsync();
         }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
+    }
+    
+    partial void OnCbHDStorageTwoYearsChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+        {
+            // Se marcar 2 anos, desmarcar outras opções
+            CbHDStorageThreeMonths = false;
+            CbHDStorageFiveYears = false;
+            // Carregar preço
+            LoadHDStoragePriceAsync();
+        }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
+    }
+    
+    partial void OnCbHDStorageFiveYearsChanged(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+        {
+            // Se marcar 5 anos, desmarcar outras opções
+            CbHDStorageThreeMonths = false;
+            CbHDStorageTwoYears = false;
+            // Carregar preço
+            LoadHDStoragePriceAsync();
+        }
+        else
+        {
+            HdStoragePriceText = string.Empty;
+        }
+        // Notificar mudanças nas propriedades calculadas
+        OnPropertyChanged(nameof(SelectedHdStorageDate));
+    }
+    
+    private async void LoadHDStoragePriceAsync()
+    {
+        // Verifica se há data de armazenamento selecionada
+        if (!SelectedHdStorageDate.HasValue)
+        {
+            HdStoragePriceText = string.Empty;
+            return;
+        }
+        
+        try
+        {
+            IsLoadingHDStoragePrice = true;
+            HdStoragePriceText = Loc.Tr("Loading price...");
+            
+            if (GlobalAppStateViewModel.lfc == null)
+            {
+                HdStoragePriceText = Loc.Tr("Error loading price");
+                return;
+            }
+            
+            // Determina se é coleção nova ou existente
+            bool isNewCollection = SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode);
+            
+            // Para coleção nova: oldScheduledDeletionDate = data de hoje, isCollectionCreation = true
+            // Para coleção existente: oldScheduledDeletionDate = ScheduledDeletionDate da coleção, isCollectionCreation = false
+            DateTimeOffset oldDate;
+            string classCodeToUse;
+            
+            if (isNewCollection)
+            {
+                // Coleção nova: usa data de hoje como oldScheduledDeletionDate
+                oldDate = DateTimeOffset.Now;
+                classCodeToUse = TbCollectionName ?? "new_collection"; // Usa nome temporário se não houver classCode
+            }
+            else
+            {
+                // Coleção existente: usa ScheduledDeletionDate da coleção
+                oldDate = SelectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
+                classCodeToUse = SelectedCollection.classCode;
+            }
+            
+            // Sempre enviar newScheduledDeletionDate com 5 horas a mais (05:00 UTC em vez de 00:00)
+            var newDateTimeOffset = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
+            
+            var result = await GlobalAppStateViewModel.lfc.SimulateExtendScheduledDeletionDate(
+                classCodeToUse,
+                oldDate.ToUniversalTime(),
+                newDateTimeOffset,
+                isNewCollection // isCollectionCreation
+            );
+            
+            if (result != null && result.success == true && result.Content != null)
+            {
+                // Para coleção nova, usamos o preço diário por foto retornado pelo backend
+                // Para coleção existente, usamos o valor total retornado
+                if (isNewCollection)
+                {
+                    // Para coleção nova, o backend retorna o preço diário por foto em centavos,
+                    // então dividimos por 100 para exibir em reais.
+                    double dailyPricePerPhotoInReais = result.Content.DailyPricePerPhoto / 100.0;
+                    
+                    // Calcula o preço por mês (assumindo 30 dias por mês)
+                    int daysPerMonth = 30;
+                    double monthlyPricePerPhoto = dailyPricePerPhotoInReais * daysPerMonth;
+                    
+                    // Formata com 4 casas decimais e substitui ponto por vírgula (formato brasileiro)
+                    string monthlyPriceFormatted = monthlyPricePerPhoto.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                    HdStoragePriceText = Loc.Tr("Price per photo per month:") + $" R$ {monthlyPriceFormatted}";
+                }
+                else
+                {
+                    // Para coleção existente, o backend retorna o valor total em centavos,
+                    // então dividimos por 100 para exibir em reais.
+                    double totalPrice = result.Content.TotalValue / 100.0;
+                    HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
+                }
+            }
+            else
+            {
+                HdStoragePriceText = Loc.Tr("Error loading price");
+            }
+        }
+        catch (Exception ex)
+        {
+            HdStoragePriceText = Loc.Tr("Error loading price");
+        }
+        finally
+        {
+            IsLoadingHDStoragePrice = false;
+        }
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageThreeMonths()
+    {
+        CbHDStorageThreeMonths = true;
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageTwoYears()
+    {
+        CbHDStorageTwoYears = true;
+    }
+    
+    [RelayCommand]
+    private void SelectHDStorageFiveYears()
+    {
+        CbHDStorageFiveYears = true;
     }
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
@@ -333,16 +686,96 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnSelectedProfessionalChanged(Professional value)
     {
         // N�o volta para a �ltima view na primeira sele��o autom�tica
-        if (!isFirstProfessionalSelection)
+        if (value == null)
+            return;
+            
+        var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
+        
+        if (!isFirstProfessionalSelection && !wasViewingCollection)
         {
             BackLasViewCommand();
         }
         isFirstProfessionalSelection = false;
         
         if(SelectedCollection != null)
+        {
             SelectedCollection.professionalLogin = SelectedProfessional.username;
+            // Salvar a alteração do separador no servidor
+            _ = SaveCollectionSeparatorChange();
+        }
         CurrentProfessionalName = SelectedProfessional.username;
+        
+        // Se estava visualizando uma coleção, voltar para a view da coleção
+        if (wasViewingCollection)
+        {
+            ActiveComponent = ActiveViews.CollectionView;
+        }
     }
+    
+    private async Task SaveCollectionSeparatorChange()
+    {
+        if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
+            return;
+            
+        try
+        {
+            // Criar um ProfessionalTask apenas com as informações necessárias para atualizar o separador
+            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
+            ProfessionalTask pt = new ProfessionalTask()
+            {
+                professionalLogin = SelectedProfessional.username,
+                classCode = SelectedCollection.classCode,
+                companyUsername = SelectedCollection.companyUsername,
+                // Manter os valores atuais da coleção (normalizados)
+                originalClassFolder = SelectedCollection.originalClassFolder?.TrimEnd('\\', '/'),
+                originalEventsFolder = SelectedCollection.originalEventsFolder?.TrimEnd('\\', '/'),
+                originalRecFolder = SelectedCollection.originalRecFolder?.TrimEnd('\\', '/'),
+                UploadOnTestSystem = SelectedCollection.UploadOnTestSystem ?? false,
+                EnableFaceRelevanceDetection = SelectedCollection.EnableFaceRelevanceDetection,
+                AutoTreatment = SelectedCollection.AutoTreatment,
+                UploadPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted,
+                AllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos,
+                UploadHD = SelectedCollection.UploadHD,
+                UploadComplete = SelectedCollection.UploadComplete,
+                Description = SelectedCollection.Description,
+                EnablePhotosSales = SelectedCollection.EnablePhotosSales,
+                PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
+                OCR = SelectedCollection.OCR,
+                AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
+            };
+            
+            // Salvar o classCode antes de atualizar a lista (para evitar NullReferenceException)
+            var currentClassCode = SelectedCollection.classCode;
+            
+            // Atualizar apenas o separador (sem alterar as fotos)
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
+            if (r != null && r.success)
+            {
+                // Atualizar a lista de coleções para refletir a mudança
+                await UpdateProfessionalTasksList();
+                // Atualizar a coleção selecionada com os dados atualizados
+                // CORREÇÃO: Usar o classCode salvo ao invés de acessar SelectedCollection.classCode
+                // pois SelectedCollection pode ficar null após UpdateProfessionalTasksList()
+                if (!string.IsNullOrEmpty(currentClassCode))
+                {
+                    var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == currentClassCode);
+                    if (updatedCollection != null)
+                    {
+                        SelectedCollection = updatedCollection;
+                    }
+                }
+            }
+            else
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Erro ao atualizar o separador da coleção.");
+            }
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao salvar alteração do separador: {ex.Message}");
+        }
+    }
+    
     [ObservableProperty] public string currentProfessionalName;
 
     //FREE TRIAL PROPERTIES
@@ -398,6 +831,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public CollectionsViewModel()
     {
+        Instance = this;
         LoadProfessionalTasks();
         
         // CORREÇÃO: Inicializa o texto do botão e escuta mudanças de idioma
@@ -406,6 +840,9 @@ public partial class CollectionsViewModel : ViewModelBase
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
+        
+        // Observar mudanças nas mensagens não lidas para decidir view inicial
+        InitializeMessagesViewLogic();
         
         System.Timers.Timer timerUpdateView = new System.Timers.Timer();
         timerUpdateView.Interval = 60000;
@@ -417,6 +854,170 @@ public partial class CollectionsViewModel : ViewModelBase
             }
         };
         timerUpdateView.Start();
+    }
+    
+    private bool _hasCheckedInitialMessages = false;
+    private bool _userManuallyNavigatedToMessages = false;
+    
+    /// <summary>
+    /// Inicializa a lógica de observação de mensagens não lidas para decidir qual view mostrar
+    /// </summary>
+    private void InitializeMessagesViewLogic()
+    {
+        // Aguardar um pouco para garantir que o MainWindowViewModel foi inicializado e carregou as mensagens
+        Task.Run(async () =>
+        {
+            // Aguardar até que o MainWindowViewModel esteja disponível
+            MainWindowViewModel? mainVM = null;
+            int attempts = 0;
+            while (mainVM == null && attempts < 50) // Máximo 5 segundos
+            {
+                await Task.Delay(100);
+                mainVM = MainWindowViewModel.Instance;
+                attempts++;
+            }
+            
+            if (mainVM == null)
+            {
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel não encontrado após inicialização");
+                return;
+            }
+            
+            // Aguardar até que as mensagens sejam carregadas da API (ou timeout)
+            // Isso garante que a decisão de qual view mostrar seja baseada na resposta real da API
+            int maxWaitAttempts = 100; // Máximo 10 segundos (100 * 100ms)
+            int waitAttempts = 0;
+            bool messagesLoaded = false;
+            
+            while (!messagesLoaded && waitAttempts < maxWaitAttempts)
+            {
+                await Task.Delay(100);
+                waitAttempts++;
+                
+                // Verificar se as mensagens foram carregadas
+                try
+                {
+                    messagesLoaded = mainVM.MessagesLoaded;
+                }
+                catch
+                {
+                    // Se houver erro ao verificar, continuar aguardando
+                }
+            }
+            
+            if (!messagesLoaded)
+            {
+                Console.WriteLine("CollectionsViewModel: Timeout aguardando carregamento de mensagens. Usando estado padrão (welcome).");
+            }
+            
+            // Verificar estado inicial das mensagens apenas uma vez na inicialização
+            // Agora que as mensagens foram carregadas (ou timeout), podemos decidir qual view mostrar
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (!_hasCheckedInitialMessages)
+                {
+                    CheckAndUpdateInitialView(mainVM, isInitialCheck: true);
+                    _hasCheckedInitialMessages = true;
+                }
+            });
+            
+            // Observar mudanças futuras em ShouldShowMessagesOnStartup usando PropertyChanged
+            // Criar um observador que verifica quando a propriedade muda
+            System.Timers.Timer messagesCheckTimer = new System.Timers.Timer();
+            messagesCheckTimer.Interval = 2000; // Verificar a cada 2 segundos (menos agressivo)
+            bool lastState = mainVM.ShouldShowMessagesOnStartup;
+            messagesCheckTimer.Elapsed += (s, e) =>
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (mainVM.ShouldShowMessagesOnStartup != lastState)
+                    {
+                        lastState = mainVM.ShouldShowMessagesOnStartup;
+                        CheckAndUpdateInitialView(mainVM, isInitialCheck: false);
+                    }
+                }, DispatcherPriority.Background);
+            };
+            messagesCheckTimer.Start();
+        });
+    }
+    
+    /// <summary>
+    /// Verifica se deve mostrar a view de mensagens ou welcome baseado em mensagens não lidas
+    /// </summary>
+    private void CheckAndUpdateInitialView(MainWindowViewModel mainVM, bool isInitialCheck)
+    {
+        try
+        {
+            // Verificar se mainVM é válido
+            if (mainVM == null)
+            {
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel é null ao verificar view inicial");
+                // Em caso de erro, garantir que mostra welcome (padrão seguro)
+                if (isInitialCheck && ActiveComponent != ActiveViews.NewsView)
+                {
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+                return;
+            }
+
+            if (isInitialCheck)
+            {
+                // Na inicialização: se houver mensagens não lidas, mostrar mensagens
+                // Se houver erro (ShouldShowMessagesOnStartup retorna false), mostrar welcome
+                try
+                {
+                    if (mainVM.ShouldShowMessagesOnStartup)
+                    {
+                        ActiveComponent = ActiveViews.MessagesView;
+                    }
+                    else
+                    {
+                        // Se não houver mensagens ou houver erro, garantir que mostra welcome
+                        ActiveComponent = ActiveViews.NewsView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar ShouldShowMessagesOnStartup: {ex.Message}");
+                    // Em caso de erro, mostrar welcome por padrão
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+            }
+            else
+            {
+                // Após inicialização: se todas as mensagens foram lidas e estamos em MessagesView,
+                // voltar para NewsView (mas só se não foi navegação manual)
+                try
+                {
+                    if (!mainVM.ShouldShowMessagesOnStartup && ActiveComponent == ActiveViews.MessagesView && !_userManuallyNavigatedToMessages)
+                    {
+                        ActiveComponent = ActiveViews.NewsView;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar mudança de estado: {ex.Message}");
+                    // Em caso de erro, não fazer nada (manter estado atual)
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"CollectionsViewModel: Erro ao verificar view inicial: {ex.Message}");
+            // Em caso de erro geral, garantir que mostra welcome (padrão seguro)
+            if (isInitialCheck)
+            {
+                try
+                {
+                    ActiveComponent = ActiveViews.NewsView;
+                }
+                catch
+                {
+                    // Se nem isso funcionar, pelo menos logar
+                    Console.WriteLine("CollectionsViewModel: Erro crítico ao definir view inicial");
+                }
+            }
+        }
     }
     
     /// <summary>
@@ -756,6 +1357,12 @@ public partial class CollectionsViewModel : ViewModelBase
 
             SelectedCollectionIsCanceled = SelectedCollection?.BillingCancelled == true ? true : false;
 
+            // Notificar mudanças nas propriedades calculadas da data de deleção
+            OnPropertyChanged(nameof(IsDeletionDateNear));
+            OnPropertyChanged(nameof(DeletionDateForeground));
+            OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+            OnPropertyChanged(nameof(DeletionDateFontWeight));
+
             UpdateSeparationProgress();
 
             if(ServerProgressValues?.done >= ServerProgressValues?.total)
@@ -857,8 +1464,8 @@ public partial class CollectionsViewModel : ViewModelBase
         }
 
         // Validação: Verificar se há pelo menos 1 foto na pasta de reconhecimento
-        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true)
-        if (!(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
+        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true) ou quando for apenas tratamento
+        if (!(pt.IsTreatmentOnly ?? false) && !(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
         {
             return (false, "É necessário ter pelo menos 1 foto na pasta de reconhecimento para criar a coleção. Se as fotos já foram separadas, marque a opção 'Fotos já foram separadas'.");
         }
@@ -950,6 +1557,13 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 classFolder = inputDir;
             }
+            // Se for apenas tratamento, não buscar pasta de reconhecimentos
+            if (IsTreatmentOnlyCombo)
+            {
+                TbRecFolder = "";
+                return;
+            }
+
             DirectoryInfo parentFolder = classFolder.Parent;
 
             if (parentFolder == null)
@@ -1074,6 +1688,12 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     public void UpdateGraduateDataFromFile(FileInfo f)
     {
+        // Se for apenas tratamento, não processar dados de reconhecimento
+        if (IsTreatmentOnlyCombo)
+        {
+            return;
+        }
+
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
@@ -1226,7 +1846,21 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void BackLasViewCommand()
     {
-        ActiveComponent = lastActiveComponent;
+        // Se estávamos em MessagesView e tinha uma coleção selecionada antes, restaurar
+        if (ActiveComponent == ActiveViews.MessagesView && _lastSelectedCollection != null)
+        {
+            // Restaurar a coleção selecionada antes de mudar a view
+            // (evita que OnActiveComponentChanged limpe a referência)
+            var collectionToRestore = _lastSelectedCollection;
+            _lastSelectedCollection = null;
+            
+            ActiveComponent = lastActiveComponent;
+            SelectedCollection = collectionToRestore;
+        }
+        else
+        {
+            ActiveComponent = lastActiveComponent;
+        }
     }
     [RelayCommand]
     public void OpenQuickAccessViewCommand()
@@ -1276,6 +1910,13 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        CbUploadedPhotosAreAlreadySortedIsDisabled = false;
+        
+        // Resetar propriedades de armazenamento HD
+        IsHDStorageOptionsVisible = false;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
+        CbHDStorageFiveYears = false;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -1311,6 +1952,13 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        CbUploadedPhotosAreAlreadySortedIsDisabled = false;
+        
+        // Resetar propriedades de armazenamento HD
+        IsHDStorageOptionsVisible = false;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
+        CbHDStorageFiveYears = false;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1348,6 +1996,12 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupErrorMessage = string.Empty;
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
+        
+        // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
+        IsHDStorageOptionsVisible = options.BackupHd == true;
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
+        CbHDStorageFiveYears = options.BackupHd == true ? true : false;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -1376,6 +2030,8 @@ public partial class CollectionsViewModel : ViewModelBase
             TbEventFolder = SelectedCollection.originalEventsFolder;
             TbRecFolder = SelectedCollection.originalRecFolder;
             CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
+            // Desabilitar a opção de "já estão separados" durante reupload
+            CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
@@ -1426,6 +2082,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbEnableAutoTreatmentErrorMessage = string.Empty;
                 CanAddCPFs = true;
                 CPFsErrorMessage = string.Empty;
+                // Manter desabilitado durante reupload
+                CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             }
             
             LoadGraduatesData(SelectedCollection);
@@ -1439,17 +2097,195 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()
     {
-        SelectedCollection = null;
+        // Não limpar SelectedCollection se estiver visualizando uma coleção
+        // Isso permite trocar o separador de uma coleção existente
+        var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
+        
+        if (!wasViewingCollection)
+        {
+            SelectedCollection = null;
+        }
+        
         ActiveComponent = ActiveViews.SelectProfessional;
         if(Professionals == null || Professionals.Count == 0)
             await LoadProfessionals();
-        if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+        
+        // Se estiver visualizando uma coleção, selecionar o profissional atual da coleção
+        if (wasViewingCollection && SelectedCollection != null)
+        {
+            var currentProfessional = Professionals?.FirstOrDefault(p => p.username == SelectedCollection.professionalLogin);
+            if (currentProfessional != null)
+            {
+                SelectedProfessional = currentProfessional;
+            }
+            else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+            {
+                SelectedProfessional = Professionals[0];
+            }
+        }
+        else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+        {
             SelectedProfessional = Professionals[0];
+        }
     }
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
+        // Não limpar SelectedCollection para manter a coleção selecionada na tela de cancelamento
         ActiveComponent = ActiveViews.CancelBilling;
+    }
+
+    /// <summary>
+    /// Atualiza um objeto ProfessionalTask na lista com os dados atualizados do servidor
+    /// Mantém a referência do objeto para evitar problemas de seleção na UI
+    /// </summary>
+    private void UpdateCollectionInList(ProfessionalTask updatedCollection, string classCode)
+    {
+        if (updatedCollection == null || string.IsNullOrEmpty(classCode))
+            return;
+
+        // Encontrar o objeto na lista CollectionsList pelo classCode
+        var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == classCode);
+        if (collectionInList != null)
+        {
+            // Atualizar todas as propriedades relevantes do objeto na lista
+            // Isso mantém a referência do objeto, evitando problemas de seleção
+            collectionInList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
+            collectionInList.BillingCancelled = updatedCollection.BillingCancelled;
+            collectionInList.UploadComplete = updatedCollection.UploadComplete;
+            collectionInList.UploadHD = updatedCollection.UploadHD;
+            collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
+            collectionInList.OCR = updatedCollection.OCR;
+            collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.Status = updatedCollection.Status;
+            collectionInList.StorageLocation = updatedCollection.StorageLocation;
+            collectionInList.CreationDate = updatedCollection.CreationDate;
+            collectionInList.DeletionDate = updatedCollection.DeletionDate;
+            collectionInList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
+            collectionInList.IsDeleted = updatedCollection.IsDeleted;
+            collectionInList.recognitionPhotos = updatedCollection.recognitionPhotos;
+            collectionInList.eventPhotos = updatedCollection.eventPhotos;
+            collectionInList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
+            
+            // Atualizar também na lista filtrada se existir
+            var collectionInFilteredList = CollectionsListFiltered.FirstOrDefault(c => c.classCode == classCode);
+            if (collectionInFilteredList != null)
+            {
+                collectionInFilteredList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
+                collectionInFilteredList.BillingCancelled = updatedCollection.BillingCancelled;
+                collectionInFilteredList.UploadComplete = updatedCollection.UploadComplete;
+                collectionInFilteredList.UploadHD = updatedCollection.UploadHD;
+                collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
+                collectionInFilteredList.OCR = updatedCollection.OCR;
+                collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.Status = updatedCollection.Status;
+                collectionInFilteredList.StorageLocation = updatedCollection.StorageLocation;
+                collectionInFilteredList.CreationDate = updatedCollection.CreationDate;
+                collectionInFilteredList.DeletionDate = updatedCollection.DeletionDate;
+                collectionInFilteredList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
+                collectionInFilteredList.IsDeleted = updatedCollection.IsDeleted;
+                collectionInFilteredList.recognitionPhotos = updatedCollection.recognitionPhotos;
+                collectionInFilteredList.eventPhotos = updatedCollection.eventPhotos;
+                collectionInFilteredList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
+            }
+        }
+    }
+
+    public async Task OpenChangeDeletionDateDialogCommand()
+    {
+        if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
+            return;
+
+        // Salvar o classCode antes de abrir o diálogo
+        var currentClassCode = SelectedCollection.classCode;
+
+        try
+        {
+            var viewModel = new ChangeDeletionDateViewModel(
+                GlobalAppStateViewModel.lfc,
+                SelectedCollection,
+                async () =>
+                {
+                    try
+                    {
+                        // Busca a coleção atualizada do servidor
+                        var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(currentClassCode);
+                        if (updatedCollection != null)
+                        {
+                            // Atualizar o objeto na lista com os dados do servidor
+                            // Isso mantém a referência do objeto, evitando problemas de seleção
+                            UpdateCollectionInList(updatedCollection, currentClassCode);
+                            
+                            // Garantir que SelectedCollection ainda aponta para o objeto na lista
+                            // Se o classCode ainda corresponde, manter a referência atual
+                            if (SelectedCollection?.classCode == currentClassCode)
+                            {
+                                // Encontrar o objeto atualizado na lista
+                                var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == currentClassCode);
+                                if (collectionInList != null && SelectedCollection != collectionInList)
+                                {
+                                    // Atualizar a referência apenas se for diferente
+                                    // Isso notifica a UI sem perder a seleção
+                                    _isUpdatingSelectedCollection = true;
+                                    SelectedCollection = collectionInList;
+                                    _isUpdatingSelectedCollection = false;
+                                }
+                                else if (collectionInList != null)
+                                {
+                                    // Se já é a mesma referência, apenas notificar mudanças nas propriedades
+                                    // Isso força a UI a atualizar sem perder a seleção
+                                    OnPropertyChanged(nameof(SelectedCollection));
+                                }
+                            }
+                            
+                            // Atualizar a view da coleção selecionada de forma síncrona
+                            await Dispatcher.UIThread.InvokeAsync(() =>
+                            {
+                                UpdateCollectionViewSelected();
+                                
+                                // Notificar mudanças nas propriedades relacionadas à data de deleção
+                                OnPropertyChanged(nameof(IsDeletionDatePassed));
+                                OnPropertyChanged(nameof(IsDeletionDateNear));
+                                OnPropertyChanged(nameof(DeletionDateForeground));
+                                OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
+                                OnPropertyChanged(nameof(DeletionDateFontWeight));
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao atualizar a coleção: {ex.Message}", Loc.Tr("Error"));
+                        });
+                    }
+                }
+            );
+
+            var dialog = new ChangeDeletionDateWindow
+            {
+                DataContext = viewModel
+            };
+            
+            viewModel.SetWindow(dialog);
+
+            // Carrega o preço após o modal estar carregado
+            _ = viewModel.LoadInitialPriceAsync();
+
+            await dialog.ShowDialog(MainWindow.instance);
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error"));
+        }
+    }
+    
+    [RelayCommand]
+    public async Task DeleteClassCommand()
+    {
+        // Placeholder - funcionalidade será implementada posteriormente
+        // Por enquanto apenas mostra uma mensagem
+        await Task.CompletedTask;
     }
     [RelayCommand]
     public async Task CreateCollectionCommand()
@@ -1461,6 +2297,26 @@ public partial class CollectionsViewModel : ViewModelBase
 
 
             IsCreatingCollection = true;
+            
+            // Valida o diretório de downloads PRIMEIRO, antes de qualquer outra validação
+            // Esta validação DEVE bloquear a criação se o diretório não estiver válido
+            var (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
+            if (!isValid)
+            {
+                // Se o diretório não estiver válido, mostra o diálogo e força a seleção
+                await GlobalAppStateViewModel.Instance.ValidateAndPromptDownloadDirectoryIfNeeded();
+                
+                // Verifica NOVAMENTE após o diálogo - se ainda não estiver válido, BLOQUEIA
+                (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
+                if (!isValid)
+                {
+                    // Se ainda não estiver válido após o diálogo, mostra erro e bloqueia a criação
+                    // Isso garante que a coleção NUNCA será criada sem um diretório válido
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(errorMessage + "\n\n" + "Não é possível criar a coleção sem um diretório de downloads válido.");
+                    return;
+                }
+            }
+            
             if (!IsTextAllowed(TbCollectionName))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("The class code can only contain letters and numbers"));
@@ -1485,12 +2341,27 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             if (CheckIfClassAlreadyExists(TbCollectionName))
             {
-                var result = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(Loc.Tr("This contract name already exists...", "This contract name already exists, do you want to update it?"));
-                if(result != true)
-                    return;
+                var dialog = new ReuploadWarningDialog();
+                if (MainWindow.instance != null)
+                {
+                    await dialog.ShowDialog(MainWindow.instance);
+                    if (dialog.Result != true)
+                        return;
+                }
+                else
+                {
+                    var result = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(Loc.Tr("This contract name already exists...", "This contract name already exists, do you want to update it?"));
+                    if(result != true)
+                        return;
+                }
             }
 
             CollectionCreationQueue.Enqueue(TbCollectionName);
+            
+            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
+            var normalizedEventFolder = TbEventFolder?.TrimEnd('\\', '/') ?? string.Empty;
+            var normalizedRecFolder = IsTreatmentOnlyCombo ? string.Empty : (TbRecFolder?.TrimEnd('\\', '/') ?? string.Empty);
+            
             ProfessionalTask pt = new ProfessionalTask()
             {
                 professionalLogin = CurrentProfessionalName,
@@ -1498,8 +2369,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 classCode = TbCollectionName,
                 UploadOnTestSystem = CbUploadOnTestSystem ?? false,
                 companyUsername = GlobalAppStateViewModel.lfc.loginResult.User.company,
-                originalEventsFolder = TbEventFolder,
-                originalRecFolder = IsTreatmentOnlyCombo ? string.Empty : TbRecFolder,
+                originalEventsFolder = normalizedEventFolder,
+                originalRecFolder = normalizedRecFolder,
                 EnableFaceRelevanceDetection = CbEnableAutoExclusion,
                 AutoTreatment = CbEnableAutoTreatment,
                 UploadPhotosAreAlreadySorted = CbUploadedPhotosAreAlreadySorted,
@@ -1511,11 +2382,19 @@ public partial class CollectionsViewModel : ViewModelBase
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 OCR = CbOcr,
                 AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
-                
+
+                 IsTreatmentOnly = IsTreatmentOnlyCombo,
             };
             if (CbEnableAutoTreatment == true)
             {
                 pt.AutoTreatmentVersion = "2.0";
+            }
+
+            // Definir data de deleção agendada baseada na opção de armazenamento HD selecionada
+            if (CbHDBackup == true && SelectedHdStorageDate.HasValue)
+            {
+                // Armazenar a data de deleção com 5 horas a mais, para manter 05:00 em vez de 00:00
+                pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             }
 
             var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
@@ -1544,8 +2423,16 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
 
-            var eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(pt.originalEventsFolder.Length)).ToList();
-            var recFilesShortPaths = recFiles.Select(x => x.FullName.Substring(pt.originalRecFolder.Length)).ToList();
+            // CORREÇÃO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
+            // O Beta não tem barra final no originalEventsFolder, então os shortPaths ficam com \ no início
+            // O Alpha tinha barra final, então os shortPaths ficavam sem \ no início, causando duplicação no backend
+            var eventsBase = pt.originalEventsFolder.TrimEnd('\\', '/');
+            var recBase = string.IsNullOrEmpty(pt.originalRecFolder) ? "" : pt.originalRecFolder.TrimEnd('\\', '/');
+            
+            var eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(eventsBase.Length)).ToList();
+            var recFilesShortPaths = string.IsNullOrEmpty(recBase) 
+                ? new List<string>() 
+                : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
             bool shouldNotifyPipedriveAboutFirstUse = false;
             bool shouldNotifyPipedriveAboutFreeTrial50PercentReached = false;
@@ -1565,7 +2452,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Voc� esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estar�o sujeitas a cobran�a.", "Limite m�ximo de fotos gratuitas atingido.");
+                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
                     if (dialog != true)
                         return;
                 }
@@ -1595,6 +2482,13 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 if(RemainingFreeTrialPhotosResult.IsFreeTrialActive == true)
                     GetInfosAboutFreeTrialPeriod();
+                
+                // Verifica se há novas mensagens após criar a turma
+                // Se houver mais mensagens não lidas do que antes, abre o componente de mensagens
+                if (MainWindowViewModel.Instance != null)
+                {
+                    _ = MainWindowViewModel.Instance.CheckForNewMessagesAfterCollectionCreationAsync();
+                }
 
             }
             else
@@ -1619,12 +2513,84 @@ public partial class CollectionsViewModel : ViewModelBase
             IsCreatingCollection = false;
         }
     }
+
+    /// <summary>
+    /// Verifica se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor.
+    /// Se houver divergência, atualiza a contagem de fotos via endpoint UpdateCollectionPhotoCount.
+    /// </summary>
+    /// <returns>True se pode prosseguir com a operação, False se houve erro na atualização</returns>
+    private async Task<bool> VerifyAndUpdatePhotoCountIfNeeded()
+    {
+        if (SelectedCollection == null || ServerProgressValues == null)
+            return true;
+
+        // Total de fotos da coleção (somatório de fotos de reconhecimento + eventos)
+        int collectionTotalPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
+        
+        // Total de fotos do reconhecimento no servidor (ServerProgress.total)
+        int serverTotalPhotos = ServerProgressValues.total ?? 0;
+
+        // Se os valores são iguais, segue o fluxo normal
+        if (collectionTotalPhotos == serverTotalPhotos)
+            return true;
+
+        // Valores diferentes - precisa atualizar a contagem de fotos
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.UpdateCollectionPhotoCount(SelectedCollection.classCode);
+            
+            if (result != null && result.success)
+            {
+                // Atualização bem-sucedida - atualiza a lista de coleções para refletir as mudanças
+                var classCodeToUpdate = SelectedCollection.classCode;
+                await UpdateProfessionalTasksList();
+                
+                // Restaurar a coleção selecionada após atualizar a lista
+                if (!string.IsNullOrEmpty(classCodeToUpdate))
+                {
+                    var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == classCodeToUpdate);
+                    if (updatedCollection != null)
+                    {
+                        SelectedCollection = updatedCollection;
+                    }
+                }
+                
+                // Atualiza os valores locais e as barras de progresso
+                await UpdateProgressBars();
+                return true;
+            }
+            else
+            {
+                // Não foi possível atualizar a contagem, mas o fluxo continua normalmente
+                // Mostra mensagem amigável informando que pode continuar
+                var message = result?.message;
+                if (string.IsNullOrEmpty(message))
+                {
+                    message = "Não foi possível sincronizar a contagem de fotos automaticamente, mas você pode continuar normalmente.";
+                }
+                else
+                {
+                    message = $"{message}\n\nVocê pode continuar normalmente com a operação.";
+                }
+                GlobalAppStateViewModel.Instance.ShowDialogOk(message);
+                return true; // Continua o fluxo mesmo se não conseguiu atualizar
+            }
+        }
+        catch (Exception ex)
+        {
+            // Em caso de exceção, também continua o fluxo com mensagem amigável
+            GlobalAppStateViewModel.Instance.ShowDialogOk(
+                "Não foi possível verificar a contagem de fotos automaticamente, mas você pode continuar normalmente com a operação.");
+            return true; // Continua o fluxo mesmo em caso de erro
+        }
+    }
+
     [RelayCommand]
     public async Task TagSortCommand() 
     {
         try
         {
-             // Validação: verificar se SelectedCollection não é null antes de usar
+            // Validação: verificar se SelectedCollection não é null antes de usar
             if (SelectedCollection == null)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleção selecionada. Por favor, selecione uma coleção antes de usar Tag/Sort.");
@@ -1632,6 +2598,11 @@ public partial class CollectionsViewModel : ViewModelBase
             }
 
             BtTagSortIsRunning = true;
+
+            // Verificar se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor
+            if (!await VerifyAndUpdatePhotoCountIfNeeded())
+                return;
+
             if (SelectedSeparationFile != null)
             {
                 BtTagSortIsEnabled = false;
@@ -1803,6 +2774,12 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void InsertDataBasedOnRecFolderCommand()
     {
+        // Se for apenas tratamento, não buscar dados de reconhecimento
+        if (IsTreatmentOnlyCombo)
+        {
+            return;
+        }
+
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
@@ -1812,7 +2789,7 @@ public partial class CollectionsViewModel : ViewModelBase
         
         if (Directory.Exists(TbRecFolder) == false)
         {
-            //MessageBox.Show("A pasta de reconhecimentos especificada n�o existe.");
+            //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
             return;
         }
         var gradPhotos = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
@@ -1852,6 +2829,12 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
+            // Se for apenas tratamento, não permitir gerar Excel baseado em reconhecimento
+            if (IsTreatmentOnlyCombo)
+            {
+                return;
+            }
+
             // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
             if (!CanAddCPFs)
             {
@@ -1950,7 +2933,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
                 return;
             }
-
+            
             if (SelectedCollectionForCancelBilling == null)
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma item para para continuar.");
@@ -2330,8 +3313,6 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar combos dinâmicos: {ex.Message}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             // Em caso de erro, usar combos estáticos
             LoadStaticCombos();
         }

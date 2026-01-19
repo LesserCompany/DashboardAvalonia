@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
@@ -6,12 +6,16 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Models;
+using SharedClientSide.ServerInteraction.Users.Results;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.ViewModels.Options;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -43,6 +47,39 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     public string titleApp;
 
+    [ObservableProperty]
+    private int unreadMessagesCount = 0;
+
+    [ObservableProperty]
+    private ObservableCollection<UserMessage> userMessages = new();
+
+    /// <summary>
+    /// Indica se as mensagens já foram carregadas da API (mesmo que vazias)
+    /// </summary>
+    private bool _messagesLoaded = false;
+    
+    /// <summary>
+    /// Guarda o número de mensagens não lidas antes da última verificação (para detectar novas mensagens)
+    /// </summary>
+    private int _previousUnreadMessagesCount = 0;
+    
+    /// <summary>
+    /// Indica se as mensagens já foram carregadas da API
+    /// </summary>
+    public bool MessagesLoaded => _messagesLoaded;
+
+    [ObservableProperty]
+    private int selectedTabIndex = 0;
+
+    public bool HasUnreadMessages => UnreadMessagesCount > 0;
+
+    /// <summary>
+    /// Mensagens ordenadas: não lidas primeiro, depois por data decrescente
+    /// </summary>
+    public IEnumerable<UserMessage> SortedUserMessages => UserMessages
+        .OrderBy(m => m.IsRead)
+        .ThenByDescending(m => m.CreatedDate);
+
     public MainWindowViewModel()
     {
         Instance = this;
@@ -53,6 +90,59 @@ public partial class MainWindowViewModel : ViewModelBase
         
         // Define o título da janela com o modo de build
         TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
+        
+        // Carrega mensagens do usuário ao inicializar
+        _ = LoadUserMessagesAsync();
+        
+        // Atualiza periodicamente as mensagens (a cada 30 segundos)
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        timer.Tick += async (s, e) => await LoadUserMessagesAsync();
+        timer.Start();
+    }
+    
+    partial void OnUnreadMessagesCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(HasUnreadMessages));
+        // Notifica que o estado de mensagens não lidas mudou
+        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+    }
+
+    partial void OnUserMessagesChanged(ObservableCollection<UserMessage> value)
+    {
+        OnPropertyChanged(nameof(SortedUserMessages));
+        // Notifica que o estado de mensagens não lidas mudou
+        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+    }
+
+    /// <summary>
+    /// Indica se deve mostrar a tela de mensagens na inicialização
+    /// (true se houver pelo menos uma mensagem não lida)
+    /// Retorna false em caso de erro ou se não houver mensagens carregadas
+    /// </summary>
+    public bool ShouldShowMessagesOnStartup
+    {
+        get
+        {
+            try
+            {
+                // Se UserMessages for null ou vazio, não mostrar mensagens (mostrar welcome)
+                if (UserMessages == null || UserMessages.Count == 0)
+                {
+                    return false;
+                }
+                
+                // Verificar se há mensagens não lidas
+                return HasUnreadMessages;
+            }
+            catch
+            {
+                // Em caso de qualquer erro, mostrar welcome por padrão
+                return false;
+            }
+        }
     }
     private string GetParentFolderName()
     {
@@ -160,11 +250,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     {
                         var oldWindow = desktop.MainWindow;
                         
-                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
-                        App.ReapplySettings();
-                        
-                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
-                        await Task.Delay(100);
+                        // NÃO reinicializar configurações - elas já estão aplicadas
+                        // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
                         // Cria e mostra uma nova janela de login
                         var authWindow = new AuthWindow();
@@ -270,7 +357,7 @@ public partial class MainWindowViewModel : ViewModelBase
             else
             {
                 // Fallback: tentar usar AppInstaller se não encontrar versão específica
-                //versão hardcoded: 188
+                // Versão hardcoded: 188
                 SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { }, "188");
                 await installer.startApp();
             }
@@ -278,6 +365,294 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             throw new Exception($"Não foi possível localizar ou executar a versão anterior do dashboard: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Carrega as mensagens não lidas do usuário do servidor
+    /// A lógica de verificar se precisa carregar está aqui, não na View
+    /// </summary>
+    public async Task LoadUserMessagesAsync(bool forceReload = false)
+    {
+        try
+        {
+            // Regra de negócio: só recarrega se forçado ou se não houver mensagens
+            if (!forceReload && UserMessages != null && UserMessages.Count > 0)
+            {
+                return;
+            }
+
+            // Verificar se o cliente está disponível
+            if (GlobalAppStateViewModel.lfc == null)
+            {
+                Console.WriteLine("LoadUserMessagesAsync: LesserFunctionClient não está disponível");
+                // Garantir que ShouldShowMessagesOnStartup retorne false em caso de erro
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
+            var result = await GlobalAppStateViewModel.lfc.GetUserNotifications<UserMessage>();
+            
+            // Tratar casos de erro ou null
+            if (result == null)
+            {
+                Console.WriteLine("LoadUserMessagesAsync: Resultado da API é null");
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
+            if (!result.success)
+            {
+                Console.WriteLine($"LoadUserMessagesAsync: API retornou erro - {result.message ?? "Erro desconhecido"}");
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+
+            if (result.Content == null)
+            {
+                Console.WriteLine("LoadUserMessagesAsync: Content da resposta é null");
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Limpar mensagens existentes se houver erro
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+                return;
+            }
+            
+            // Sucesso: processar mensagens
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    UserMessages.Clear();
+                    
+                    foreach (var message in result.Content)
+                    {
+                        // Garantir que MessageType tenha um valor padrão se não vier da API
+                        if (string.IsNullOrEmpty(message.MessageType))
+                        {
+                            message.MessageType = "info";
+                        }
+                        
+                        UserMessages.Add(message);
+                    }
+                    
+                    // Atualiza a contagem de mensagens não lidas
+                    UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                    
+                    // Marcar que as mensagens foram carregadas (mesmo que vazias)
+                    _messagesLoaded = true;
+                    
+                    // Notifica mudança na coleção ordenada
+                    OnPropertyChanged(nameof(SortedUserMessages));
+                    
+                    // Notifica mudança no estado de mensagens não lidas (para decidir view inicial)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                }
+                catch (Exception innerEx)
+                {
+                    Console.WriteLine($"Erro ao processar mensagens: {innerEx.Message}");
+                    // Em caso de erro ao processar, garantir estado seguro
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao carregar mensagens do usuário: {ex.Message}");
+            // Em caso de exceção, garantir que ShouldShowMessagesOnStartup retorne false
+            try
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    UserMessages?.Clear();
+                    UnreadMessagesCount = 0;
+                    _messagesLoaded = true; // Marcar como carregado mesmo com erro (para não ficar esperando)
+                    OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    OnPropertyChanged(nameof(MessagesLoaded));
+                });
+            }
+            catch
+            {
+                // Se nem isso funcionar, pelo menos logar
+                Console.WriteLine("Erro crítico ao limpar estado de mensagens após exceção");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Marca uma mensagem específica como lida
+    /// </summary>
+    [RelayCommand]
+    public async Task MarkMessageAsReadAsync(string messageId)
+    {
+        try
+        {
+            var message = UserMessages.FirstOrDefault(m => m.Id == messageId);
+            if (message != null && !message.IsRead)
+            {
+                // Chama o endpoint para marcar como visualizada no servidor
+                var result = await GlobalAppStateViewModel.lfc.MarkUserNotificationAsViewed(messageId);
+                
+                if (result != null && result.success)
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        message.IsRead = true;
+                        UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                        // Notifica mudança na coleção ordenada
+                        OnPropertyChanged(nameof(SortedUserMessages));
+                        // Notifica mudança no estado de mensagens não lidas
+                        OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao marcar mensagem como lida: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Marca todas as mensagens como lidas
+    /// </summary>
+    [RelayCommand]
+    public async Task MarkAllMessagesAsReadAsync()
+    {
+        try
+        {
+            var unreadMessages = UserMessages.Where(m => !m.IsRead).ToList();
+            
+            // Marca cada mensagem não lida no servidor
+            foreach (var message in unreadMessages)
+            {
+                var result = await GlobalAppStateViewModel.lfc.MarkUserNotificationAsViewed(message.Id);
+                if (result != null && result.success)
+                {
+                    message.IsRead = true;
+                }
+            }
+            
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                UnreadMessagesCount = UserMessages.Count(m => !m.IsRead);
+                // Notifica mudança na coleção ordenada
+                OnPropertyChanged(nameof(SortedUserMessages));
+                // Notifica mudança no estado de mensagens não lidas
+                OnPropertyChanged(nameof(ShouldShowMessagesOnStartup));
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao marcar todas mensagens como lidas: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Comando para abrir a página de mensagens do usuário
+    /// </summary>
+    [RelayCommand]
+    public void OpenMessagesCommand()
+    {
+        try
+        {
+            // Navega para a aba de Collections (índice 0)
+            SelectedTabIndex = 0;
+            
+            // Aguarda um pouco para garantir que a aba foi trocada antes de mudar a view
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Abre a view de mensagens
+                var collectionsViewModel = CollectionsViewModel.Instance;
+                if (collectionsViewModel != null)
+                {
+                    collectionsViewModel.ActiveComponent = CollectionsViewModel.ActiveViews.MessagesView;
+                }
+            }, DispatcherPriority.Background);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao abrir mensagens: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Verifica se há novas mensagens não lidas após criar uma turma.
+    /// Se houver MAIS mensagens não lidas do que antes, abre o componente de mensagens.
+    /// Se o número for o mesmo ou menor, não abre.
+    /// </summary>
+    public async Task CheckForNewMessagesAfterCollectionCreationAsync()
+    {
+        try
+        {
+            // Guarda o número atual de mensagens não lidas antes de recarregar
+            int previousCount = UnreadMessagesCount;
+            
+            // Recarrega as mensagens do servidor
+            await LoadUserMessagesAsync();
+            
+            // Após carregar, verifica se há MAIS mensagens não lidas do que antes
+            int newCount = UnreadMessagesCount;
+            
+            if (newCount > previousCount)
+            {
+                // Há novas mensagens! Abre o componente de mensagens
+                Console.WriteLine($"Novas mensagens detectadas: {previousCount} -> {newCount}. Abrindo componente de mensagens.");
+                
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    // Navega para a aba de Collections (índice 0)
+                    SelectedTabIndex = 0;
+                    
+                    // Abre a view de mensagens
+                    var collectionsViewModel = CollectionsViewModel.Instance;
+                    if (collectionsViewModel != null)
+                    {
+                        collectionsViewModel.ActiveComponent = CollectionsViewModel.ActiveViews.MessagesView;
+                    }
+                });
+            }
+            else
+            {
+                Console.WriteLine($"Nenhuma mensagem nova: {previousCount} -> {newCount}. Mantendo na view atual.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao verificar novas mensagens após criação de coleção: {ex.Message}");
         }
     }
 

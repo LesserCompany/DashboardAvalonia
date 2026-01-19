@@ -21,21 +21,21 @@
         <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
       </StackPanel>
     </Button>
-
-  <StackPanel Grid.Row="1"  VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-    <TextBlock>
-      <Run Text="{Tr 'Request cancellation of the contract:'}" />
-      <Run FontWeight="Bold" Foreground="Red" Text="{Binding SelectedCollection.classCode}" />
-    </TextBlock> 
-    <TextBlock Text="{Tr 'Select the contract below that repeats this one:'}" /> 
-    <ComboBox ItemsSource="{Binding CollectionsList}" SelectedItem="{Binding SelectedCollectionForCancelBilling}"  HorizontalAlignment="Stretch" >
-      <ComboBox.ItemTemplate>
-        <DataTemplate>
-          <TextBlock Text="{Binding classCode}" />
-        </DataTemplate>
-      </ComboBox.ItemTemplate>
-    </ComboBox>
-    <Button Content="{Tr 'Send'}" Command="{Binding CancelBillingCommand}" IsEnabled="{Binding !CancelBillingIsRunning}" />
-  </StackPanel>
+    
+    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
+      <TextBlock>
+        <Run Text="{Tr 'Request cancellation of the contract:'}" />
+        <Run FontWeight="Bold" Foreground="Red" Text="{Binding SelectedCollection.classCode}" />
+      </TextBlock> 
+      <TextBlock Text="{Tr 'Select the contract below that repeats this one:'}" /> 
+      <ComboBox ItemsSource="{Binding CollectionsList}" SelectedItem="{Binding SelectedCollectionForCancelBilling}"  HorizontalAlignment="Stretch" >
+        <ComboBox.ItemTemplate>
+          <DataTemplate>
+            <TextBlock Text="{Binding classCode}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <Button Content="{Tr 'Send'}" Command="{Binding CancelBillingCommand}" IsEnabled="{Binding !CancelBillingIsRunning}" />
+    </StackPanel>
   </Grid>
 </UserControl>

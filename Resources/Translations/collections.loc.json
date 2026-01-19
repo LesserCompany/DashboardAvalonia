@@ -1,4 +1,4 @@
-﻿{
+{
   "Recognition on the server:": {
     "en-US": "Recognition on the server:",
     "pt-BR": "Reconhecimento no servidor:"
@@ -19,9 +19,9 @@
     "en-US": "Reports",
     "pt-BR": "Relatórios"
   },
-  "Download Backup HD": {
-    "en-US": "Download Backup HD",
-    "pt-BR": "Baixar backup HD"
+  "Download HD Storage": {
+    "en-US": "Download HD Storage",
+    "pt-BR": "Baixar armazenamento HD"
   },
   "Reupload the class to the server": {
     "en-US": "Reupload the class to the server",
@@ -36,7 +36,7 @@
     "pt-BR": "As fotos serão colocadas novamente na fila para o reconhecimento facial"
   },
   "Request treatment of the entire collection": {
-    "en-US": "Request treatmenent of the entire collection",
+    "en-US": "Request treatment of the entire collection",
     "pt-BR": "Solicitar tratamento da coleção inteira"
   },
   "Cancel billing": {
@@ -99,9 +99,9 @@
     "en-US": "Recognize Folder:",
     "pt-BR": "Pasta de Reconhecimentos:"
   },
-  "Backup HD photos to the cloud.": {
-    "en-US": "Backup HD photos to the cloud.",
-    "pt-BR": "Faça backup de fotos em HD na nuvem."
+  "HD Storage in the cloud.": {
+    "en-US": "HD Storage in the cloud.",
+    "pt-BR": "Armazenamento em HD na nuvem."
   },
   "Prices and more information": {
     "en-US": "Prices and more information",
@@ -215,6 +215,14 @@
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
   },
+  "Price per photo:": {
+    "en-US": "Price per photo:",
+    "pt-BR": "Preço por foto:"
+  },
+  "Price per photo per month:": {
+    "en-US": "Price per photo per month:",
+    "pt-BR": "Preço por foto por mês:"
+  },
   "OCR on the server:": {
     "en-US": "OCR on the server:",
     "pt-BR": "OCR no servidor:"
@@ -237,11 +245,7 @@
   },
   "This contract name already exists...": {
     "en-US": "This contract name already exists. Do you wish to REUPLOAD it?\nThis may render the collection inaccessible if used inappropriately.\nContact suppor through contato@lesser.biz or Whatsapp +55 16 996-1234-34.\nPress YES if you are sure and if you didn't change anything in the root folder.\nand you wish to make a new attempt to upload the same photos, with no addition or removal\nand without alteration of the extension of any file of change in the name of any folder or file.",
-    "pt-BR": "Esta turma já existe. Deseja fazer REUPLOAD?\nIsso pode tornar a coleção inutilizável se utilizado de maneira inapropriada.\nentre em contato com o suporte - lucas@lesser.biz ou Whatsapp (16) 996-1234-34.\nAperte SIM se tiver certeza e apenas se não tiver feito alterações na pasta onde estão as fotos\ne esteja desejando fazer nova tentativa de upload com as mesmas fotos, sem adição de nenhuma\ne nem alteração de extensão ou tipo de arquivo ou alteração de nome de pasta nem de arquivo."
-  },
-  "": {
-    "en-US": "",
-    "pt-BR": ""
+    "pt-BR": "ATENÇÃO: Esta turma já existe!\n\nDeseja fazer REUPLOAD?\n\nAVISO: Esta ação pode tornar a coleção inutilizável se utilizada incorretamente.\n\nAperte SIM apenas se:\n• Não alterou nenhuma foto na pasta\n• Não adicionou nem removeu fotos\n• Não mudou nomes de arquivos ou pastas\n• Não alterou extensões dos arquivos\n• Deseja tentar o upload novamente com as mesmas fotos\n\nPrecisa de ajuda? Contate o suporte:\nlucas@lesser.biz ou WhatsApp (16) 996-1234-34"
   },
   "Waiting for upload...": {
     "en-US": "Waiting for upload...",
@@ -261,7 +265,7 @@
   },
   "WATERMARK": {
     "en-US": "WATERMARK",
-    "pt-BR": "MARCA D'AGUA"
+    "pt-BR": "MARCA D'ÁGUA"
   },
   "ACCESS DENIED": {
     "en-US": "ACCESS DENIED",
@@ -355,9 +359,9 @@
     "en-US": "On consultation",
     "pt-BR": "Sob consulta"
   },
-  "Price for 1000 photos": {
-    "en-US": "Price for 1000 photos",
-    "pt-BR": "Preço de 1000 fotos"
+  "Price for each 1000 photos": {
+    "en-US": "Price for each 1000 photos",
+    "pt-BR": "Preço para cada 1000 fotos"
   },
   "Combos": {
     "en-US": "Combos",
@@ -379,17 +383,13 @@
     "en-US": "Go back to previous version",
     "pt-BR": "Voltar para versão anterior"
   },
-"Back": {
+  "Back": {
     "en-US": "Back",
     "pt-BR": "Voltar"
   },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",
     "pt-BR": "Habilitar melhoria automática."
-  },
-  "test": {
-    "en-US": "test",
-    "pt-BR": "teste"
   },
   "Create Professional": {
     "en-US": "Create Professional",
@@ -502,5 +502,101 @@
   "No combos available or failed to load.": {
     "en-US": "No combos available or failed to load.",
     "pt-BR": "Nenhum combo disponível ou falha ao carregar."
+  },
+  "Expiration date:": {
+    "en-US": "Expiration date:",
+    "pt-BR": "Período de Armazenamento até:"
+  },
+  "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged.": {
+    "en-US": "The expiration date for this collection is less than 30 days. Renew it or an additional fee will be charged on your invoice.",
+    "pt-BR": "O prazo de vencimento dessa turma é menor que 30 dias, renove ou será cobrado um adicional em relação a ela na sua fatura"
+  },
+  "Collection expiration date": {
+    "en-US": "Collection expiration date",
+    "pt-BR": "Período de Armazenamento da coleção"
+  },
+  "Change the expiration date for this collection. A new billing will be generated based on the selected date.": {
+    "en-US": "Change the expiration date for this collection. A new billing will be generated based on the selected date.",
+    "pt-BR": "Altere o período de armazenamento dessa coleção. A cobrança relativa à sua operação será adicionada a sua próxima fatura."
+  },
+  "New expiration date:": {
+    "en-US": "New expiration date:",
+    "pt-BR": "Período de Armazenamento até:"
+  },
+  "Price:": {
+    "en-US": "Price:",
+    "pt-BR": "Preço:"
+  },
+  "Additional investment:": {
+    "en-US": "Additional investment:",
+    "pt-BR": "Investimento adicional:"
+  },
+  "Additional dates of 5 years receive a 50% discount.": {
+    "en-US": "Extending the storage period by 5 additional years grants a 50% discount on the additional investment.",
+    "pt-BR": ""
+  },
+  "Loading price...": {
+    "en-US": "Loading price...",
+    "pt-BR": "Carregando preço..."
+  },
+  "Confirm": {
+    "en-US": "Confirm",
+    "pt-BR": "Confirmar"
+  },
+  "Deletion date updated successfully!": {
+    "en-US": "Deletion date updated successfully!",
+    "pt-BR": "Data de deleção atualizada com sucesso!"
+  },
+  "Error updating deletion date": {
+    "en-US": "Error updating deletion date",
+    "pt-BR": "Erro ao atualizar data de deleção"
+  },
+  "The selected date must be greater than the current date.": {
+    "en-US": "The selected date must be greater than the current date.",
+    "pt-BR": "A data selecionada deve ser maior que a data atual."
+  },
+  "HD Storage Options": {
+    "en-US": "HD Storage Options",
+    "pt-BR": "Opções de Armazenamento HD"
+  },
+  "3 months": {
+    "en-US": "3 months",
+    "pt-BR": "3 meses"
+  },
+  "2 years": {
+    "en-US": "2 years",
+    "pt-BR": "2 anos"
+  },
+  "5 years": {
+    "en-US": "5 years",
+    "pt-BR": "5 anos"
+  },
+  "5 years storage": {
+    "en-US": "5 years storage",
+    "pt-BR": "5 anos armazenadas"
+  },
+  "Custom date": {
+    "en-US": "Custom date",
+    "pt-BR": "Data diferente"
+  },
+  "Select storage date:": {
+    "en-US": "Select storage date:",
+    "pt-BR": "Selecione a data de armazenamento:"
+  },
+  "Error loading price": {
+    "en-US": "Error loading price",
+    "pt-BR": "Erro ao carregar preço"
+  },
+  "Alterar": {
+    "en-US": "Change",
+    "pt-BR": "Alterar"
+  },
+  "Delete class": {
+    "en-US": "Delete class",
+    "pt-BR": "Deletar coleção"
+  },
+  "Delete collection if expiration date expired and do not want to extend storage or continue billing.": {
+    "en-US": "Delete the collection if the expiration date has expired and you do not wish to extend the storage expiration date or continue with the billing on your invoice.",
+    "pt-BR": "Exclua a turma caso o prazo de vencimento tenha expirado e você não deseje estender a data de vencimento do armazenamento ou continuar com a cobrança na sua fatura."
   }
 }

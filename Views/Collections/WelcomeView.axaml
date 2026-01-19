@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="LesserDashboardClient.Views.Collections.WelcomeView">
+
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
+      <StackPanel Spacing="30" HorizontalAlignment="Center" VerticalAlignment="Center">
+        
+        <!-- Ícone ou Logo -->
+        <StackPanel HorizontalAlignment="Center" Spacing="20">
+          <Image Width="120" Height="120" Source="{SvgImage /Assets/symbol.svg}" />
+        </StackPanel>
+        
+        <!-- Mensagem de Boas-vindas -->
+        <StackPanel Spacing="12" HorizontalAlignment="Center">
+          <TextBlock Text="{Tr 'Welcome'}" 
+                     FontSize="42" 
+                     FontWeight="Bold" 
+                     Foreground="{DynamicResource TextPrimaryBrush}" 
+                     HorizontalAlignment="Center"/>
+          
+          <TextBlock x:Name="CompanyNameText" 
+                     FontSize="28" 
+                     FontWeight="SemiBold" 
+                     Foreground="{DynamicResource SystemAccentColor}" 
+                     HorizontalAlignment="Center"
+                     Margin="0,8,0,0"/>
+          
+          <TextBlock Text="{Tr 'WelcomeMessage'}" 
+                     FontSize="16" 
+                     Foreground="{DynamicResource TextSecondaryBrush}" 
+                     HorizontalAlignment="Center"
+                     TextWrapping="Wrap"
+                     TextAlignment="Center"
+                     MaxWidth="600"
+                     Margin="0,20,0,0"/>
+        </StackPanel>
+        
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+
+</UserControl>
+

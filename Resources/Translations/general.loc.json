@@ -1,4 +1,4 @@
-﻿{
+{
   "Collections": {
     "en-US": "Collections",
     "pt-BR": "Coleções"
@@ -41,7 +41,7 @@
   },
   "During this period, you can upload up to": {
     "en-US": "During this period, you can upload up to",
-    "pt-BR": "Durante este períódo, você pode enviar até"
+    "pt-BR": "Durante este período, você pode enviar até"
   },
   "photos for free.": {
     "en-US": "photos for free.",
@@ -73,7 +73,7 @@
   },
   "on the use of clients you bring for 2 years!": {
     "en-US": "on the use of clients you bring for 2 years!",
-    "pt-BR": "sobre o uso dos clientes que trouxer por 2 anos!"
+    "pt-BR": "sobre o uso dos clientes que você trouxer por 2 anos!"
   },
   "Do you really want to go back to the previous version of the dashboard? The current application will be closed.": {
     "en-US": "Do you really want to go back to the previous version of the dashboard? The current application will be closed.",
@@ -114,5 +114,33 @@
   "This collection is from another billing period, please create a new collection to enable automatic enhancement.": {
     "en-US": "This collection is from another billing period, please create a new collection to enable automatic enhancement.",
     "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para habilitar a melhoria automática."
+  },
+  "Messages": {
+    "en-US": "Messages",
+    "pt-BR": "Mensagens"
+  },
+  "Mark All as Read": {
+    "en-US": "Mark All as Read",
+    "pt-BR": "Marcar todas como lidas"
+  },
+  "Mark as Read": {
+    "en-US": "Mark as Read",
+    "pt-BR": "Marcar como lida"
+  },
+  "No messages available": {
+    "en-US": "No messages available",
+    "pt-BR": "Nenhuma mensagem disponível"
+  },
+  "Error loading message": {
+    "en-US": "Error loading message",
+    "pt-BR": "Erro ao carregar mensagem"
+  },
+  "Welcome": {
+    "en-US": "Welcome",
+    "pt-BR": "Bem-vindo"
+  },
+  "WelcomeMessage": {
+    "en-US": "Welcome to the Lesser Dashboard. here you can create, download, separate and detail the data of your photo collections in an efficient way. Use the panel on the left to create a new collection or select an existing one to use the other features.",
+    "pt-BR": "Bem-vindo ao Lesser Dashboard. Aqui você pode criar, baixar, separar e detalhar os dados das suas coleções de fotos de forma eficiente. Use o painel à esquerda para criar uma nova coleção ou selecionar uma existente para usar as demais funcionalidades."
   }
 }

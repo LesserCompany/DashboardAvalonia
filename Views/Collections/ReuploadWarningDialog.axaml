@@ -1,0 +1,203 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.modernwpf.com/avalonia"
+        xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+        mc:Ignorable="d" d:DesignWidth="550" d:DesignHeight="500"
+        x:Class="LesserDashboardClient.Views.Collections.ReuploadWarningDialog"
+        x:DataType="local:ReuploadWarningDialog"
+        Title="Atenção"
+        Width="550"
+        MinHeight="400"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  
+  <Grid Margin="25" RowDefinitions="Auto,*,Auto">
+    <!-- Header com ícone de alerta -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" ColumnSpacing="15" Margin="0,0,0,20">
+      <Path Grid.Column="0"
+            Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" 
+            Fill="#FF9800" 
+            Width="32" 
+            Height="32"
+            Stretch="Uniform"
+            VerticalAlignment="Top"
+            Margin="0,5,0,0"/>
+      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+        <TextBlock Text="ATENÇÃO: Esta turma já existe!" 
+                   FontSize="18" 
+                   FontWeight="Bold"
+                   Foreground="#FF9800"
+                   TextWrapping="Wrap"/>
+        <TextBlock Text="Deseja fazer REUPLOAD?" 
+                   FontSize="14" 
+                   Margin="0,5,0,0"
+                   TextWrapping="Wrap"/>
+      </StackPanel>
+    </Grid>
+
+    <!-- Conteúdo da mensagem -->
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="15">
+        <!-- Aviso de risco -->
+        <Border Background="#FFF3E0"
+                BorderBrush="#FF9800"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Path Grid.Column="0"
+                  Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16" 
+                  Fill="#FF9800" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"
+                  VerticalAlignment="Top"
+                  Margin="0,2,0,0"/>
+            <TextBlock Grid.Column="1"
+                       Text="AVISO: Esta ação pode tornar a coleção inutilizável se utilizada incorretamente." 
+                       FontSize="12"
+                       Foreground="#E65100"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+          </Grid>
+        </Border>
+
+        <!-- Lista de condições -->
+        <StackPanel Spacing="8">
+          <TextBlock Text="Aperte SIM apenas se:" 
+                     FontSize="13" 
+                     FontWeight="SemiBold"
+                     Margin="0,0,0,5"/>
+          <StackPanel Spacing="6" Margin="15,0,0,0">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Path Grid.Column="0"
+                    Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                    Fill="#4CAF50" 
+                    Width="16" 
+                    Height="16"
+                    Stretch="Uniform"
+                    VerticalAlignment="Top"
+                    Margin="0,2,0,0"/>
+              <TextBlock Grid.Column="1"
+                         Text="Não alterou nenhuma foto na pasta" 
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Path Grid.Column="0"
+                    Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                    Fill="#4CAF50" 
+                    Width="16" 
+                    Height="16"
+                    Stretch="Uniform"
+                    VerticalAlignment="Top"
+                    Margin="0,2,0,0"/>
+              <TextBlock Grid.Column="1"
+                         Text="Não adicionou nem removeu fotos" 
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Path Grid.Column="0"
+                    Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                    Fill="#4CAF50" 
+                    Width="16" 
+                    Height="16"
+                    Stretch="Uniform"
+                    VerticalAlignment="Top"
+                    Margin="0,2,0,0"/>
+              <TextBlock Grid.Column="1"
+                         Text="Não mudou nomes de arquivos ou pastas" 
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Path Grid.Column="0"
+                    Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                    Fill="#4CAF50" 
+                    Width="16" 
+                    Height="16"
+                    Stretch="Uniform"
+                    VerticalAlignment="Top"
+                    Margin="0,2,0,0"/>
+              <TextBlock Grid.Column="1"
+                         Text="Não alterou extensões dos arquivos" 
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </Grid>
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+              <Path Grid.Column="0"
+                    Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z" 
+                    Fill="#4CAF50" 
+                    Width="16" 
+                    Height="16"
+                    Stretch="Uniform"
+                    VerticalAlignment="Top"
+                    Margin="0,2,0,0"/>
+              <TextBlock Grid.Column="1"
+                         Text="Deseja tentar o upload novamente com as mesmas fotos" 
+                         FontSize="12"
+                         TextWrapping="Wrap"/>
+            </Grid>
+          </StackPanel>
+        </StackPanel>
+
+        <!-- Contato de suporte -->
+        <Border Background="#E3F2FD"
+                BorderBrush="#2196F3"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12"
+                Margin="0,10,0,0">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+            <Path Grid.Column="0"
+                  Data="M6.62,21.15C6.62,21.15 4.27,19.27 2.92,17.29C1.58,15.31 0.5,12.7 0.5,10C0.5,4.76 4.76,0.5 10,0.5C15.24,0.5 19.5,4.76 19.5,10C19.5,12.7 18.42,15.31 17.08,17.29C15.73,19.27 13.38,21.15 13.38,21.15L10,18L6.62,21.15M10,5.5C8.07,5.5 6.5,7.07 6.5,9C6.5,10.93 8.07,12.5 10,12.5C11.93,12.5 13.5,10.93 13.5,9C13.5,7.07 11.93,5.5 10,5.5Z" 
+                  Fill="#2196F3" 
+                  Width="20" 
+                  Height="20"
+                  Stretch="Uniform"
+                  VerticalAlignment="Top"
+                  Margin="0,2,0,0"/>
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="Precisa de ajuda? Contate o suporte:" 
+                         FontSize="12"
+                         FontWeight="SemiBold"
+                         Foreground="#1565C0"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,3"/>
+              <TextBlock Text="lucas@lesser.biz ou WhatsApp (16) 996-1234-34" 
+                         FontSize="12"
+                         Foreground="#1565C0"
+                         TextWrapping="Wrap"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Botões de ação -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+      <Button Content="Não" 
+              Command="{Binding NoCommand}"
+              Width="100"/>
+      <Button Content="Sim" 
+              Command="{Binding YesCommand}"
+              Classes="accent"
+              Width="100">
+        <Button.Styles>
+          <Style Selector="Button.accent">
+            <Setter Property="Background" Value="#FF9800"/>
+            <Setter Property="Foreground" Value="White"/>
+          </Style>
+          <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F57C00"/>
+          </Style>
+        </Button.Styles>
+      </Button>
+    </StackPanel>
+  </Grid>
+</Window>
+

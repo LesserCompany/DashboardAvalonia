@@ -234,22 +234,21 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
         [RelayCommand]
         public async Task ExitCommand()
         {
-            await Dispatcher.UIThread.InvokeAsync(async () =>
+            // Apaga o arquivo de login
+            if (LesserFunctionClient.loginFileInfo.Exists)
+            {
+                File.Delete(LesserFunctionClient.loginFileInfo.FullName);
+            }
+            
+            // Reseta a instância estática do LesserFunctionClient
+            GlobalAppStateViewModel.ResetLesserFunctionClient();
+            
+            // Encerra o aplicativo
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                 {
-                    var oldWindow = desktop.MainWindow;
-                    var authWindow = new AuthWindow();
-                    
-                    desktop.MainWindow = authWindow;
-                    authWindow.Show();
-                    
-                    // Espera um tick para garantir que a UI da nova janela iniciou
-                    await Task.Delay(150);
-                    
-                    // Agora fecha a janela antiga (libera Dispatcher antigo)
-                    (oldWindow?.DataContext as IDisposable)?.Dispose();
-                    oldWindow?.Close();
+                    desktop.Shutdown();
                 }
             });
         }
@@ -271,11 +270,8 @@ namespace LesserDashboardClient.ViewModels.ProfessionalWindow
                     {
                         var oldWindow = desktop.MainWindow;
                         
-                        // Reaplica as configurações de tema e idioma antes de criar a nova janela de login
-                        App.ReapplySettings();
-                        
-                        // Aguarda um pouco para garantir que as configurações sejam aplicadas
-                        await Task.Delay(100);
+                        // NÃO reinicializar configurações - elas já estão aplicadas
+                        // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
                         var authWindow = new AuthWindow();
                         App.AuthWindowInstance = authWindow;

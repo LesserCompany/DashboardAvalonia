@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,8 +17,8 @@
                 <Grid RowDefinitions="Auto, Auto">
                     <TextBlock Grid.Row="0" Text="{Tr 'Appearance'}" />
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-                        <RadioButton GroupName="AppTheme" Content="{Tr 'Dark mode'}" IsChecked="{Binding IsDarkMode, Mode=TwoWay}" />
-                        <RadioButton GroupName="AppTheme" Content="{Tr 'Light mode'}" IsChecked="{Binding !IsDarkMode, Mode=TwoWay}" />
+                        <RadioButton GroupName="AppTheme" Content="{Tr 'Dark mode'}" IsChecked="{Binding IsDarkMode, Mode=OneWay}" Command="{Binding SetDarkModeCommand}" />
+                        <RadioButton GroupName="AppTheme" Content="{Tr 'Light mode'}" IsChecked="{Binding IsLightMode, Mode=OneWay}" Command="{Binding SetLightModeCommand}" />
                     </StackPanel>
                 </Grid>
                 <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>
@@ -27,8 +27,8 @@
                 <Grid RowDefinitions="Auto, Auto">
                     <TextBlock Grid.Row="0" Text="{Tr 'Language'}" />
                     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10">
-                        <RadioButton GroupName="AppLanguage" Content="{Tr 'Portuguese'}" IsChecked="{Binding !IsLanguageEnglish, Mode=TwoWay}" />
-                        <RadioButton GroupName="AppLanguage" Content="{Tr 'English'}" IsChecked="{Binding IsLanguageEnglish, Mode=TwoWay}"/>
+                        <RadioButton GroupName="AppLanguage" Content="{Tr 'Portuguese'}" IsChecked="{Binding IsLanguagePortuguese, Mode=OneWay}" Command="{Binding SetLanguagePortugueseCommand}" />
+                        <RadioButton GroupName="AppLanguage" Content="{Tr 'English'}" IsChecked="{Binding IsLanguageEnglish, Mode=OneWay}" Command="{Binding SetLanguageEnglishCommand}"/>
                     </StackPanel>
                 </Grid>
                 <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,10,0,10"/>

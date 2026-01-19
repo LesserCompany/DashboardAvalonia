@@ -10,7 +10,7 @@
         SizeToContent="WidthAndHeight"
         
         WindowStartupLocation="CenterScreen"
-        Title="Lets Pick Lesser - LOGIN">
+        Title="LetsPic Lesser - LOGIN">
   <Window.DataContext>
     <vm:AuthViewModel/>
   </Window.DataContext>

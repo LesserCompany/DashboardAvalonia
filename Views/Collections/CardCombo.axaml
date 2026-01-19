@@ -85,7 +85,7 @@
         
         <!-- Preço -->
         <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
-          <TextBlock Text="{Tr 'Price for 1000 photos'}"
+          <TextBlock Text="{Tr 'Price for each 1000 photos'}"
                      Foreground="{DynamicResource TextSecondaryBrush}"
                      FontSize="12"
                      Margin="0,0,0,4"/>
