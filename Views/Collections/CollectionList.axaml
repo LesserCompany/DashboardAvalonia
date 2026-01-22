@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -35,6 +35,43 @@
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Disabled">
               <StackPanel>
+                <!-- Loading enquanto busca no servidor -->
+                <StackPanel Orientation="Horizontal" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           Spacing="12"
+                           Margin="0,24,0,0"
+                           IsVisible="{Binding IsSearchingOnServer}">
+                  <ui:ProgressRing Width="24" Height="24" 
+                                   IsIndeterminate="True" 
+                                   BorderThickness="4"/>
+                  <TextBlock Text="{Tr 'Searching on server...'}" 
+                            VerticalAlignment="Center"
+                            FontSize="14"/>
+                </StackPanel>
+                
+                <!-- Mensagem quando não encontrou nada -->
+                <StackPanel Orientation="Vertical" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           Spacing="8"
+                           Margin="0,24,0,0"
+                           IsVisible="{Binding ShowNoResultsMessage}">
+                  <TextBlock Text="{Tr 'No collection found'}" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Foreground="{DynamicResource MetaFg}"/>
+                  <TextBlock Text="{Tr 'No collection was found matching your search criteria.'}" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{DynamicResource MetaFg}"
+                            TextWrapping="Wrap"
+                            TextAlignment="Center"
+                            MaxWidth="400"/>
+                </StackPanel>
+                
                 <ListBox FontSize="11" 
                          Background="Transparent"
                          BorderThickness="0"
