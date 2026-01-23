@@ -59,6 +59,7 @@ public partial class CollectionsViewModel : ViewModelBase
     // ======================== VIEWS ======================== 
 
     private CancellationTokenSource _previewDebounceCtsViewCollection;
+    private CancellationTokenSource _filterDebounceCts;
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     [ObservableProperty] public ProfessionalTask selectedCollection;
@@ -110,6 +111,21 @@ public partial class CollectionsViewModel : ViewModelBase
         // Prevenir loops infinitos
         if (_isUpdatingSelectedCollection)
             return;
+
+        // CORREÇÃO: Se SelectedCollection ficou null e estamos na CollectionView, voltar para a home (NewsView - Bem-vindo)
+        if (value == null && ActiveComponent == ActiveViews.CollectionView)
+        {
+            _isUpdatingSelectedCollection = true;
+            try
+            {
+                ActiveComponent = ActiveViews.NewsView; // NewsView é a view de "Bem-vindo" (home)
+            }
+            finally
+            {
+                _isUpdatingSelectedCollection = false;
+            }
+            return;
+        }
 
         _previewDebounceCtsViewCollection?.Cancel();
         _previewDebounceCtsViewCollection = new();
@@ -209,6 +225,8 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private bool updatingGraduatesData;
     [ObservableProperty] public bool collectionsListIsLoading = true;
     [ObservableProperty] public bool isEnabledFilters = false;
+    [ObservableProperty] public bool isSearchingOnServer = false;
+    [ObservableProperty] public bool showNoResultsMessage = false;
     [ObservableProperty] public bool isUpdateProgressBars = false;
     [ObservableProperty] public int? totalPhotosForRecognition;
     [ObservableProperty] public int? totalPhotosForRecognitionDone;
@@ -844,20 +862,37 @@ public partial class CollectionsViewModel : ViewModelBase
         // Observar mudanças nas mensagens não lidas para decidir view inicial
         InitializeMessagesViewLogic();
         
-        System.Timers.Timer timerUpdateView = new System.Timers.Timer();
-        timerUpdateView.Interval = 60000;
-        timerUpdateView.Elapsed += (e, a) =>
+        _timerUpdateView = new System.Timers.Timer();
+        // Intervalo dinâmico baseado no número de fotos da coleção selecionada, com teto de 7 minutos (420000ms)
+        _timerUpdateView.Elapsed += (e, a) =>
         {
             if(ActiveComponent == ActiveViews.CollectionView)
             {
                 UpdateCollectionViewSelected();
+                
+                // Recalcular intervalo dinâmico após atualização
+                if (SelectedCollection != null)
+                {
+                    var totalPhotos = (SelectedCollection.eventPhotos ?? 0) + (SelectedCollection.recognitionPhotos ?? 0);
+                    // Intervalo dinâmico: mínimo 10s, máximo 7min (420000ms), ou totalPhotos * 50ms
+                    var dynamicInterval = Math.Min(Math.Max(10000, totalPhotos * 50), 420000);
+                    _timerUpdateView.Interval = dynamicInterval;
+                }
+                else
+                {
+                    // Fallback para 60 segundos se não houver coleção selecionada
+                    _timerUpdateView.Interval = 60000;
+                }
             }
         };
-        timerUpdateView.Start();
+        // Intervalo inicial de 60 segundos
+        _timerUpdateView.Interval = 60000;
+        _timerUpdateView.Start();
     }
     
     private bool _hasCheckedInitialMessages = false;
     private bool _userManuallyNavigatedToMessages = false;
+    private System.Timers.Timer? _timerUpdateView;
     
     /// <summary>
     /// Inicializa a lógica de observação de mensagens não lidas para decidir qual view mostrar
@@ -1085,6 +1120,10 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionsListIsLoading = true;
             IsEnabledFilters = false;
+            
+            // CORREÇÃO: Salvar o classCode da coleção selecionada antes de atualizar a lista
+            string? selectedClassCode = SelectedCollection?.classCode;
+            
             {
                 if(pt != null)
                 {
@@ -1101,6 +1140,17 @@ public partial class CollectionsViewModel : ViewModelBase
                         CollectionsListFiltered.Clear();
                         CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
                     }
+                }
+            }
+            
+            // CORREÇÃO: Se havia uma coleção selecionada, verificar se ela ainda existe na lista
+            // Se não existir mais (foi deletada), limpar a seleção (vai voltar para home automaticamente)
+            if (!string.IsNullOrEmpty(selectedClassCode))
+            {
+                var collectionStillExists = CollectionsList.Any(c => c.classCode == selectedClassCode);
+                if (!collectionStillExists && SelectedCollection != null)
+                {
+                    SelectedCollection = null;
                 }
             }
 
@@ -1122,37 +1172,36 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             IsLoadingMoreTasks = true;
             ShowLoadMoreButton = false;
+            CollectionsListIsLoading = true; // Mostrar loading geral (esconde a lista e mostra skeleton)
             
             int daysFilterLimit = 365 * 5; // 5 anos
             var pts = await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks(daysFilterLimit);
 
             if (pts != null && pts.Count > 0)
             {
-                // Dividir os itens em lotes menores para melhor performance
-                const int batchSize = 25;
-                var batches = pts.Select((pt, index) => new { pt, index })
-                                 .GroupBy(x => x.index / batchSize)
-                                 .Select(g => g.Select(x => x.pt).ToList());
-
-                foreach (var batch in batches)
+                // Carregar todas as coleções em memória primeiro (sem atualizar UI)
+                var newCollections = new List<ProfessionalTask>();
+                foreach (var pt in pts)
                 {
-                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    // Verificar se o item já existe na lista para evitar duplicatas
+                    if (!CollectionsList.Any(existing => existing.classCode == pt.classCode))
                     {
-                        foreach (var pt in batch)
-                        {
-                            // Verificar se o item já existe na lista para evitar duplicatas
-                            if (!CollectionsList.Any(existing => existing.classCode == pt.classCode))
-                            {
-                                CollectionsList.Add(pt);
-                            }
-                        }
-                        
-                        // Atualizar a lista filtrada mantendo os filtros aplicados
-                        FilterProfessionalTasks("", "");
-                    });
-                    
-                    await Task.Delay(50); // Pequeno delay para não sobrecarregar a UI
+                        newCollections.Add(pt);
+                    }
                 }
+                
+                // Adicionar todas as novas coleções de uma vez na UI (evita piscar)
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    foreach (var pt in newCollections)
+                    {
+                        CollectionsList.Add(pt);
+                    }
+                    
+                    // Reaplicar o filtro atual (vazio por padrão, mas mantém qualquer filtro que o usuário tenha aplicado)
+                    // O filtro será reaplicado automaticamente quando CollectionsListIsLoading for false
+                    // e a view for atualizada
+                });
             }
             
             HasLoadedAllTasks = true;
@@ -1165,43 +1214,183 @@ public partial class CollectionsViewModel : ViewModelBase
         finally
         {
             IsLoadingMoreTasks = false;
+            CollectionsListIsLoading = false; // Esconder loading geral (mostra a lista atualizada)
+            
+            // Reaplicar o filtro após o loading terminar para atualizar a lista filtrada
+            // Isso garante que as novas coleções apareçam na lista filtrada
+            FilterProfessionalTasks("", "");
         }
     }
 
+    /// <summary>
+    /// Filtra as coleções na lista local e, se não encontrar resultados, busca no servidor.
+    /// Segue o padrão do Dashboard WPF: busca automaticamente quando não encontra na lista inicial.
+    /// </summary>
     public void FilterProfessionalTasks(string? classCode, string? professional)
     {
+        // Cancelar busca anterior se ainda estiver em andamento
+        _filterDebounceCts?.Cancel();
+        _filterDebounceCts = new CancellationTokenSource();
+        var token = _filterDebounceCts.Token;
+
+        // Capturar valores para evitar problemas de closure
+        var searchClassCode = classCode ?? string.Empty;
+        var searchProfessional = professional ?? string.Empty;
+
+        // Resetar mensagem de "não encontrado" ao iniciar nova busca
+        ShowNoResultsMessage = false;
+
         try
         {
             CollectionsListIsLoading = true;
             if (CollectionsList == null)
             {
                 CollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
+                // CORREÇÃO: Se não há lista, limpar a seleção
+                if (SelectedCollection != null)
+                {
+                    SelectedCollection = null;
+                }
                 return;
             }
 
-            classCode ??= string.Empty;
-            professional ??= string.Empty;
+            // Aplicar filtro local (síncrono para resposta imediata na UI)
+            ApplyLocalFilter(searchClassCode, searchProfessional);
 
-            var filtered = CollectionsList.Where(task =>
+            // CORREÇÃO: Se não encontrou resultados e há um classCode digitado, buscar no servidor
+            // (comportamento similar ao Dashboard WPF)
+            if (CollectionsListFiltered.Count == 0 && !string.IsNullOrWhiteSpace(searchClassCode) && GlobalAppStateViewModel.lfc != null)
             {
-                var login = task.professionalLogin ?? string.Empty;
-                var taskClass = task.classCode ?? string.Empty;
+                // Mostrar loading enquanto busca no servidor
+                IsSearchingOnServer = true;
+                
+                // Buscar no servidor de forma assíncrona (com debounce)
+                // Fire-and-forget com tratamento de exceções não capturadas
+                _ = SearchCollectionOnServerAsync(searchClassCode, searchProfessional, token)
+                    .ContinueWith(task =>
+                    {
+                        if (task.IsFaulted && task.Exception != null)
+                        {
+                            // Log de exceções não tratadas (não deve acontecer, mas por segurança)
+                            System.Diagnostics.Debug.WriteLine($"Erro não tratado na busca de coleção: {task.Exception.GetBaseException().Message}");
+                        }
+                    }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            else
+            {
+                // Se encontrou resultados localmente ou não há texto, não está buscando no servidor
+                IsSearchingOnServer = false;
+            }
 
-                bool matchClass = string.IsNullOrEmpty(classCode) ||
-                                  taskClass.Contains(classCode, StringComparison.OrdinalIgnoreCase);
-
-                bool matchProfessional = string.IsNullOrEmpty(professional) ||
-                                         login.Contains(professional, StringComparison.OrdinalIgnoreCase);
-
-                return matchClass && matchProfessional;
-            });
-
-            CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filtered);
-
+            // CORREÇÃO: Se a coleção selecionada não está mais na lista filtrada, limpar a seleção
+            // Isso vai disparar OnSelectedCollectionChanged que vai voltar para a home se necessário
+            if (SelectedCollection != null && !CollectionsListFiltered.Contains(SelectedCollection))
+            {
+                SelectedCollection = null;
+            }
         }
         finally
         {
             CollectionsListIsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Aplica o filtro local nas coleções já carregadas.
+    /// </summary>
+    private void ApplyLocalFilter(string classCode, string professional)
+    {
+        var filtered = CollectionsList.Where(task =>
+        {
+            var login = task.professionalLogin ?? string.Empty;
+            var taskClass = task.classCode ?? string.Empty;
+
+            bool matchClass = string.IsNullOrEmpty(classCode) ||
+                              taskClass.Contains(classCode, StringComparison.OrdinalIgnoreCase);
+
+            bool matchProfessional = string.IsNullOrEmpty(professional) ||
+                                     login.Contains(professional, StringComparison.OrdinalIgnoreCase);
+
+            return matchClass && matchProfessional;
+        });
+
+        CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filtered);
+    }
+
+    /// <summary>
+    /// Busca uma coleção específica no servidor quando não encontrada na lista local.
+    /// Usa debounce para evitar múltiplas chamadas enquanto o usuário digita.
+    /// </summary>
+    private async Task SearchCollectionOnServerAsync(string classCode, string professional, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Debounce: aguardar 500ms antes de buscar no servidor
+            await Task.Delay(500, cancellationToken);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    IsSearchingOnServer = false;
+                });
+                return;
+            }
+
+            // Buscar no servidor
+            var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(classCode);
+            
+            // Atualizar UI na thread principal (padrão Avalonia)
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsSearchingOnServer = false;
+                
+                if (pt == null || cancellationToken.IsCancellationRequested)
+                {
+                    // Não encontrou nada no servidor - mostrar mensagem
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        ShowNoResultsMessage = true;
+                    }
+                    return;
+                }
+
+                // Verificar se a coleção já não está na lista (evitar duplicatas)
+                if (!CollectionsList.Any(c => c.classCode == pt.classCode))
+                {
+                    // Adicionar à lista principal no final (última posição)
+                    CollectionsList.Add(pt);
+                }
+                else
+                {
+                    // Se já existe, usar a referência existente
+                    pt = CollectionsList.First(c => c.classCode == pt.classCode);
+                }
+                
+                // Reaplicar o filtro com a nova coleção
+                ApplyLocalFilter(classCode, professional);
+                
+                // Se encontrou, esconder mensagem de "não encontrado"
+                ShowNoResultsMessage = false;
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // Operação cancelada (usuário continuou digitando) - ignorar silenciosamente
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsSearchingOnServer = false;
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log do erro sem interromper o fluxo (coleção pode não existir)
+            System.Diagnostics.Debug.WriteLine($"Erro ao buscar coleção no servidor: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                IsSearchingOnServer = false;
+                // Se houve erro, mostrar mensagem de não encontrado
+                ShowNoResultsMessage = true;
+            });
         }
     }
     public async Task UpdateProgressBars()
@@ -1351,6 +1540,15 @@ public partial class CollectionsViewModel : ViewModelBase
             ExpanderAdvancedOptions = false;
 
             await UpdateProgressBars();
+
+            // Recalcular intervalo dinâmico do timer após atualizar progresso
+            if (_timerUpdateView != null && SelectedCollection != null)
+            {
+                var totalPhotos = (SelectedCollection.eventPhotos ?? 0) + (SelectedCollection.recognitionPhotos ?? 0);
+                // Intervalo dinâmico: mínimo 10s, máximo 7min (420000ms), ou totalPhotos * 50ms
+                var dynamicInterval = Math.Min(Math.Max(10000, totalPhotos * 50), 420000);
+                _timerUpdateView.Interval = dynamicInterval;
+            }
 
             if(SelectedCollection != null)
                 await UpdateClassSeparationFile(SelectedCollection.classCode);

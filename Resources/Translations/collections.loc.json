@@ -389,7 +389,7 @@
   },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",
-    "pt-BR": "Habilitar melhoria automática."
+    "pt-BR": "Habilitar tratamento automático."
   },
   "Create Professional": {
     "en-US": "Create Professional",
@@ -598,5 +598,17 @@
   "Delete collection if expiration date expired and do not want to extend storage or continue billing.": {
     "en-US": "Delete the collection if the expiration date has expired and you do not wish to extend the storage expiration date or continue with the billing on your invoice.",
     "pt-BR": "Exclua a turma caso o prazo de vencimento tenha expirado e você não deseje estender a data de vencimento do armazenamento ou continuar com a cobrança na sua fatura."
+  },
+  "Searching on server...": {
+    "en-US": "Searching on server...",
+    "pt-BR": "Buscando no servidor..."
+  },
+  "No collection found": {
+    "en-US": "No collection found",
+    "pt-BR": "Nenhuma coleção encontrada"
+  },
+  "No collection was found matching your search criteria.": {
+    "en-US": "No collection was found matching your search criteria.",
+    "pt-BR": "Nenhuma coleção foi encontrada correspondendo aos critérios de pesquisa."
   }
 }
