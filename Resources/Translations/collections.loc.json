@@ -32,8 +32,8 @@
     "pt-BR": "Reconhecer novamente"
   },
   "The photos will be re-queued for facial recognition": {
-    "en-US": "The photos will be re-queued for facial recognition",
-    "pt-BR": "As fotos serão colocadas novamente na fila para o reconhecimento facial"
+    "en-US": "Re-queues only the photos not yet marked as completed on the server: to the recognition queue, to the treatment queue (if treatment is enabled for the collection), and to the OCR queue (if OCR is enabled). Use when processing has stalled and you want to re-queue what is still pending.",
+    "pt-BR": "Recoloca na fila apenas as fotos que ainda não foram marcadas como concluídas no servidor: na fila de reconhecimento, na de tratamento (se a coleção tiver tratamento habilitado) e na de OCR (se tiver OCR habilitado). Use quando o processamento parou (por exemplo, há dias) e você quer reenfileirar o que ficou pendente."
   },
   "Request treatment of the entire collection": {
     "en-US": "Request treatment of the entire collection",

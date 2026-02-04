@@ -62,6 +62,7 @@ public partial class CollectionsViewModel : ViewModelBase
     private CancellationTokenSource _filterDebounceCts;
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
+    private bool _isOpeningSelectProfessionalView = false; // Evita fechar a lista no 1º clique (quando LoadProfessionals define SelectedProfessional)
     [ObservableProperty] public ProfessionalTask selectedCollection;
     
     /// <summary>
@@ -108,24 +109,20 @@ public partial class CollectionsViewModel : ViewModelBase
     
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
-        // Prevenir loops infinitos
         if (_isUpdatingSelectedCollection)
             return;
 
-        // CORREÇÃO: Se SelectedCollection ficou null e estamos na CollectionView, voltar para a home (NewsView - Bem-vindo)
+        // Seleção ficou null na CollectionView: troca estado primeiro (NewsView), depois a UI atualiza sem frame vazio
         if (value == null && ActiveComponent == ActiveViews.CollectionView)
         {
             _isUpdatingSelectedCollection = true;
-            try
-            {
-                ActiveComponent = ActiveViews.NewsView; // NewsView é a view de "Bem-vindo" (home)
-            }
-            finally
-            {
-                _isUpdatingSelectedCollection = false;
-            }
+            try { ActiveComponent = ActiveViews.NewsView; }
+            finally { _isUpdatingSelectedCollection = false; }
             return;
         }
+
+        if (value != null)
+            OnPropertyChanged(nameof(ComponentCollectionViewIsVisibleAndSafe));
 
         _previewDebounceCtsViewCollection?.Cancel();
         _previewDebounceCtsViewCollection = new();
@@ -208,7 +205,13 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentCancelBillingIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
         OnPropertyChanged(nameof(ComponentMessagesViewIsVisible));
+        OnPropertyChanged(nameof(ComponentCollectionViewIsVisibleAndSafe));
     }
+
+    /// <summary>CollectionView só aparece quando há coleção selecionada (evita view quebrada se SelectedCollection virar null).</summary>
+    public bool ComponentCollectionViewIsVisibleAndSafe =>
+        ActiveComponent == ActiveViews.CollectionView && SelectedCollection != null;
+
     public bool ComponentQuickAccessIsVisible => ActiveComponent == ActiveViews.QuickAccess;
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
@@ -709,22 +712,24 @@ public partial class CollectionsViewModel : ViewModelBase
             
         var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
         
-        if (!isFirstProfessionalSelection && !wasViewingCollection)
+        // Não voltar quando estamos apenas abrindo a lista (LoadProfessionals define SelectedProfessional e fechava a lista no 1º clique)
+        if (!isFirstProfessionalSelection && !wasViewingCollection && !_isOpeningSelectProfessionalView)
         {
             BackLasViewCommand();
         }
         isFirstProfessionalSelection = false;
         
-        if(SelectedCollection != null)
+        // Só atualizar e salvar o separador quando o usuário escolher um profissional DIFERENTE do atual da coleção
+        // (evita salvar ao abrir a lista, quando LoadProfessionals define SelectedProfessional = Professionals[0])
+        if (SelectedCollection != null && value.username != SelectedCollection.professionalLogin)
         {
             SelectedCollection.professionalLogin = SelectedProfessional.username;
-            // Salvar a alteração do separador no servidor
             _ = SaveCollectionSeparatorChange();
         }
         CurrentProfessionalName = SelectedProfessional.username;
         
-        // Se estava visualizando uma coleção, voltar para a view da coleção
-        if (wasViewingCollection)
+        // Só voltar para a view da coleção se o usuário realmente escolheu um separador (não quando estamos apenas abrindo a lista)
+        if (wasViewingCollection && !_isOpeningSelectProfessionalView)
         {
             ActiveComponent = ActiveViews.CollectionView;
         }
@@ -735,6 +740,7 @@ public partial class CollectionsViewModel : ViewModelBase
         if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
             return;
             
+        IsChangingSeparator = true;
         try
         {
             // Criar um ProfessionalTask apenas com as informações necessárias para atualizar o separador
@@ -769,18 +775,28 @@ public partial class CollectionsViewModel : ViewModelBase
             var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
             if (r != null && r.success)
             {
-                // Atualizar a lista de coleções para refletir a mudança
-                await UpdateProfessionalTasksList();
-                // Atualizar a coleção selecionada com os dados atualizados
-                // CORREÇÃO: Usar o classCode salvo ao invés de acessar SelectedCollection.classCode
-                // pois SelectedCollection pode ficar null após UpdateProfessionalTasksList()
-                if (!string.IsNullOrEmpty(currentClassCode))
+                // Atualizar apenas a PT específica (não recarregar toda a lista de coleções)
+                var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(currentClassCode);
+                if (updatedCollection != null)
                 {
-                    var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == currentClassCode);
-                    if (updatedCollection != null)
+                    await Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        SelectedCollection = updatedCollection;
-                    }
+                        UpdateCollectionInList(updatedCollection, currentClassCode);
+                        var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == currentClassCode);
+                        if (collectionInList != null)
+                        {
+                            if (SelectedCollection != collectionInList)
+                            {
+                                _isUpdatingSelectedCollection = true;
+                                SelectedCollection = collectionInList;
+                                _isUpdatingSelectedCollection = false;
+                            }
+                            else
+                            {
+                                OnPropertyChanged(nameof(SelectedCollection));
+                            }
+                        }
+                    });
                 }
             }
             else
@@ -792,9 +808,14 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao salvar alteração do separador: {ex.Message}");
         }
+        finally
+        {
+            IsChangingSeparator = false;
+        }
     }
     
     [ObservableProperty] public string currentProfessionalName;
+    [ObservableProperty] public bool isChangingSeparator = false;
 
     //FREE TRIAL PROPERTIES
     //[ObservableProperty] public bool accountInPeriodFreeTrial = false;
@@ -862,37 +883,136 @@ public partial class CollectionsViewModel : ViewModelBase
         // Observar mudanças nas mensagens não lidas para decidir view inicial
         InitializeMessagesViewLogic();
         
-        _timerUpdateView = new System.Timers.Timer();
-        // Intervalo dinâmico baseado no número de fotos da coleção selecionada, com teto de 7 minutos (420000ms)
-        _timerUpdateView.Elapsed += (e, a) =>
+        _timerServerProgress = new System.Timers.Timer();
+        _timerServerProgress.AutoReset = false;
+        _timerServerProgress.Elapsed += (_, _) =>
         {
-            if(ActiveComponent == ActiveViews.CollectionView)
+            if (ActiveComponent != ActiveViews.CollectionView || SelectedCollection == null) return;
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                UpdateCollectionViewSelected();
-                
-                // Recalcular intervalo dinâmico após atualização
-                if (SelectedCollection != null)
-                {
-                    var totalPhotos = (SelectedCollection.eventPhotos ?? 0) + (SelectedCollection.recognitionPhotos ?? 0);
-                    // Intervalo dinâmico: mínimo 10s, máximo 7min (420000ms), ou totalPhotos * 50ms
-                    var dynamicInterval = Math.Min(Math.Max(10000, totalPhotos * 50), 420000);
-                    _timerUpdateView.Interval = dynamicInterval;
-                }
-                else
-                {
-                    // Fallback para 60 segundos se não houver coleção selecionada
-                    _timerUpdateView.Interval = 60000;
-                }
-            }
+                await RefreshServerProgressAndRelatedUI();
+                RefreshServerProgressPollingState();
+            });
         };
-        // Intervalo inicial de 60 segundos
-        _timerUpdateView.Interval = 60000;
-        _timerUpdateView.Start();
+
+        _timerSeparationProgress = new System.Timers.Timer();
+        _timerSeparationProgress.AutoReset = false;
+        _timerSeparationProgress.Elapsed += (_, _) =>
+        {
+            if (ActiveComponent != ActiveViews.CollectionView || SelectedCollection == null) return;
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await UpdateSeparationProgress();
+                RefreshSeparationProgressPollingState();
+            });
+        };
+
+        RefreshServerProgressPollingState();
     }
-    
+
     private bool _hasCheckedInitialMessages = false;
     private bool _userManuallyNavigatedToMessages = false;
-    private System.Timers.Timer? _timerUpdateView;
+
+    // --- Timer: progresso no servidor (rec, OCR, tratamento) ---
+    private System.Timers.Timer? _timerServerProgress;
+    private const int ServerProgressPollingIntervalWhenLoadingMinMs = 10000;
+    private const int ServerProgressPollingIntervalWhenLoadingMaxMs = 420000;
+    private const int ServerProgressPollingIntervalFallbackMs = 60000;
+
+    // --- Timer: tagadas/não tagadas (arquivo de separação) ---
+    private System.Timers.Timer? _timerSeparationProgress;
+    private const int SeparationProgressPollingIntervalMinMs = 60000;   // 1 min
+    private const int SeparationProgressPollingIntervalMaxMs = 600000;   // 10 min
+
+    /// <summary>Indica se rec + OCR + tratamento estão em 100%. Se true, não faz polling; só atualiza ao clicar na coleção.</summary>
+    private bool IsServerProgressFullyComplete()
+    {
+        if (ServerProgressValues == null || SelectedCollection == null) return false;
+        int total = ServerProgressValues.total ?? 0;
+        if (total == 0) return true;
+        bool recognitionComplete = (ServerProgressValues.done >= total);
+        bool ocrComplete = !(SelectedCollection.OCR == true) || (ServerProgressValues.ocr >= total);
+        bool autoTreatmentComplete = !(SelectedCollection.AutoTreatment == true) || (ServerProgressValues.autoTreated >= total);
+        return recognitionComplete && ocrComplete && autoTreatmentComplete;
+    }
+
+    /// <summary>Indica se todas as fotos do arquivo de separação estão tagadas. Se true, não faz polling; só atualiza ao clicar.</summary>
+    private bool IsSeparationProgressFullyTagged()
+    {
+        if (SelectedSeparationFile == null || SeparationProgressValue == null) return true;
+        if (SeparationProgressValue.totalPhotos == 0) return true;
+        return SeparationProgressValue.emptyPhotos == 0;
+    }
+
+    /// <summary>Intervalo para polling do servidor (rec/OCR/tratamento). Só usado quando não está 100%.</summary>
+    private double GetServerProgressPollingIntervalMs()
+    {
+        if (SelectedCollection == null) return ServerProgressPollingIntervalFallbackMs;
+        var totalPhotos = (SelectedCollection.eventPhotos ?? 0) + (SelectedCollection.recognitionPhotos ?? 0);
+        return Math.Min(Math.Max(ServerProgressPollingIntervalWhenLoadingMinMs, totalPhotos * 50), ServerProgressPollingIntervalWhenLoadingMaxMs);
+    }
+
+    /// <summary>Intervalo para polling de tagadas/não tagadas. Dinâmico entre 1 min e 10 min.</summary>
+    private double GetSeparationProgressPollingIntervalMs()
+    {
+        if (SeparationProgressValue == null || SeparationProgressValue.totalPhotos <= 0)
+            return SeparationProgressPollingIntervalMinMs;
+        var total = SeparationProgressValue.totalPhotos;
+        return Math.Min(SeparationProgressPollingIntervalMaxMs, Math.Max(SeparationProgressPollingIntervalMinMs, total * 150));
+    }
+
+    /// <summary>Atualiza apenas progresso do servidor (rec, OCR, tratamento) e UI que depende dele. Usado pelo timer e ao clicar na coleção.</summary>
+    private async Task RefreshServerProgressAndRelatedUI()
+    {
+        if (SelectedCollection == null) return;
+        try
+        {
+            IsUpdateProgressBars = true;
+            ActionsButtonsIsVisible = false;
+            await UpdateProgressBars();
+            if (SelectedCollection != null)
+                await UpdateClassSeparationFile(SelectedCollection.classCode);
+            SelectedCollectionIsCanceled = SelectedCollection?.BillingCancelled == true;
+            UploadComplete = SelectedCollection?.UploadComplete == true;
+            if (ServerProgressValues != null)
+                BtTagSortIsEnabled = ServerProgressValues.done >= ServerProgressValues.total;
+            if (ServerProgressValues?.done >= ServerProgressValues?.total == true)
+                ActionsButtonsIsVisible = true;
+            BtExportIsEnabled = SelectedSeparationFile != null;
+            BtDownloadHdIsEnabled = SelectedCollection?.UploadHD == true;
+            if (SelectedCollection?.BillingCancelled == true)
+            {
+                BtTagSortIsEnabled = false;
+                BtExportIsEnabled = false;
+                BtReportsIsEnabled = false;
+                BtDownloadHdIsEnabled = false;
+            }
+        }
+        finally
+        {
+            IsUpdateProgressBars = false;
+        }
+    }
+
+    /// <summary>Liga/desliga o timer de progresso do servidor: desliga se 100% ou sem coleção; senão agenda próximo disparo.</summary>
+    private void RefreshServerProgressPollingState()
+    {
+        _timerServerProgress?.Stop();
+        if (ActiveComponent != ActiveViews.CollectionView || SelectedCollection == null) return;
+        if (IsServerProgressFullyComplete()) return;
+        _timerServerProgress!.Interval = GetServerProgressPollingIntervalMs();
+        _timerServerProgress.Start();
+    }
+
+    /// <summary>Liga/desliga o timer de tagadas/não tagadas: desliga se 100% tagadas ou sem arquivo; senão agenda próximo disparo (1–10 min).</summary>
+    private void RefreshSeparationProgressPollingState()
+    {
+        _timerSeparationProgress?.Stop();
+        if (ActiveComponent != ActiveViews.CollectionView || SelectedCollection == null || SelectedSeparationFile == null) return;
+        if (IsSeparationProgressFullyTagged()) return;
+        _timerSeparationProgress!.Interval = GetSeparationProgressPollingIntervalMs();
+        _timerSeparationProgress.Start();
+    }
     
     /// <summary>
     /// Inicializa a lógica de observação de mensagens não lidas para decidir qual view mostrar
@@ -1523,69 +1643,29 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Atualiza a view da coleção selecionada (servidor + tagadas). Chamado ao clicar na coleção e pelos timers quando não estão em 100%.</summary>
     public async void UpdateCollectionViewSelected()
     {
-
+        if (SelectedCollection == null) return;
         try
         {
-            // CORREÇÃO: Só atualiza para CollectionView se SelectedCollection não for null
-            // Isso previne que o componente ativo seja resetado quando navegamos para outras telas
-            if (SelectedCollection == null)
-                return;
-                
-            ActionsButtonsIsVisible = false;
-            IsUpdateProgressBars = true;
-
             ActiveComponent = ActiveViews.CollectionView;
             ExpanderAdvancedOptions = false;
 
-            await UpdateProgressBars();
+            await RefreshServerProgressAndRelatedUI();
+            await UpdateSeparationProgress();
 
-            // Recalcular intervalo dinâmico do timer após atualizar progresso
-            if (_timerUpdateView != null && SelectedCollection != null)
-            {
-                var totalPhotos = (SelectedCollection.eventPhotos ?? 0) + (SelectedCollection.recognitionPhotos ?? 0);
-                // Intervalo dinâmico: mínimo 10s, máximo 7min (420000ms), ou totalPhotos * 50ms
-                var dynamicInterval = Math.Min(Math.Max(10000, totalPhotos * 50), 420000);
-                _timerUpdateView.Interval = dynamicInterval;
-            }
-
-            if(SelectedCollection != null)
-                await UpdateClassSeparationFile(SelectedCollection.classCode);
-
-            SelectedCollectionIsCanceled = SelectedCollection?.BillingCancelled == true ? true : false;
-
-            // Notificar mudanças nas propriedades calculadas da data de deleção
             OnPropertyChanged(nameof(IsDeletionDateNear));
             OnPropertyChanged(nameof(DeletionDateForeground));
             OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
             OnPropertyChanged(nameof(DeletionDateFontWeight));
 
-            UpdateSeparationProgress();
-
-            if(ServerProgressValues?.done >= ServerProgressValues?.total)
-                ActionsButtonsIsVisible = true;
-
-            UploadComplete = SelectedCollection?.UploadComplete == true ? true : false;
-
-            if (ServerProgressValues != null)
-                BtTagSortIsEnabled = (ServerProgressValues.done >= ServerProgressValues.total);
-
-            BtExportIsEnabled = SelectedSeparationFile != null ? true : false;
-            BtDownloadHdIsEnabled = SelectedCollection?.UploadHD == true ? true : false;
-
-            if(SelectedCollection != null)
-                if (SelectedCollection.BillingCancelled == true)
-                {
-                    BtTagSortIsEnabled = false;
-                    BtExportIsEnabled = false;
-                    BtReportsIsEnabled = false;
-                    BtDownloadHdIsEnabled = false;
-                }
+            RefreshServerProgressPollingState();
+            RefreshSeparationProgressPollingState();
         }
-        finally
+        catch (Exception ex)
         {
-            IsUpdateProgressBars = false;
+            Console.WriteLine("UpdateCollectionViewSelected: " + ex.Message);
         }
     }
 
@@ -1796,9 +1876,9 @@ public partial class CollectionsViewModel : ViewModelBase
         {
         }
     }
-    private async void UpdateSeparationProgress()
+    /// <summary>Atualiza dados de tagadas/não tagadas do arquivo de separação. Ao final atualiza o estado do timer de polling.</summary>
+    private async Task UpdateSeparationProgress()
     {
-
         if (SelectedSeparationFile == null)
         {
             ResumeSeparationFileComponentIsVisible = false;
@@ -1883,7 +1963,9 @@ public partial class CollectionsViewModel : ViewModelBase
         NotSeparatedRectHeight = totalGraphRectHeight * percentNotSeparated;
         SeparatedRectHeight = totalGraphRectHeight * (1 - percentNotSeparated);
 
+        RefreshSeparationProgressPollingState();
     }
+
     public void UpdateGraduateDataFromFile(FileInfo f)
     {
         // Se for apenas tratamento, não processar dados de reconhecimento
@@ -1924,7 +2006,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 photoPath.Replace(recFolder, "");
             if (!File.Exists(recFolder + "/" + photoPath))
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " n�o existe.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " não existe.");
                 break;
             }
             gradByCPF.ShortPath = photoPath;
@@ -2304,26 +2386,34 @@ public partial class CollectionsViewModel : ViewModelBase
             SelectedCollection = null;
         }
         
-        ActiveComponent = ActiveViews.SelectProfessional;
-        if(Professionals == null || Professionals.Count == 0)
-            await LoadProfessionals();
-        
-        // Se estiver visualizando uma coleção, selecionar o profissional atual da coleção
-        if (wasViewingCollection && SelectedCollection != null)
+        _isOpeningSelectProfessionalView = true;
+        try
         {
-            var currentProfessional = Professionals?.FirstOrDefault(p => p.username == SelectedCollection.professionalLogin);
-            if (currentProfessional != null)
+            ActiveComponent = ActiveViews.SelectProfessional;
+            if (Professionals == null || Professionals.Count == 0)
+                await LoadProfessionals();
+            
+            // Se estiver visualizando uma coleção, selecionar o profissional atual da coleção (sem disparar save)
+            if (wasViewingCollection && SelectedCollection != null)
             {
-                SelectedProfessional = currentProfessional;
+                var currentProfessional = Professionals?.FirstOrDefault(p => p.username == SelectedCollection.professionalLogin);
+                if (currentProfessional != null)
+                {
+                    SelectedProfessional = currentProfessional;
+                }
+                else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+                {
+                    SelectedProfessional = Professionals[0];
+                }
             }
             else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
             {
                 SelectedProfessional = Professionals[0];
             }
         }
-        else if (SelectedProfessional == null && Professionals != null && Professionals.Count > 0)
+        finally
         {
-            SelectedProfessional = Professionals[0];
+            _isOpeningSelectProfessionalView = false;
         }
     }
     [RelayCommand]
@@ -2348,6 +2438,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             // Atualizar todas as propriedades relevantes do objeto na lista
             // Isso mantém a referência do objeto, evitando problemas de seleção
+            collectionInList.professionalLogin = updatedCollection.professionalLogin;
             collectionInList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
             collectionInList.BillingCancelled = updatedCollection.BillingCancelled;
             collectionInList.UploadComplete = updatedCollection.UploadComplete;
@@ -2369,6 +2460,7 @@ public partial class CollectionsViewModel : ViewModelBase
             var collectionInFilteredList = CollectionsListFiltered.FirstOrDefault(c => c.classCode == classCode);
             if (collectionInFilteredList != null)
             {
+                collectionInFilteredList.professionalLogin = updatedCollection.professionalLogin;
                 collectionInFilteredList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
                 collectionInFilteredList.BillingCancelled = updatedCollection.BillingCancelled;
                 collectionInFilteredList.UploadComplete = updatedCollection.UploadComplete;
@@ -2680,13 +2772,6 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 if(RemainingFreeTrialPhotosResult.IsFreeTrialActive == true)
                     GetInfosAboutFreeTrialPeriod();
-                
-                // Verifica se há novas mensagens após criar a turma
-                // Se houver mais mensagens não lidas do que antes, abre o componente de mensagens
-                if (MainWindowViewModel.Instance != null)
-                {
-                    _ = MainWindowViewModel.Instance.CheckForNewMessagesAfterCollectionCreationAsync();
-                }
 
             }
             else
@@ -2709,6 +2794,24 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionCreationQueue.TryDequeue(out attempClassCode!); // ! instruction for silence compilator becase warning not null here
             IsCreatingCollection = false;
+        }
+    }
+
+    /// <summary>
+    /// Escreve uma mensagem de erro no arquivo log.txt
+    /// </summary>
+    private void WriteToLogFile(string message)
+    {
+        try
+        {
+            string logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt");
+            string logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}\n";
+            File.AppendAllText(logFilePath, logMessage);
+        }
+        catch (Exception ex)
+        {
+            // Se não conseguir escrever no log, apenas ignora silenciosamente
+            System.Diagnostics.Debug.WriteLine($"Erro ao escrever no log: {ex.Message}");
         }
     }
 
@@ -2759,26 +2862,21 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                // Não foi possível atualizar a contagem, mas o fluxo continua normalmente
-                // Mostra mensagem amigável informando que pode continuar
+                // Não foi possível atualizar a contagem - registra no log
                 var message = result?.message;
                 if (string.IsNullOrEmpty(message))
                 {
-                    message = "Não foi possível sincronizar a contagem de fotos automaticamente, mas você pode continuar normalmente.";
+                    message = "Não foi possível sincronizar a contagem de fotos automaticamente.";
                 }
-                else
-                {
-                    message = $"{message}\n\nVocê pode continuar normalmente com a operação.";
-                }
-                GlobalAppStateViewModel.Instance.ShowDialogOk(message);
+                
+                WriteToLogFile($"VerifyAndUpdatePhotoCountIfNeeded - Falha ao atualizar contagem: {message}");
                 return true; // Continua o fluxo mesmo se não conseguiu atualizar
             }
         }
         catch (Exception ex)
         {
-            // Em caso de exceção, também continua o fluxo com mensagem amigável
-            GlobalAppStateViewModel.Instance.ShowDialogOk(
-                "Não foi possível verificar a contagem de fotos automaticamente, mas você pode continuar normalmente com a operação.");
+            // Em caso de exceção, registra no log
+            WriteToLogFile($"VerifyAndUpdatePhotoCountIfNeeded - Exceção: {ex.Message}\nStackTrace: {ex.StackTrace}");
             return true; // Continua o fluxo mesmo em caso de erro
         }
     }

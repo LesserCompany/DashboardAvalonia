@@ -11,7 +11,7 @@
              IsEnabled="{Binding ComponentNewCollectionIsEnabled}"
              x:Name="root"
              >
-    <ScrollViewer Offset="{Binding ScrollComponentNewCollection}" Padding="0,0,0,20">
+    <ScrollViewer x:Name="ScrollViewerNewCollection" Offset="{Binding ScrollComponentNewCollection}" Padding="0,0,0,20">
 
       <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding !IsCreatingCollection}" Margin="0,0,0,30">
             <!-- Title -->

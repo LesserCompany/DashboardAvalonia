@@ -22,7 +22,7 @@ using SharedClientSide.ServerInteraction.Users;
 
 namespace LesserDashboardClient;
 
-public class App : Application
+public partial class App : Application
 {
     public static AuthWindow? AuthWindowInstance { get; set; }
     private static bool isRedirecting = false; // Flag para evitar redirecionamentos duplos
@@ -47,6 +47,8 @@ public class App : Application
         
         // Assina o evento do serviço de localização para propagar (se necessário)
         LesserDashboardClient.Services.LocalizationService.Instance.LanguageChanged += (s, e) => LanguageChanged?.Invoke(s, e);
+        
+        RegisterGlobalErrorHandlers();
     }
 
     private void InitializeLocalization()
@@ -403,6 +405,68 @@ public class App : Application
         foreach (var plugin in dataValidationPluginsToRemove)
         {
             BindingPlugins.DataValidators.Remove(plugin);
+        }
+    }
+
+    private void RegisterGlobalErrorHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            try
+            {
+                if (e.ExceptionObject is Exception ex)
+                {
+                    SaveLogError(ex.Message, ex.StackTrace ?? "", ex.InnerException?.ToString() ?? "Sem InnerException");
+                }
+                else
+                {
+                    SaveLogError("Erro crítico desconhecido", "Sem StackTrace", e.ExceptionObject?.ToString() ?? "Sem detalhes");
+                }
+            }
+            catch (Exception logEx)
+            {
+                Console.WriteLine("Falha ao registrar log: " + logEx.Message);
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            try
+            {
+                SaveLogError(e.Exception.Message, e.Exception.StackTrace ?? "", e.Exception.InnerException?.ToString() ?? "Sem InnerException");
+            }
+            catch (Exception logEx)
+            {
+                Console.WriteLine("Falha ao registrar log: " + logEx.Message);
+            }
+
+            e.SetObserved(); // evita que o processo caia fora
+        };
+    }
+
+    public static void SaveLogError(string message, string stacktrace, string innerException)
+    {
+        try
+        {
+            string assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name ?? "";
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string logDirectory = Path.Combine(documentsPath, "Separacao", "apps", assemblyName);
+            string logFilePath = Path.Combine(logDirectory, "ERROR_LOG.txt");
+
+            if (!Directory.Exists(logDirectory))
+                Directory.CreateDirectory(logDirectory);
+
+            string logMessage = $"Data/Hora: {DateTime.Now}\n" +
+                                $"Mensagem de erro: {message}\n" +
+                                $"StackTrace: {stacktrace}\n" +
+                                $"InnerException: {innerException}\n" +
+                                $"-------------------------------------------\n";
+
+            File.AppendAllText(logFilePath, logMessage);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao salvar log: " + ex.Message);
         }
     }
 }

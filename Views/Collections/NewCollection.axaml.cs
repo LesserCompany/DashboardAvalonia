@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -28,6 +28,11 @@ public partial class NewCollection : UserControl
     private void NewCollection_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         _tbCollectionName = this.FindControl<TextBox>("tbCollectionName");
+        
+        // Sempre que a view de criação de coleção ficar visível, levar o scroll ao topo
+        this.GetObservable(IsVisibleProperty).Subscribe(visible => { if (visible) ScrollToTop(); });
+        if (IsVisible)
+            ScrollToTop();
         
         // Bloqueia espaços: KeyDown para tecla, TextChanged para colar
         if (_tbCollectionName != null)
@@ -74,6 +79,12 @@ public partial class NewCollection : UserControl
         {
             UpdateTextBoxErrorState();
         }
+    }
+
+    private void ScrollToTop()
+    {
+        var sv = this.FindControl<ScrollViewer>("ScrollViewerNewCollection");
+        sv?.ScrollToHome();
     }
 
     private void UpdateTextBoxErrorState()
