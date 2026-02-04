@@ -223,26 +223,25 @@ namespace LesserDashboardClient.Services
         }
 
         /// <summary>
-        /// Obtém o código do idioma atual para enviar à API
+        /// Obtém o código do idioma atual para enviar à API.
+        /// Usa o mesmo idioma aplicado na UI (LocalizationService) para evitar combos em inglês
+        /// quando o resto do dashboard já está em pt-BR (ex.: options ainda não carregado).
         /// </summary>
         private static string GetCurrentLanguageCode()
         {
             try
             {
-                // Obter o idioma atual das configurações
-                string currentLanguage = ViewModels.GlobalAppStateViewModel.options?.Language ?? "en-US";
-                
-                // Converter para o formato esperado pela API
-                if (currentLanguage.StartsWith("pt"))
-                {
+                // Usar o idioma efetivamente aplicado na interface (mesma fonte do resto do dashboard)
+                string currentLanguage = LocalizationService.Instance.GetCurrentLanguage();
+                if (string.IsNullOrWhiteSpace(currentLanguage))
+                    currentLanguage = ViewModels.GlobalAppStateViewModel.options?.Language ?? "en-US";
+
+                // Converter para o formato esperado pela API (pt ou en)
+                if (currentLanguage.StartsWith("pt", StringComparison.OrdinalIgnoreCase))
                     return "pt";
-                }
-                else
-                {
-                    return "en";
-                }
+                return "en";
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return "en"; // Fallback para inglês
             }

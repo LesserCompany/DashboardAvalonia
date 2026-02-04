@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -36,8 +36,12 @@
                     <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
                             VerticalAlignment="Center"
                             Padding="8,4"
-                            MinHeight="32">
-                      <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding SelectedCollection.professionalLogin}" />
+                            MinHeight="32"
+                            IsEnabled="{Binding !IsChangingSeparator}">
+                      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding SelectedCollection.professionalLogin}" />
+                        <ui:ProgressRing IsVisible="{Binding IsChangingSeparator}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="12" Height="12" />
+                      </StackPanel>
                     </Button>
                   </StackPanel>
                 </Grid>

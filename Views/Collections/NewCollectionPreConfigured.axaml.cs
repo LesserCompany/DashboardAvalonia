@@ -29,6 +29,11 @@ public partial class NewCollectionPreConfigured : UserControl
     {
         _tbCollectionNamePreConfigured = this.FindControl<TextBox>("tbCollectionNamePreConfigured");
         
+        // Sempre que a view de criação de coleção (combo) ficar visível, levar o scroll ao topo
+        this.GetObservable(IsVisibleProperty).Subscribe(visible => { if (visible) ScrollToTop(); });
+        if (IsVisible)
+            ScrollToTop();
+        
         // Bloqueia espaços: KeyDown para tecla, TextChanged para colar
         if (_tbCollectionNamePreConfigured != null)
         {
@@ -74,6 +79,12 @@ public partial class NewCollectionPreConfigured : UserControl
         {
             UpdateTextBoxErrorState();
         }
+    }
+
+    private void ScrollToTop()
+    {
+        var sv = this.FindControl<ScrollViewer>("ScrollViewerNewCollectionPreConfigured");
+        sv?.ScrollToHome();
     }
 
     private void UpdateTextBoxErrorState()
