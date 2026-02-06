@@ -22,6 +22,8 @@ using SharedClientSide.ServerInteraction.Users.Requests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -662,6 +664,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
     [ObservableProperty] public double? tbTotalFreePhotosPerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
+    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value) => OnPropertyChanged(nameof(IsTotalFreePhotosPerGraduateVisible));
     [ObservableProperty] public bool? cbUploadedPhotosAreAlreadySorted;
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
@@ -696,6 +699,11 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Indica se não há combos disponíveis (para exibir mensagem de fallback)
     /// </summary>
     public bool NoCombosAvailable => DynamicCombos == null || DynamicCombos.Count == 0;
+
+    /// <summary>
+    /// Exibe o campo "Total de fotos grátis por formando" quando há pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" está marcado.
+    /// </summary>
+    public bool IsTotalFreePhotosPerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -882,6 +890,8 @@ public partial class CollectionsViewModel : ViewModelBase
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
         
+        GraduatesData.CollectionChanged += GraduatesData_CollectionChanged;
+        
         // Observar mudanças nas mensagens não lidas para decidir view inicial
         InitializeMessagesViewLogic();
         
@@ -910,6 +920,48 @@ public partial class CollectionsViewModel : ViewModelBase
         };
 
         RefreshServerProgressPollingState();
+    }
+
+    private readonly HashSet<INotifyPropertyChanged> _graduatePropertyChangedSubscriptions = new();
+
+    private void GraduatesData_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(IsTotalFreePhotosPerGraduateVisible));
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var inpc in _graduatePropertyChangedSubscriptions)
+                inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
+            _graduatePropertyChangedSubscriptions.Clear();
+            return;
+        }
+        if (e.NewItems != null)
+        {
+            foreach (var item in e.NewItems.Cast<GraduateByCPF>())
+            {
+                if (item is INotifyPropertyChanged inpc)
+                {
+                    inpc.PropertyChanged += GraduateByCPF_PropertyChanged;
+                    _graduatePropertyChangedSubscriptions.Add(inpc);
+                }
+            }
+        }
+        if (e.OldItems != null)
+        {
+            foreach (var item in e.OldItems.Cast<GraduateByCPF>())
+            {
+                if (item is INotifyPropertyChanged inpc)
+                {
+                    inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
+                    _graduatePropertyChangedSubscriptions.Remove(inpc);
+                }
+            }
+        }
+    }
+
+    private void GraduateByCPF_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GraduateByCPF.CPF))
+            OnPropertyChanged(nameof(IsTotalFreePhotosPerGraduateVisible));
     }
 
     private bool _hasCheckedInitialMessages = false;
@@ -3355,7 +3407,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         }
                     }
                     var file = new FileInfo(System.IO.Path.GetTempFileName() + ".xlsx");
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
                     using (ExcelPackage package = new ExcelPackage())
                     {
                         ExcelWorksheet ws = package.Workbook.Worksheets.Add(Loc.Tr("Report"));

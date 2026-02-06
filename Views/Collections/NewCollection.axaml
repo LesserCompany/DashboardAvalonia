@@ -236,7 +236,7 @@
                            IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
                            Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
-                  <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
+                  <StackPanel Margin="10 2 0 0 " IsVisible="{Binding IsTotalFreePhotosPerGraduateVisible}">
                     <TextBlock Text="{Tr 'TotalFreePhotosPerGraduate'}"   />
                     <NumericUpDown Minimum="0"
                        Margin="4"

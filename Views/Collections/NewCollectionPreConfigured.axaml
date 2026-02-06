@@ -68,7 +68,7 @@
                 Value="{Binding TbPricePerPhotoForSellingOnline}"
                 Width="150"/>
           </StackPanel>
-          <StackPanel IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}" Spacing="4">
+          <StackPanel IsVisible="{Binding IsTotalFreePhotosPerGraduateVisible}" Spacing="4">
             <TextBlock Text="{Tr 'TotalFreePhotosPerGraduate'}"   />
             <NumericUpDown Minimum="0"
                 Margin="0 4 0 0 "
