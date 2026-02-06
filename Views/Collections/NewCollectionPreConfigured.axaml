@@ -56,16 +56,28 @@
           <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
         </StackPanel>
         
-        <StackPanel Margin="0 4 0 0 " Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" IsVisible="{Binding CbEnablePhotoSales}">
-          <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
-          <NumericUpDown Minimum="0"
-              Margin="0 4 0 0 "
-              HorizontalAlignment="Left"
-              Maximum="99999"
-              Increment="0.01"
-              FormatString="C"
-              Value="{Binding TbPricePerPhotoForSellingOnline}"
-              Width="150"/>
+        <StackPanel Margin="0 4 0 0 " Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="24">
+          <StackPanel IsVisible="{Binding CbEnablePhotoSales}" Spacing="4">
+            <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
+            <NumericUpDown Minimum="0"
+                Margin="0 4 0 0 "
+                HorizontalAlignment="Left"
+                Maximum="99999"
+                Increment="0.01"
+                FormatString="C"
+                Value="{Binding TbPricePerPhotoForSellingOnline}"
+                Width="150"/>
+          </StackPanel>
+          <StackPanel IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}" Spacing="4">
+            <TextBlock Text="{Tr 'TotalFreePhotosPerGraduate'}"   />
+            <NumericUpDown Minimum="0"
+                Margin="0 4 0 0 "
+                HorizontalAlignment="Left"
+                Maximum="9999"
+                Increment="1"
+                Value="{Binding TbTotalFreePhotosPerGraduate}"
+                Width="150"/>
+          </StackPanel>
         </StackPanel>
 
         <Grid Grid.Row="5"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">

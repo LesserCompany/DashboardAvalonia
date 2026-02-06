@@ -215,18 +215,19 @@
                 <StackPanel Spacing="6">
                   <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
                     <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
-                    <StackPanel Margin="10 2 0 0 " Grid.Row="1" IsVisible="{Binding CbEnablePhotoSales}">
-                      <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
-                      <NumericUpDown Minimum="0"
-                         Margin="4"
-                         HorizontalAlignment="Left"
-                         Maximum="99999"
-                         Increment="0.01"
-                         FormatString="C"
-                         Value="{Binding TbPricePerPhotoForSellingOnline}"
-                         Width="150"/>
-                    </StackPanel> 
-                    
+                    <StackPanel Grid.Row="1" Spacing="6">
+                      <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}">
+                        <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
+                        <NumericUpDown Minimum="0"
+                           Margin="4"
+                           HorizontalAlignment="Left"
+                           Maximum="99999"
+                           Increment="0.01"
+                           FormatString="C"
+                           Value="{Binding TbPricePerPhotoForSellingOnline}"
+                           Width="150"/>
+                      </StackPanel>
+                    </StackPanel>
                   </Grid>  
                     
                   
@@ -235,6 +236,16 @@
                            IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
                            Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
+                  <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
+                    <TextBlock Text="{Tr 'TotalFreePhotosPerGraduate'}"   />
+                    <NumericUpDown Minimum="0"
+                       Margin="4"
+                       HorizontalAlignment="Left"
+                       Maximum="9999"
+                       Increment="1"
+                       Value="{Binding TbTotalFreePhotosPerGraduate}"
+                       Width="150"/>
+                  </StackPanel>
                   <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
                     

@@ -660,6 +660,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbEnableAutoExclusion = true;
     [ObservableProperty] public bool? cbEnablePhotoSales;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
+    [ObservableProperty] public double? tbTotalFreePhotosPerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
     [ObservableProperty] public bool? cbUploadedPhotosAreAlreadySorted;
     [ObservableProperty] public string tbProfessionalTaskDescription;
@@ -764,6 +765,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 Description = SelectedCollection.Description,
                 EnablePhotosSales = SelectedCollection.EnablePhotosSales,
                 PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
+                TotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate,
                 OCR = SelectedCollection.OCR,
                 AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
             };
@@ -2176,6 +2178,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalFreePhotosPerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
@@ -2218,6 +2221,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalFreePhotosPerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
@@ -2261,6 +2265,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = options.EnablePhotoSales;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalFreePhotosPerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
@@ -2316,6 +2321,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
+            TbTotalFreePhotosPerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
             TbProfessioanlTaskDescription = SelectedCollection.Description;
             CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
             AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
@@ -2446,6 +2452,8 @@ public partial class CollectionsViewModel : ViewModelBase
             collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
             collectionInList.OCR = updatedCollection.OCR;
             collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
+            collectionInList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
             collectionInList.Status = updatedCollection.Status;
             collectionInList.StorageLocation = updatedCollection.StorageLocation;
             collectionInList.CreationDate = updatedCollection.CreationDate;
@@ -2468,6 +2476,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
                 collectionInFilteredList.OCR = updatedCollection.OCR;
                 collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
+                collectionInFilteredList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
                 collectionInFilteredList.Status = updatedCollection.Status;
                 collectionInFilteredList.StorageLocation = updatedCollection.StorageLocation;
                 collectionInFilteredList.CreationDate = updatedCollection.CreationDate;
@@ -2670,6 +2680,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 Description = TbProfessionalTaskDescription,
                 EnablePhotosSales = CbEnablePhotoSales,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
+                TotalPhotosForFreePerGraduate = (int)(TbTotalFreePhotosPerGraduate ?? 0.0),
                 OCR = CbOcr,
                 AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
 
@@ -2794,6 +2805,10 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionCreationQueue.TryDequeue(out attempClassCode!); // ! instruction for silence compilator becase warning not null here
             IsCreatingCollection = false;
+
+            // Atualiza mensagens do servidor (ex.: limite atingido, erro de cota) sem abrir o componente
+            if (MainWindowViewModel.Instance != null)
+                _ = MainWindowViewModel.Instance.LoadUserMessagesAsync(forceReload: true);
         }
     }
 

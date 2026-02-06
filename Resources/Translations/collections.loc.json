@@ -215,6 +215,10 @@
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
   },
+  "TotalFreePhotosPerGraduate": {
+    "en-US": "Total free photos per graduate:",
+    "pt-BR": "Total de fotos grátis por formando:"
+  },
   "Price per photo:": {
     "en-US": "Price per photo:",
     "pt-BR": "Preço por foto:"
