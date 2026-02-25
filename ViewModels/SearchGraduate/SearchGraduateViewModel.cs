@@ -81,8 +81,8 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
                 return _urlPhotosForTreatment;
             }
         }
-        private string _urlPersonalize = "";
-        public string UrlPersonalize
+        private string _urlProtectedCpf = "";
+        public string UrlProtectedCpf
         {
             get
             {
@@ -90,16 +90,16 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
                 {
                     return "about:blank";
                 }
-                
+
                 if (IsDarkMode)
                 {
-                    _urlPersonalize = baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";
+                    _urlProtectedCpf = baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + "&darkMode=true" + "&hideNavbar=true";
                 }
                 else
                 {
-                    _urlPersonalize = baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=false" + "&hideNavbar=true";
+                    _urlProtectedCpf = baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + "&darkMode=false" + "&hideNavbar=true";
                 }
-                return _urlPersonalize;
+                return _urlProtectedCpf;
             }
         }
 
@@ -164,7 +164,7 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             }
         }
 
-        public string UrlPersonalizeWeb
+        public string UrlProtectedCpfWeb
         {
             get
             {
@@ -172,14 +172,14 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
                 {
                     return "";
                 }
-                
+
                 if (IsDarkMode)
                 {
-                    return baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=true";
+                    return baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + "&darkMode=true";
                 }
                 else
                 {
-                    return baseUrl + "/personalize/" + $"?token={loginToken}" + "&darkMode=false";
+                    return baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + "&darkMode=false";
                 }
             }
         }

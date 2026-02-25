@@ -327,16 +327,19 @@ public partial class App : Application
 
     public static void StartDownloadApp(ProfessionalTask professionalTask, Action<int> progressCallback, Action onDone, Action<string> onError)
     {
+        SharedClientSide.Helpers.AppInstaller.MsixLog("StartDownloadApp ENTRANDO");
         try
         {
             if (!Directory.Exists(AppInstaller.AppRootFolder))
                 Directory.CreateDirectory(AppInstaller.AppRootFolder);
             File.WriteAllText(AppInstaller.AppRootFolder + "/classToDownload.txt", JsonConvert.SerializeObject(professionalTask, Formatting.Indented));
         }
-        catch
+        catch (Exception ex)
         {
+            SharedClientSide.Helpers.AppInstaller.MsixLog($"StartDownloadApp exceção ao escrever classToDownload: {ex.Message}");
         }
 
+        SharedClientSide.Helpers.AppInstaller.MsixLog("StartDownloadApp chamando InstallerRunner.RunInBackground(download)");
         // Usar InstallerRunner para executar em background e evitar travada da UI
         InstallerRunner.RunInBackground(
             appName: "download",

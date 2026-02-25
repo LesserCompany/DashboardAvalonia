@@ -55,8 +55,8 @@ public partial class SearchGraduateControl : UserControl
                 case 2: // Fotos para tratamento manual
                     openInWebViewModel.WebUrl = viewModel.UrlPhotosForTreatmentWeb;
                     break;
-                case 3: // Personalizar
-                    openInWebViewModel.WebUrl = viewModel.UrlPersonalizeWeb;
+                case 3: // Proteção de CPF
+                    openInWebViewModel.WebUrl = viewModel.UrlProtectedCpfWeb;
                     break;
                 default:
                     openInWebViewModel.WebUrl = "";

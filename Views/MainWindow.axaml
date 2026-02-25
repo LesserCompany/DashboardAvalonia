@@ -6,6 +6,7 @@
         xmlns:TabCollections="clr-namespace:LesserDashboardClient.Views.Collections"
         xmlns:TabOptions="clr-namespace:LesserDashboardClient.Views.Options"
         xmlns:TabInvoices="clr-namespace:LesserDashboardClient.Views.Invoices"
+        xmlns:TabPersonalize="clr-namespace:LesserDashboardClient.Views.Personalize"
         xmlns:TabSearchGraduate="clr-namespace:LesserDashboardClient.Views.SearchGraduate"
         xmlns:local="clr-namespace:LesserDashboardClient.Views"
         xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
@@ -69,6 +70,14 @@
                       <TabItem.ContentTemplate>
                         <DataTemplate>
                           <TabInvoices:InvoicesControl x:CompileBindings="True" x:Name="InvoicesTab" IsVisible="True" />
+                        </DataTemplate>
+                      </TabItem.ContentTemplate>
+                    </TabItem>
+                    
+                    <TabItem Header="{Tr 'Personalize'}" FontSize="{DynamicResource FontSizeHeaderTabs}">
+                      <TabItem.ContentTemplate>
+                        <DataTemplate>
+                          <TabPersonalize:PersonalizeControl x:CompileBindings="True" x:Name="PersonalizeTab" IsVisible="True" />
                         </DataTemplate>
                       </TabItem.ContentTemplate>
                     </TabItem>
