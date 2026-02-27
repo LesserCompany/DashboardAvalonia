@@ -39,10 +39,10 @@
           </DataTemplate>
         </TabItem.ContentTemplate>
       </TabItem>
-      <TabItem Header="Personalizar" FontSize="14" FontWeight="Bold" >
+      <TabItem Header="Proteção de CPF" FontSize="14" FontWeight="Bold" >
         <TabItem.ContentTemplate>
           <DataTemplate>
-            <WebView  Url="{Binding $parent[UserControl].DataContext.UrlPersonalize}"  MinWidth="100" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0" />
+            <WebView  Url="{Binding $parent[UserControl].DataContext.UrlProtectedCpf}"  MinWidth="100" MinHeight="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Margin="0" Padding="0" />
           </DataTemplate>
         </TabItem.ContentTemplate>
       </TabItem>

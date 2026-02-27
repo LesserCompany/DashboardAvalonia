@@ -28,6 +28,40 @@
         
         <!--Content-->
         <StackPanel Grid.Row="0" Margin="0 50 0 0"  Spacing="{DynamicResource DefaultRowSpacing}">
+          <!-- Quando a coleção é da lista de deletadas: só título + botão grande Restaurar -->
+          <StackPanel IsVisible="{Binding IsSelectedCollectionInDeletedList}" 
+                      VerticalAlignment="Center" 
+                      HorizontalAlignment="Stretch" 
+                      Spacing="32" 
+                      Margin="0,40,0,0">
+            <TextBlock Text="{Binding SelectedCollection.classCode}" 
+                       FontSize="22" 
+                       FontWeight="SemiBold" 
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"/>
+            <TextBlock Text="{Tr 'Esta coleção está com solicitação de exclusão. Restaure para voltar a usá-la.'}" 
+                       FontSize="14" 
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource MetaFg}"
+                       MaxWidth="400"/>
+            <Button Command="{Binding CancelDeleteCollectionCommand}"
+                    CommandParameter="{Binding SelectedCollection}"
+                    HorizontalAlignment="Center"
+                    Padding="32,16"
+                    FontSize="16"
+                    MinWidth="280"
+                    Background="{DynamicResource CardBg}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    CornerRadius="10">
+              <TextBlock Text="{Tr 'Restaurar coleção'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </Button>
+          </StackPanel>
+
+          <!-- Conteúdo normal (oculto quando coleção é da lista de deletadas) -->
+          <StackPanel IsVisible="{Binding !IsSelectedCollectionInDeletedList}" Spacing="{DynamicResource DefaultRowSpacing}">
           <TextBlock Text="{Tr 'Canceled'}" FontSize="18" TextAlignment="Center" Foreground="Red" IsVisible="{Binding SelectedCollectionIsCanceled}" />
           <Grid RowDefinitions="80" ColumnDefinitions="200, * " Grid.Row="0" >
                 <Grid Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -125,26 +159,26 @@
           
           
             
-          <!-- Buttons -->
+          <!-- Buttons (desabilitados quando a coleção é da lista de deletadas) -->
           <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="6" ColumnSpacing="5">
-            <Button IsEnabled="{Binding BtTagSortIsEnabled}" Command="{Binding TagSortCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
+            <Button IsEnabled="{Binding BtTagSortIsEnabledForView}" Command="{Binding TagSortCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Tag/Sort'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtTagSortIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
               </StackPanel>
             </Button>
-            <Button IsEnabled="{Binding BtExportIsEnabled}" Command="{Binding ExportCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button IsEnabled="{Binding BtExportIsEnabledForView}" Command="{Binding ExportCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Export'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtExportIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
               </StackPanel>
             </Button>
-            <Button IsEnabled="{Binding BtExportIsEnabled}" Command="{Binding ToggleViewReportsContainer}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button IsEnabled="{Binding BtExportIsEnabledForView}" Command="{Binding ToggleViewReportsContainer}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Reports'}" VerticalAlignment="Center" />
               </StackPanel>
             </Button>
-            <Button IsEnabled="{Binding BtDownloadHdIsEnabled}" Command="{Binding DownloadHDCommand}" Height="45" Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button IsEnabled="{Binding BtDownloadHdIsEnabledForView}" Command="{Binding DownloadHDCommand}" Height="45" Grid.Column="3" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Download HD Storage'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtDownloadHdIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
@@ -152,8 +186,8 @@
             </Button>
           </Grid>
 
-          <!-- REPORTS CONTAINER -->
-          <Grid ColumnDefinitions="1*, 1*" IsVisible="{Binding ReportsContainerIsVisible}" ColumnSpacing="4">
+          <!-- REPORTS CONTAINER (desabilitado quando coleção é da lista de deletadas) -->
+          <Grid ColumnDefinitions="1*, 1*" IsVisible="{Binding ReportsContainerIsVisible}" ColumnSpacing="4" IsEnabled="{Binding BtExportIsEnabledForView}">
             <Button Command="{Binding GeneralReportCommand}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock VerticalAlignment="Center" >
@@ -180,7 +214,7 @@
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
           <Grid Grid.Row="7">
-              <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding !SelectedCollection.BillingCancelled}" >
+              <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}">
                   <StackPanel Spacing="6">
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
@@ -198,19 +232,26 @@
                       <Button Width="325" IsEnabled="{Binding BtRequestManualTreatmentAllCollectionIsEnabled}" Command="{Binding RequestManualTreatmentAllCollectionCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                             <TextBlock Text="{Tr 'Request treatment of the entire collection'}" VerticalAlignment="Center" />
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip=""  />
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Request manual treatment of all images in your collection. Irreversible action.'}"  />
                             <ui:ProgressRing IsVisible="{Binding BtRequestManualTreatmentAllCollectionIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
                           </StackPanel>
                       </Button>
                       <Button Width="325" Command="{Binding OpenCancelBillingViewCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Cancel billing'}" VerticalAlignment="Center" />
-                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip=""  />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Request cancellation of billing for this collection on your invoice. You must select the repeated class as justification.'}"  />
                           </StackPanel>
+                      </Button>
+                      <Button Width="325" 
+                              IsVisible="{Binding IsSelectedCollectionInDeletedList}"
+                              Command="{Binding CancelDeleteCollectionCommand}"
+                              CommandParameter="{Binding SelectedCollection}">
+                          <TextBlock Text="{Tr 'Cancelar deleção'}" VerticalAlignment="Center" />
                       </Button>
                       <Button Width="325" 
                               Command="{Binding DeleteClassCommand}" 
                               IsEnabled="{Binding IsDeletionDatePassed}"
+                              IsVisible="{Binding !IsSelectedCollectionInDeletedList}"
                               ToolTip.Tip="{Tr 'Delete collection if expiration date expired and do not want to extend storage or continue billing.'}"
                               ToolTip.Placement="Right"
                               ToolTip.ShowOnDisabled="True">
@@ -222,6 +263,7 @@
                   </StackPanel>
               </Expander>
           </Grid>
+          </StackPanel>
         </StackPanel>
         <Grid Grid.Row="1" IsVisible="{Binding IsUpdateProgressBars}" VerticalAlignment="Bottom" HorizontalAlignment="Right">
           <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Stretch">

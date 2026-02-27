@@ -22,6 +22,8 @@ using SharedClientSide.ServerInteraction.Users.Requests;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -148,6 +150,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     OnPropertyChanged(nameof(DeletionDateForeground));
                     OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
                     OnPropertyChanged(nameof(IsDeletionDatePassed));
+                    NotifyDeletedCollectionViewState();
                 });
             }
             catch (OperationCanceledException) { }
@@ -224,10 +227,69 @@ public partial class CollectionsViewModel : ViewModelBase
     #endregion
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsList = new();
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsListFiltered = new();
+    partial void OnCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+
+    /// <summary>Modo "lista de coleções solicitadas para deleção". Quando true, a lista exibida é DeletedCollectionsList. Padrão false = lista normal como antes.</summary>
+    [ObservableProperty] private bool showDeletedCollections = false;
+    partial void OnShowDeletedCollectionsChanged(bool value)
+    {
+        OnPropertyChanged(nameof(VisibleCollectionsList));
+        NotifyDeletedCollectionViewState();
+        OnPropertyChanged(nameof(ShowDeletedCollectionsLabel));
+        OnPropertyChanged(nameof(ShowLoadMoreButtonInList));
+        OnPropertyChanged(nameof(IsEnabledFiltersInList));
+    }
+
+    /// <summary>Lista de coleções com solicitação de exclusão pendente (exibida quando ShowDeletedCollections = true).</summary>
+    [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsList = new();
+    partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+
+    /// <summary>Lista que a view deve exibir: CollectionsListFiltered (lista normal, como antes) ou DeletedCollectionsList quando ShowDeletedCollections = true.</summary>
+    public IEnumerable<ProfessionalTask> VisibleCollectionsList => ShowDeletedCollections ? DeletedCollectionsList : CollectionsListFiltered;
+
+    /// <summary>True quando a coleção selecionada pertence à lista de deletadas (para mostrar botão "Cancelar deleção" no detalhe).</summary>
+    public bool IsSelectedCollectionInDeletedList =>
+        ShowDeletedCollections && SelectedCollection != null &&
+        DeletedCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
+
+    void NotifyDeletedCollectionViewState()
+    {
+        OnPropertyChanged(nameof(IsSelectedCollectionInDeletedList));
+        OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
+        OnPropertyChanged(nameof(BtExportIsEnabledForView));
+        OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
+        OnPropertyChanged(nameof(ExpanderAdvancedIsEnabled));
+    }
+
+    /// <summary>Tag/Sort habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    public bool BtTagSortIsEnabledForView => BtTagSortIsEnabled && !IsSelectedCollectionInDeletedList;
+    /// <summary>Export habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    public bool BtExportIsEnabledForView => BtExportIsEnabled && !IsSelectedCollectionInDeletedList;
+    /// <summary>Download HD habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    public bool BtDownloadHdIsEnabledForView => BtDownloadHdIsEnabled && !IsSelectedCollectionInDeletedList;
+    /// <summary>Avançado expansível apenas quando a coleção não está cancelada e não é da lista de deletadas.</summary>
+    public bool ExpanderAdvancedIsEnabled => SelectedCollection?.BillingCancelled != true && !IsSelectedCollectionInDeletedList;
+
+    /// <summary>Rótulo do botão de alternar: "Mostrar coleções deletadas" ou "Mostrar coleções normais".</summary>
+    public string ShowDeletedCollectionsLabel => ShowDeletedCollections ? Loc.Tr("Show normal collections", "Mostrar coleções normais") : Loc.Tr("Show deleted collections", "Mostrar coleções deletadas");
+
+    [ObservableProperty] private bool deletedCollectionsListIsLoading;
+    partial void OnDeletedCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
+
+    /// <summary>True quando a área da lista está em loading (lista normal ou lista de deletadas).</summary>
+    public bool IsListAreaLoading => CollectionsListIsLoading || (ShowDeletedCollections && DeletedCollectionsListIsLoading);
+
+    /// <summary>Mostrar botão "Carregar mais" apenas na lista normal.</summary>
+    public bool ShowLoadMoreButtonInList => ShowLoadMoreButton && !ShowDeletedCollections;
+
+    /// <summary>Filtros de busca habilitados apenas na lista normal (desabilitados na lista de deletadas).</summary>
+    public bool IsEnabledFiltersInList => IsEnabledFilters && !ShowDeletedCollections;
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
     [ObservableProperty] public bool collectionsListIsLoading = true;
+    partial void OnCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
     [ObservableProperty] public bool isEnabledFilters = false;
+    partial void OnIsEnabledFiltersChanged(bool value) => OnPropertyChanged(nameof(IsEnabledFiltersInList));
     [ObservableProperty] public bool isSearchingOnServer = false;
     [ObservableProperty] public bool showNoResultsMessage = false;
     [ObservableProperty] public bool isUpdateProgressBars = false;
@@ -409,11 +471,14 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool actionsButtonsIsVisible = false;
     [ObservableProperty] public bool showButtonsCollectionView = true;
     [ObservableProperty] public bool btTagSortIsEnabled = false;
+    partial void OnBtTagSortIsEnabledChanged(bool value) => OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
     [ObservableProperty] public bool btTagSortIsRunning = false;
     [ObservableProperty] public bool btExportIsEnabled = false;
+    partial void OnBtExportIsEnabledChanged(bool value) => OnPropertyChanged(nameof(BtExportIsEnabledForView));
     [ObservableProperty] public bool btExportIsRunning = false;
     [ObservableProperty] public bool btReportsIsEnabled = false;
     [ObservableProperty] public bool btDownloadHdIsEnabled = false;
+    partial void OnBtDownloadHdIsEnabledChanged(bool value) => OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
     [ObservableProperty] public bool btDownloadHdIsRunning = false;
     [ObservableProperty] public bool btReEnqueueIsEnabled = true;
     [ObservableProperty] public bool btReenqueueIsRunning = false;
@@ -660,7 +725,9 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbEnableAutoExclusion = true;
     [ObservableProperty] public bool? cbEnablePhotoSales;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
+    [ObservableProperty] public double? tbTotalPhotosForFreePerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
+    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value) => OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
     [ObservableProperty] public bool? cbUploadedPhotosAreAlreadySorted;
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
@@ -695,6 +762,11 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Indica se não há combos disponíveis (para exibir mensagem de fallback)
     /// </summary>
     public bool NoCombosAvailable => DynamicCombos == null || DynamicCombos.Count == 0;
+
+    /// <summary>
+    /// Exibe o campo "Total de fotos grátis por formando" quando há pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" está marcado.
+    /// </summary>
+    public bool IsTotalPhotosForFreePerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -764,6 +836,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 Description = SelectedCollection.Description,
                 EnablePhotosSales = SelectedCollection.EnablePhotosSales,
                 PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
+                TotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate,
                 OCR = SelectedCollection.OCR,
                 AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
             };
@@ -856,6 +929,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
     // Load More Button Properties
     [ObservableProperty] public bool showLoadMoreButton = true;
+    partial void OnShowLoadMoreButtonChanged(bool value) => OnPropertyChanged(nameof(ShowLoadMoreButtonInList));
     [ObservableProperty] public bool isLoadingMoreTasks = false;
     partial void OnIsLoadingMoreTasksChanged(bool value)
     {
@@ -879,6 +953,8 @@ public partial class CollectionsViewModel : ViewModelBase
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
+        
+        GraduatesData.CollectionChanged += GraduatesData_CollectionChanged;
         
         // Observar mudanças nas mensagens não lidas para decidir view inicial
         InitializeMessagesViewLogic();
@@ -908,6 +984,48 @@ public partial class CollectionsViewModel : ViewModelBase
         };
 
         RefreshServerProgressPollingState();
+    }
+
+    private readonly HashSet<INotifyPropertyChanged> _graduatePropertyChangedSubscriptions = new();
+
+    private void GraduatesData_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var inpc in _graduatePropertyChangedSubscriptions)
+                inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
+            _graduatePropertyChangedSubscriptions.Clear();
+            return;
+        }
+        if (e.NewItems != null)
+        {
+            foreach (var item in e.NewItems.Cast<GraduateByCPF>())
+            {
+                if (item is INotifyPropertyChanged inpc)
+                {
+                    inpc.PropertyChanged += GraduateByCPF_PropertyChanged;
+                    _graduatePropertyChangedSubscriptions.Add(inpc);
+                }
+            }
+        }
+        if (e.OldItems != null)
+        {
+            foreach (var item in e.OldItems.Cast<GraduateByCPF>())
+            {
+                if (item is INotifyPropertyChanged inpc)
+                {
+                    inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
+                    _graduatePropertyChangedSubscriptions.Remove(inpc);
+                }
+            }
+        }
+    }
+
+    private void GraduateByCPF_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GraduateByCPF.CPF))
+            OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
     }
 
     private bool _hasCheckedInitialMessages = false;
@@ -2176,6 +2294,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
@@ -2218,6 +2337,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
@@ -2261,6 +2381,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = options.EnablePhotoSales;
         TbPricePerPhotoForSellingOnline = 0;
+        TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
@@ -2316,6 +2437,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
+            TbTotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
             TbProfessioanlTaskDescription = SelectedCollection.Description;
             CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
             AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
@@ -2446,6 +2568,8 @@ public partial class CollectionsViewModel : ViewModelBase
             collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
             collectionInList.OCR = updatedCollection.OCR;
             collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
+            collectionInList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
             collectionInList.Status = updatedCollection.Status;
             collectionInList.StorageLocation = updatedCollection.StorageLocation;
             collectionInList.CreationDate = updatedCollection.CreationDate;
@@ -2468,6 +2592,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
                 collectionInFilteredList.OCR = updatedCollection.OCR;
                 collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
+                collectionInFilteredList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
                 collectionInFilteredList.Status = updatedCollection.Status;
                 collectionInFilteredList.StorageLocation = updatedCollection.StorageLocation;
                 collectionInFilteredList.CreationDate = updatedCollection.CreationDate;
@@ -2573,9 +2699,137 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task DeleteClassCommand()
     {
-        // Placeholder - funcionalidade será implementada posteriormente
-        // Por enquanto apenas mostra uma mensagem
-        await Task.CompletedTask;
+        if (SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
+            return;
+        var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
+            Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusão desta coleção? Esta ação pode ser cancelada depois na lista de coleções deletadas."),
+            Loc.Tr("Delete collection", "Excluir coleção"));
+        if (!confirmed)
+            return;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.RequestDeleteCollection(SelectedCollection.classCode);
+            if (result?.loginFailed == true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result.message ?? Loc.Tr("Login failed.", "Falha no login."), Loc.Tr("Error", "Erro"));
+                return;
+            }
+            if (result?.success != true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not request deletion.", "Não foi possível solicitar a exclusão."), Loc.Tr("Error", "Erro"));
+                return;
+            }
+            await UpdateProfessionalTasksList(null);
+            await LoadDeletedCollectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro"));
+        }
+    }
+
+    /// <summary>True se a lista de deletadas já foi carregada nesta sessão (evita chamar o endpoint a cada clique no botão).</summary>
+    private bool _deletedListLoadedOnce;
+
+    /// <summary>Alterna entre lista normal e lista de coleções solicitadas para deleção. Carrega a lista de deletadas só na primeira vez ao ativar.</summary>
+    [RelayCommand]
+    public async Task ToggleShowDeletedCollectionsCommand()
+    {
+        ShowDeletedCollections = !ShowDeletedCollections;
+        if (ShowDeletedCollections && !_deletedListLoadedOnce)
+        {
+            await LoadDeletedCollectionsAsync();
+            _deletedListLoadedOnce = true;
+        }
+    }
+
+    /// <summary>Carrega a lista de coleções com solicitação de exclusão pendente (mesmo formato da lista normal: ProfessionalTask).</summary>
+    public async Task LoadDeletedCollectionsAsync()
+    {
+        if (GlobalAppStateViewModel.lfc == null) return;
+        try
+        {
+            DeletedCollectionsListIsLoading = true;
+            var result = await GlobalAppStateViewModel.lfc.GetCollectionsRequestedToDeletion();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                DeletedCollectionsList.Clear();
+                if (result?.Content != null)
+                {
+                    foreach (var pt in result.Content)
+                    {
+                        if (pt != null && !string.IsNullOrEmpty(pt.classCode))
+                            DeletedCollectionsList.Add(pt);
+                    }
+                }
+                OnPropertyChanged(nameof(VisibleCollectionsList));
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro")));
+        }
+        finally
+        {
+            DeletedCollectionsListIsLoading = false;
+        }
+    }
+
+    /// <summary>Item cujo menu de ações (três pontinhos) foi aberto; usado pelo dropdown para Cancelar deleção.</summary>
+    [ObservableProperty] private ProfessionalTask pendingItemForCancelDeletion;
+
+    /// <summary>Cancela a solicitação de exclusão da coleção em PendingItemForCancelDeletion (chamado pelo menu dropdown).</summary>
+    [RelayCommand]
+    public async Task CancelDeleteCollectionFromPendingCommand()
+    {
+        await CancelDeleteCollectionCommand(PendingItemForCancelDeletion);
+    }
+
+    /// <summary>Cancela a solicitação de exclusão da coleção e reintegra na lista normal.</summary>
+    [RelayCommand]
+    public async Task CancelDeleteCollectionCommand(ProfessionalTask item)
+    {
+        if (item == null || string.IsNullOrEmpty(item.classCode)) return;
+        var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
+            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your normal list.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para sua lista normal."),
+            Loc.Tr("Cancel deletion", "Cancelar deleção"));
+        if (!confirmed) return;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.CancelRequestDeleteCollection(item.classCode);
+            if (result?.loginFailed == true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result.message ?? Loc.Tr("Login failed.", "Falha no login."), Loc.Tr("Error", "Erro"));
+                return;
+            }
+            if (result?.success != true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not cancel deletion.", "Não foi possível cancelar a deleção."), Loc.Tr("Error", "Erro"));
+                return;
+            }
+            await LoadDeletedCollectionsAsync();
+            var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(item.classCode);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (pt != null)
+                {
+                    if (!CollectionsList.Any(c => c.classCode == pt.classCode))
+                        CollectionsList.Insert(0, pt);
+                    if (!CollectionsListFiltered.Any(c => c.classCode == pt.classCode))
+                        CollectionsListFiltered.Insert(0, pt);
+                    ShowDeletedCollections = false;
+                    SelectedCollection = CollectionsList.First(c => c.classCode == pt.classCode);
+                }
+                OnPropertyChanged(nameof(VisibleCollectionsList));
+                NotifyDeletedCollectionViewState();
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro")));
+        }
     }
     [RelayCommand]
     public async Task CreateCollectionCommand()
@@ -2670,6 +2924,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 Description = TbProfessionalTaskDescription,
                 EnablePhotosSales = CbEnablePhotoSales,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
+                TotalPhotosForFreePerGraduate = (int)(TbTotalPhotosForFreePerGraduate ?? 0.0),
                 OCR = CbOcr,
                 AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
 
@@ -2794,6 +3049,10 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionCreationQueue.TryDequeue(out attempClassCode!); // ! instruction for silence compilator becase warning not null here
             IsCreatingCollection = false;
+
+            // Atualiza mensagens do servidor (ex.: limite atingido, erro de cota) sem abrir o componente
+            if (MainWindowViewModel.Instance != null)
+                _ = MainWindowViewModel.Instance.LoadUserMessagesAsync(forceReload: true);
         }
     }
 
@@ -2881,11 +3140,30 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Retorna a pasta Save para usar no TagSort (baixar separacao.hermes da nuvem).
+    /// Se o usuário configurou diretório de downloads diferente de Documents, usa esse path para não criar pasta em Documents antes do Download Manager rodar.
+    /// </summary>
+    private static string GetSaveFolderForTagSort(string classCode)
+    {
+        var opts = GlobalAppStateViewModel.options?.DefaultPathToDownloadProfessionalTaskFiles;
+        var docsPath = SharedClientSide.Helpers.Constants.SeparationFolder.FullName.TrimEnd('\\', '/');
+        if (!string.IsNullOrWhiteSpace(opts) && Directory.Exists(opts))
+        {
+            var optsNorm = System.IO.Path.GetFullPath(opts.TrimEnd('\\', '/'));
+            var docsNorm = System.IO.Path.GetFullPath(docsPath);
+            if (!string.Equals(optsNorm, docsNorm, StringComparison.OrdinalIgnoreCase))
+                return System.IO.Path.Combine(optsNorm, classCode, "Save");
+        }
+        return SharedClientSide.Helpers.Constants.GetSaveFolder(classCode);
+    }
+
     [RelayCommand]
     public async Task TagSortCommand() 
     {
         try
         {
+            SharedClientSide.Helpers.AppInstaller.MsixLog("TagSortCommand INICIADO");
             // Validação: verificar se SelectedCollection não é null antes de usar
             if (SelectedCollection == null)
             {
@@ -2902,7 +3180,9 @@ public partial class CollectionsViewModel : ViewModelBase
             if (SelectedSeparationFile != null)
             {
                 BtTagSortIsEnabled = false;
-                var sepFile = new FileInfo(SharedClientSide.Helpers.Constants.GetSaveFolder(SelectedCollection.classCode) + "/separacao.hermes");
+                // Usar o path das opções quando o usuário escolheu diretório diferente de Documents, para não criar Save em Documents antes do Download Manager rodar
+                var saveFolderPath = GetSaveFolderForTagSort(SelectedCollection.classCode);
+                var sepFile = new FileInfo(Path.Combine(saveFolderPath, "separacao.hermes"));
 
                 if (SelectedSeparationFile.FileLocationType == SharedClientSide.ClassSeparationFile.FileLocationTypes.CLOUD)
                 {
@@ -2929,7 +3209,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     var ur2 = await LesserFunctionClient.DefaultClient.GetBlobBytesFromUserFolderInClassesContainer(classSeparationFile.SeparationProgressPathCloudCompanyFolder, classSeparationFile.StorageLocation);
                     if (ur2 != null && ur2.success)
                     {
-                        var localProgressFile = new FileInfo(SharedClientSide.Helpers.Constants.GetSaveFolder(SelectedCollection.classCode) + "/separationProgress.txt");
+                        var localProgressFile = new FileInfo(Path.Combine(saveFolderPath, "separationProgress.txt"));
                         File.WriteAllBytes(localProgressFile.FullName, ur2.Content);
                     }
                 }
@@ -2937,6 +3217,7 @@ public partial class CollectionsViewModel : ViewModelBase
             Action<int> callback = MainWindowViewModel.Instance != null
                 ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                 : _ => { };
+            SharedClientSide.Helpers.AppInstaller.MsixLog("TagSortCommand chamando App.StartDownloadApp");
             App.StartDownloadApp(SelectedCollection, callback);
         }
         catch(Exception ex)
@@ -3340,7 +3621,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         }
                     }
                     var file = new FileInfo(System.IO.Path.GetTempFileName() + ".xlsx");
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
                     using (ExcelPackage package = new ExcelPackage())
                     {
                         ExcelWorksheet ws = package.Workbook.Worksheets.Add(Loc.Tr("Report"));

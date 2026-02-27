@@ -12,7 +12,7 @@
     <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="6" >
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *" ColumnSpacing="6" >
             <Image Width="64" Height="64" Source="{SvgImage /Assets/symbol.svg}" />
-            <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFilters}">
+            <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFiltersInList}">
                 <TextBlock FontSize="12" Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
                 <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterClassCode" TextChanged="TextBox_TextChanged"/>
                 
@@ -20,18 +20,33 @@
                 <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterProfessional" TextChanged="TextBox_TextChanged" />
             </Grid>
         </Grid>
-        <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" Grid.Row="1"  HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-                <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
-            <local:SkeletonList Grid.Row="2" IsVisible="{Binding CollectionsListIsLoading}" />
+        <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="6">
+            <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                    <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
+                    <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button IsEnabled="{Binding !DeletedCollectionsListIsLoading}"
+                    Command="{Binding ToggleShowDeletedCollectionsCommand}"
+                    HorizontalAlignment="Stretch"
+                    Background="{DynamicResource CardBg}"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12,8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" VerticalAlignment="Center" FontSize="14"/>
+                    <TextBlock Text="{Binding ShowDeletedCollectionsLabel}" VerticalAlignment="Center" FontSize="12"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+            <local:SkeletonList Grid.Row="2" IsVisible="{Binding IsListAreaLoading}" />
             <!--
             <ui:ProgressRing Grid.Row="2" IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" IsVisible="{Binding CollectionsListIsLoading}" />
             -->      
             <ScrollViewer Grid.Row="2" 
-                         IsVisible="{Binding !CollectionsListIsLoading}"
+                         IsVisible="{Binding !IsListAreaLoading}"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Disabled">
               <StackPanel>
@@ -72,10 +87,11 @@
                             MaxWidth="400"/>
                 </StackPanel>
                 
-                <ListBox FontSize="11" 
+                <ListBox x:Name="ListBoxCollections"
+                         FontSize="11" 
                          Background="Transparent"
                          BorderThickness="0"
-                         ItemsSource="{Binding CollectionsListFiltered}" 
+                         ItemsSource="{Binding VisibleCollectionsList}" 
                          SelectedItem="{Binding SelectedCollection, Mode=TwoWay}">
 
                   <!-- Garante virtualização simples e barata -->
@@ -110,7 +126,7 @@
                   <!-- Template com árvore enxuta (nada de efeitos) -->
                   <ListBox.ItemTemplate>
                     <DataTemplate>
-                      <!-- 3 colunas: avatar | conteúdo | badges -->
+                      <!-- 3 colunas: avatar | conteúdo | badges + ações -->
                       <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
 
                         <!-- Avatar + label de ambiente -->
@@ -134,7 +150,7 @@
                                    TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
                                    ToolTip.Tip="{Binding classCode}"/>
 
-                        <!-- Badges alinhados à direita -->
+                        <!-- Badges + botão três pontinhos alinhados à direita -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
                                     HorizontalAlignment="Right" VerticalAlignment="Center">
                           <!-- HD -->
@@ -148,6 +164,30 @@
                           <local:PhotoSalesIcon IsVisible="{Binding EnablePhotosSales, FallbackValue=False}"/>
                           <!-- OCR -->
                           <local:OcrIcon IsVisible="{Binding OCR, FallbackValue=False}"/>
+                          <!-- Três pontinhos com dropdown (só na lista de coleções deletadas) -->
+                          <Button x:Name="MoreActionsButton"
+                                  IsVisible="{Binding $parent[local:CollectionList].DataContext.ShowDeletedCollections}"
+                                  Padding="6,4" MinWidth="28"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  CornerRadius="4"
+                                  ToolTip.Tip="{Tr 'Ações'}"
+                                  Click="MoreActionsButton_OnClick">
+                            <Button.Flyout>
+                              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                <MenuItem Padding="14,10"
+                                          Command="{Binding CancelDeleteCollectionFromPendingCommand, Source={x:Static vm:CollectionsViewModel.Instance}}">
+                                  <MenuItem.Header>
+                                    <TextBlock Text="{Tr 'Restaurar coleção'}" 
+                                               VerticalAlignment="Center" 
+                                               FontWeight="SemiBold"
+                                               FontSize="13"/>
+                                  </MenuItem.Header>
+                                </MenuItem>
+                              </MenuFlyout>
+                            </Button.Flyout>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE712;" FontSize="14" VerticalAlignment="Center"/>
+                          </Button>
                         </StackPanel>
 
                         <!-- Linha meta: total de fotos + data + separador -->
@@ -193,7 +233,7 @@
                         BorderBrush="{DynamicResource CardBorder}"
                         BorderThickness="1"
                         CornerRadius="8"
-                        IsVisible="{Binding ShowLoadMoreButton}"
+                        IsVisible="{Binding ShowLoadMoreButtonInList}"
                         IsEnabled="{Binding !IsLoadingMoreTasks}"
                         Command="{Binding LoadMoreTasksCommand}">
                   <StackPanel Orientation="Horizontal" Spacing="8">

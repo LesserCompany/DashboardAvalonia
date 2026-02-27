@@ -43,6 +43,14 @@
     "en-US": "Cancel billing",
     "pt-BR": "Cancelar cobrança"
   },
+  "Request manual treatment of all images in your collection. Irreversible action.": {
+    "en-US": "Request manual treatment of all images in your collection. Irreversible action.",
+    "pt-BR": "Solicita o tratamento manual de todas as imagens da sua coleção. Ação irreversível."
+  },
+  "Request cancellation of billing for this collection on your invoice. You must select the repeated class as justification.": {
+    "en-US": "Request cancellation of billing for this collection on your invoice. You must select the repeated class as justification.",
+    "pt-BR": "Solicita o cancelamento da cobrança desta coleção na sua fatura. É necessário selecionar a turma repetida como justificativa."
+  },
   "Create new collection": {
     "en-US": "Create new collection",
     "pt-BR": "Criar nova coleção"
@@ -214,6 +222,10 @@
   "Price per photo for online sale:": {
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
+  },
+  "TotalPhotosForFreePerGraduate": {
+    "en-US": "Total free photos per graduate:",
+    "pt-BR": "Total de fotos grátis por formando:"
   },
   "Price per photo:": {
     "en-US": "Price per photo:",

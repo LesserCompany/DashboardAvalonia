@@ -24,15 +24,19 @@ namespace LesserDashboardClient.Helpers
             Action onUiDone = null,     // será chamado no fim, na UI
             Action<string> onUiError = null)
         {
+            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner.RunInBackground ENTRANDO appName='{appName}' args='{args}'");
+
             // Encapsula o "marshal" para a UI thread
             void ProgressFromBg(int p) => Dispatcher.UIThread.Post(() => onUiProgress?.Invoke(p));
 
             var ai = new SharedClientSide.Helpers.AppInstaller(appName, ProgressFromBg);
+            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner: AppInstaller criado, chamando startApp...");
 
             _ = Task.Run(async () =>
             {
                 try
                 {
+                    SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner: Task.Run iniciado, await startApp...");
                     await ai.startApp(args, () =>
                     {
                         // Garantir execução do callback final na UI thread
@@ -41,6 +45,7 @@ namespace LesserDashboardClient.Helpers
                 }
                 catch (Exception ex)
                 {
+                    SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner ERRO: {ex.GetType().Name} - {ex.Message}");
                     Dispatcher.UIThread.Post(() => onUiError?.Invoke(ex.Message));
                 }
             });
