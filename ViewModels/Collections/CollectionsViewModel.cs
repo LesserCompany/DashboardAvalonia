@@ -3140,6 +3140,24 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Retorna a pasta Save para usar no TagSort (baixar separacao.hermes da nuvem).
+    /// Se o usuário configurou diretório de downloads diferente de Documents, usa esse path para não criar pasta em Documents antes do Download Manager rodar.
+    /// </summary>
+    private static string GetSaveFolderForTagSort(string classCode)
+    {
+        var opts = GlobalAppStateViewModel.options?.DefaultPathToDownloadProfessionalTaskFiles;
+        var docsPath = SharedClientSide.Helpers.Constants.SeparationFolder.FullName.TrimEnd('\\', '/');
+        if (!string.IsNullOrWhiteSpace(opts) && Directory.Exists(opts))
+        {
+            var optsNorm = System.IO.Path.GetFullPath(opts.TrimEnd('\\', '/'));
+            var docsNorm = System.IO.Path.GetFullPath(docsPath);
+            if (!string.Equals(optsNorm, docsNorm, StringComparison.OrdinalIgnoreCase))
+                return System.IO.Path.Combine(optsNorm, classCode, "Save");
+        }
+        return SharedClientSide.Helpers.Constants.GetSaveFolder(classCode);
+    }
+
     [RelayCommand]
     public async Task TagSortCommand() 
     {
@@ -3162,7 +3180,9 @@ public partial class CollectionsViewModel : ViewModelBase
             if (SelectedSeparationFile != null)
             {
                 BtTagSortIsEnabled = false;
-                var sepFile = new FileInfo(SharedClientSide.Helpers.Constants.GetSaveFolder(SelectedCollection.classCode) + "/separacao.hermes");
+                // Usar o path das opções quando o usuário escolheu diretório diferente de Documents, para não criar Save em Documents antes do Download Manager rodar
+                var saveFolderPath = GetSaveFolderForTagSort(SelectedCollection.classCode);
+                var sepFile = new FileInfo(Path.Combine(saveFolderPath, "separacao.hermes"));
 
                 if (SelectedSeparationFile.FileLocationType == SharedClientSide.ClassSeparationFile.FileLocationTypes.CLOUD)
                 {
@@ -3189,7 +3209,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     var ur2 = await LesserFunctionClient.DefaultClient.GetBlobBytesFromUserFolderInClassesContainer(classSeparationFile.SeparationProgressPathCloudCompanyFolder, classSeparationFile.StorageLocation);
                     if (ur2 != null && ur2.success)
                     {
-                        var localProgressFile = new FileInfo(SharedClientSide.Helpers.Constants.GetSaveFolder(SelectedCollection.classCode) + "/separationProgress.txt");
+                        var localProgressFile = new FileInfo(Path.Combine(saveFolderPath, "separationProgress.txt"));
                         File.WriteAllBytes(localProgressFile.FullName, ur2.Content);
                     }
                 }

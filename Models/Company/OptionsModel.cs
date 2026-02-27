@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using LesserDashboardClient.Helpers;
 using Newtonsoft.Json;
 using SharedClientSide.Helpers;
 using System;
@@ -29,6 +30,9 @@ namespace LesserDashboardClient.Models.Company
             if (!Directory.Exists(AppConfigFolder))
                 Directory.CreateDirectory(AppConfigFolder);
             File.WriteAllText(SettingsFilePath, json);
+            // Só loga em caso suspeito (ajuda a debugar corrupção)
+            if (string.IsNullOrWhiteSpace(Language) || string.IsNullOrWhiteSpace(AppTheme))
+                CorruptionDiagnostics.Log($"OptionsModel.Save (suspeito) | Language='{Language ?? "(null)"}' | AppTheme='{AppTheme ?? "(null)"}'");
         }
 
         public static OptionsModel Load()
@@ -36,7 +40,11 @@ namespace LesserDashboardClient.Models.Company
             if (File.Exists(SettingsFilePath))
             {
                 var json = File.ReadAllText(SettingsFilePath);
-                return JsonConvert.DeserializeObject<OptionsModel>(json);
+                var loaded = JsonConvert.DeserializeObject<OptionsModel>(json);
+                // Só loga quando carregou valores vazios/nulos (possível corrupção do arquivo)
+                if (loaded != null && (string.IsNullOrWhiteSpace(loaded.Language) || string.IsNullOrWhiteSpace(loaded.AppTheme)))
+                    CorruptionDiagnostics.Log($"OptionsModel.Load (suspeito) | Language='{loaded.Language ?? "(null)"}' | AppTheme='{loaded.AppTheme ?? "(null)"}'");
+                return loaded;
             }
 
             var om = new OptionsModel

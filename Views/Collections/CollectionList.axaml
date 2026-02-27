@@ -178,16 +178,10 @@
                                 <MenuItem Padding="14,10"
                                           Command="{Binding CancelDeleteCollectionFromPendingCommand, Source={x:Static vm:CollectionsViewModel.Instance}}">
                                   <MenuItem.Header>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                      <TextBlock FontFamily="Segoe MDL2 Assets" 
-                                                 Text="&#xE72B;" 
-                                                 FontSize="14" 
-                                                 VerticalAlignment="Center"/>
-                                      <TextBlock Text="{Tr 'Restaurar coleção'}" 
-                                                 VerticalAlignment="Center" 
-                                                 FontWeight="SemiBold"
-                                                 FontSize="13"/>
-                                    </StackPanel>
+                                    <TextBlock Text="{Tr 'Restaurar coleção'}" 
+                                               VerticalAlignment="Center" 
+                                               FontWeight="SemiBold"
+                                               FontSize="13"/>
                                   </MenuItem.Header>
                                 </MenuItem>
                               </MenuFlyout>

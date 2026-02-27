@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -24,6 +25,14 @@ namespace LesserDashboardClient;
 
 public partial class App : Application
 {
+    /// <summary>Product Id na Microsoft Store (quando o app é empacotado como MSIX). Substituir pelo id real.</summary>
+    private const string MsixStoreProductId = "SEU_PRODUCT_ID";
+
+    /// <summary>Se true, mostra a janela de "atualização disponível" (fase 1 - só avisar) no startup para demo. Colocar false em produção.</summary>
+    private const bool ForceShowUpdateAvailableForDemo = false;
+    /// <summary>Se true, mostra a janela de "atualização obrigatória" (fase 2 - bloquear) no startup para demo. Colocar false em produção.</summary>
+    private const bool ForceShowUpdateRequiredForDemo = false;
+
     public static AuthWindow? AuthWindowInstance { get; set; }
     private static bool isRedirecting = false; // Flag para evitar redirecionamentos duplos
     
@@ -49,6 +58,42 @@ public partial class App : Application
         LesserDashboardClient.Services.LocalizationService.Instance.LanguageChanged += (s, e) => LanguageChanged?.Invoke(s, e);
         
         RegisterGlobalErrorHandlers();
+        RegisterDispatcherDataGridExceptionHandler();
+    }
+
+    /// <summary>
+    /// Trata exceção conhecida do DataGrid (GetPropertyIsReadOnly) ao clicar em células (ex.: CPF).
+    /// Evita que o app feche; registra no log e mostra mensagem ao usuário.
+    /// </summary>
+    private void RegisterDispatcherDataGridExceptionHandler()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+        {
+            var ex = e.Exception;
+            string stack = ex?.StackTrace ?? "";
+            if (ex != null && stack.Contains("GetPropertyIsReadOnly", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    SaveLogError(ex.Message, stack, ex.InnerException?.ToString() ?? "Sem InnerException");
+                    e.Handled = true;
+                    _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                    {
+                        try
+                        {
+                            var box = MessageBoxManager.GetMessageBoxStandard(
+                                "Aviso",
+                                "Ocorreu um erro ao editar a célula (por exemplo, CPF). Tente recarregar a coleção do servidor ou fechar e reabrir a tela. O aplicativo continuará em execução.",
+                                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                                MsBox.Avalonia.Enums.Icon.Warning);
+                            await box.ShowWindowDialogAsync(Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop ? desktop.MainWindow : null);
+                        }
+                        catch { /* evita segundo crash */ }
+                    });
+                }
+                catch { /* não deixar falhar o handler */ }
+            }
+        };
     }
 
     private void InitializeLocalization()
@@ -73,6 +118,35 @@ public partial class App : Application
         {
             DisableAvaloniaDataAnnotationValidation();
 
+            // Verificação de atualização MSIX no startup (só tem efeito quando o app está empacotado como MSIX)
+            // Fase 2: atualização obrigatória — bloquear até o utilizador atualizar
+            if (ForceShowUpdateRequiredForDemo)
+            {
+                MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+                ShowUpdateRequiredWindowAndShutdown(desktop);
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
+            MsixUpdateCheckResult? updateResult = null;
+            try
+            {
+                updateResult = MsixStoreUpdateChecker.CheckAndOpenStoreIfNeededAsync(MsixStoreProductId).GetAwaiter().GetResult();
+                if (updateResult == MsixUpdateCheckResult.Required)
+                {
+                    MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+                    ShowUpdateRequiredWindowAndShutdown(desktop);
+                    base.OnFrameworkInitializationCompleted();
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                // App não está em MSIX ou verificação falhou: continuar normalmente
+            }
+            // Fase 1: marcar para mostrar depois do dashboard/login (para o aviso abrir por cima)
+            if (ForceShowUpdateAvailableForDemo || updateResult == MsixUpdateCheckResult.Available)
+                _showPhase1UpdateNoticeAfterWindowShown = true;
+
             var lr = LesserFunctionClient.loginFileResult;
             
             // Lógica de validação do token simplificada e reutilizada
@@ -85,6 +159,7 @@ public partial class App : Application
             if (!isValidToken)
             {
                 HandleInvalidToken(desktop);
+                SchedulePhase1UpdateNoticeAfterWindowShown();
                 base.OnFrameworkInitializationCompleted();
                 return;
             }
@@ -94,6 +169,7 @@ public partial class App : Application
             if (lfc == null || lfc.loginResult == null || lfc.loginResult.User == null)
             {
                 HandleInvalidToken(desktop);
+                SchedulePhase1UpdateNoticeAfterWindowShown();
                 base.OnFrameworkInitializationCompleted();
                 return;
             }
@@ -113,9 +189,94 @@ public partial class App : Application
             
             // Verificação assíncrona pós-inicialização
             VerifyTokenAndValidateDirectory(desktop);
+            SchedulePhase1UpdateNoticeAfterWindowShown();
         }
         
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static bool _showPhase1UpdateNoticeAfterWindowShown;
+
+    /// <summary>Agenda o aviso da fase 1 para aparecer por cima do dashboard/login (após a janela estar visível).</summary>
+    private static void SchedulePhase1UpdateNoticeAfterWindowShown()
+    {
+        if (!_showPhase1UpdateNoticeAfterWindowShown) return;
+        _showPhase1UpdateNoticeAfterWindowShown = false;
+        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            await Task.Delay(500);
+            MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+            ShowUpdateAvailableNotice();
+        });
+    }
+
+    /// <summary>Fase 1 — Só avisar: janela de "atualização disponível". Não bloqueia; o utilizador pode fechar e continuar a usar a aplicação.</summary>
+    private static void ShowUpdateAvailableNotice()
+    {
+        var message = "Há uma atualização disponível para esta aplicação. A Microsoft Store foi aberta. Pode continuar a usar a aplicação e atualizar quando quiser.";
+        var window = new Window
+        {
+            Title = "Atualização disponível",
+            Width = 450,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Topmost = true,
+            Content = new StackPanel
+            {
+                Margin = new Avalonia.Thickness(20),
+                Spacing = 15,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = message,
+                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                    },
+                    new Button
+                    {
+                        Content = "OK",
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                    }
+                }
+            }
+        };
+        ((Button)((StackPanel)window.Content).Children[1]).Click += (_, _) => window.Close();
+        window.Show();
+    }
+
+    /// <summary>Fase 2 — Bloquear: janela de "atualização obrigatória". Nada funciona até o utilizador atualizar; ao fechar encerra a aplicação.</summary>
+    private static void ShowUpdateRequiredWindowAndShutdown(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var message = "Existe uma atualização obrigatória para esta aplicação. A Microsoft Store foi aberta. Por favor, instale a atualização e volte a abrir a aplicação.";
+        var window = new Window
+        {
+            Title = "Atualização obrigatória",
+            Width = 450,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterScreen,
+            Content = new StackPanel
+            {
+                Margin = new Avalonia.Thickness(20),
+                Spacing = 15,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = message,
+                        TextWrapping = Avalonia.Media.TextWrapping.Wrap
+                    },
+                    new Button
+                    {
+                        Content = "Fechar",
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                    }
+                }
+            }
+        };
+        window.Closed += (_, _) => desktop.Shutdown(0);
+        ((Button)((StackPanel)window.Content).Children[1]).Click += (_, _) => window.Close();
+        desktop.MainWindow = window;
+        window.Show();
     }
 
     private void HandleInvalidToken(IClassicDesktopStyleApplicationLifetime desktop)

@@ -56,10 +56,7 @@
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="1"
                     CornerRadius="10">
-              <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72B;" FontSize="18" VerticalAlignment="Center"/>
-                <TextBlock Text="{Tr 'Restaurar coleção'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-              </StackPanel>
+              <TextBlock Text="{Tr 'Restaurar coleção'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </Button>
           </StackPanel>
 
@@ -249,10 +246,7 @@
                               IsVisible="{Binding IsSelectedCollectionInDeletedList}"
                               Command="{Binding CancelDeleteCollectionCommand}"
                               CommandParameter="{Binding SelectedCollection}">
-                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
-                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72B;" VerticalAlignment="Center" />
-                              <TextBlock Text="{Tr 'Cancelar deleção'}" VerticalAlignment="Center" />
-                          </StackPanel>
+                          <TextBlock Text="{Tr 'Cancelar deleção'}" VerticalAlignment="Center" />
                       </Button>
                       <Button Width="325" 
                               Command="{Binding DeleteClassCommand}" 
