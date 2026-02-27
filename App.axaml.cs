@@ -122,7 +122,7 @@ public partial class App : Application
             // Fase 2: atualização obrigatória — bloquear até o utilizador atualizar
             if (ForceShowUpdateRequiredForDemo)
             {
-                MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+                MsixStoreUpdateChecker.CheckAndOpenStoreIfNeededAsync(MsixStoreProductId);
                 ShowUpdateRequiredWindowAndShutdown(desktop);
                 base.OnFrameworkInitializationCompleted();
                 return;
@@ -133,7 +133,7 @@ public partial class App : Application
                 updateResult = MsixStoreUpdateChecker.CheckAndOpenStoreIfNeededAsync(MsixStoreProductId).GetAwaiter().GetResult();
                 if (updateResult == MsixUpdateCheckResult.Required)
                 {
-                    MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+                    MsixStoreUpdateChecker.CheckAndOpenStoreIfNeededAsync(MsixStoreProductId);
                     ShowUpdateRequiredWindowAndShutdown(desktop);
                     base.OnFrameworkInitializationCompleted();
                     return;
@@ -205,7 +205,7 @@ public partial class App : Application
         Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
         {
             await Task.Delay(500);
-            MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
+            MsixStoreUpdateChecker.CheckAndOpenStoreIfNeededAsync(MsixStoreProductId);
             ShowUpdateAvailableNotice();
         });
     }
