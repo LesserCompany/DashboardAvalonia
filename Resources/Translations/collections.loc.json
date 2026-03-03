@@ -622,5 +622,73 @@
   "No collection was found matching your search criteria.": {
     "en-US": "No collection was found matching your search criteria.",
     "pt-BR": "Nenhuma coleção foi encontrada correspondendo aos critérios de pesquisa."
+  },
+  "Normal collections": {
+    "en-US": "Normal collections",
+    "pt-BR": "Coleções normais"
+  },
+  "Expired collections": {
+    "en-US": "Expired collections",
+    "pt-BR": "Coleções vencidas"
+  },
+  "Deleted collections": {
+    "en-US": "Deleted collections",
+    "pt-BR": "Coleções deletadas"
+  },
+  "Your active collections. Here you manage and access collections in use.": {
+    "en-US": "Your active collections. Here you manage and access collections in use.",
+    "pt-BR": "Suas coleções ativas. Aqui você gerencia e acessa as coleções em uso."
+  },
+  "Collections whose storage period has expired. You can renew or request deletion.": {
+    "en-US": "Collections whose storage period has expired. You can renew or request deletion.",
+    "pt-BR": "Coleções cujo prazo de armazenamento já expirou. Você pode renovar ou solicitar exclusão."
+  },
+  "Collections with pending deletion request. You can restore them to the normal list.": {
+    "en-US": "Collections with pending deletion request. You can restore them to the normal list.",
+    "pt-BR": "Coleções com solicitação de exclusão pendente. Você pode restaurá-las para a lista normal."
+  },
+  "How do you want to delete this collection?": {
+    "en-US": "How do you want to delete this collection?",
+    "pt-BR": "Como deseja excluir esta coleção?"
+  },
+  "Full deletion": {
+    "en-US": "Full deletion",
+    "pt-BR": "Exclusão total"
+  },
+  "Request deletion of the entire collection. You can cancel later from the deleted collections list.": {
+    "en-US": "Request deletion of the entire collection. You can cancel later from the deleted collections list.",
+    "pt-BR": "Solicitar a exclusão da coleção inteira. Você pode cancelar depois na lista de coleções deletadas."
+  },
+  "Partial deletion": {
+    "en-US": "Partial deletion",
+    "pt-BR": "Exclusão parcial"
+  },
+  "List graduates and remove only the photos of selected graduates from the collection.": {
+    "en-US": "List graduates and remove only the photos of selected graduates from the collection.",
+    "pt-BR": "Listar formandos e remover apenas as fotos dos formandos escolhidos da coleção."
+  },
+  "Click the trash icon next to a graduate to remove only that graduate's photos from the collection.": {
+    "en-US": "Click the trash icon next to a graduate to remove only that graduate's photos from the collection.",
+    "pt-BR": "Clique no ícone de lixeira ao lado do formando para remover apenas as fotos dele da coleção."
+  },
+  "Click the trash icon next to a graduate to remove only that graduates photos from the collection.": {
+    "en-US": "Click the trash icon next to a graduate to remove only that graduate's photos from the collection.",
+    "pt-BR": "Clique no ícone de lixeira ao lado do formando para remover apenas as fotos dele da coleção."
+  },
+  "Remove this graduate's photos from the collection": {
+    "en-US": "Remove this graduate's photos from the collection",
+    "pt-BR": "Remover fotos deste formando da coleção"
+  },
+  "No graduates found for this collection.": {
+    "en-US": "No graduates found for this collection.",
+    "pt-BR": "Nenhum formando encontrado para esta coleção."
+  },
+  "Remove this graduate's photos from the collection? This action cannot be undone.": {
+    "en-US": "Remove this graduate's photos from the collection? This action cannot be undone.",
+    "pt-BR": "Remover as fotos deste formando da coleção? Esta ação não pode ser desfeita."
+  },
+  "Could not remove graduate.": {
+    "en-US": "Could not remove graduate.",
+    "pt-BR": "Não foi possível remover o formando."
   }
 }

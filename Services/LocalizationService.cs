@@ -20,6 +20,9 @@ namespace LesserDashboardClient.Services
 
         private LocalizationService() { }
 
+        /// <summary>Idioma padrão quando não há preferência salva ou sistema não é suportado (pt-BR).</summary>
+        public const string DefaultLanguage = "pt-BR";
+
         public void ApplyLanguage(string languageCode)
         {
             string targetLang = languageCode;
@@ -28,19 +31,18 @@ namespace LesserDashboardClient.Services
             if (string.IsNullOrEmpty(targetLang))
             {
                 targetLang = LanguageHelper.GetComputerLanguage();
-                CorruptionDiagnostics.Log($"ApplyLanguage (fallback): input vazio -> GetComputerLanguage='{targetLang}'");
+                if (string.IsNullOrEmpty(targetLang))
+                    targetLang = DefaultLanguage;
+                CorruptionDiagnostics.Log($"ApplyLanguage (fallback): input vazio -> '{targetLang}'");
             }
 
             if (string.IsNullOrEmpty(targetLang) || !LanguageHelper.SupportedLanguages.Contains(targetLang))
             {
-                // Tenta pegar do sistema
                 targetLang = CultureInfo.CurrentCulture.Name;
-
-                // Se ainda não for suportado, fallback para en-US
                 if (!LanguageHelper.SupportedLanguages.Contains(targetLang))
                 {
-                    targetLang = "en-US";
-                    CorruptionDiagnostics.Log($"ApplyLanguage (fallback): culture não suportada -> en-US");
+                    targetLang = DefaultLanguage;
+                    CorruptionDiagnostics.Log($"ApplyLanguage (fallback): culture não suportada -> '{DefaultLanguage}'");
                 }
             }
 
@@ -64,9 +66,8 @@ namespace LesserDashboardClient.Services
             string locLang = Loc.Instance.CurrentLanguage;
             if (!string.IsNullOrWhiteSpace(locLang))
                 return locLang;
-            // Fallback: Loc vazio (possível causa de "idioma trava em inglês")
-            CorruptionDiagnostics.Log($"GetCurrentLanguage (fallback): Loc.Instance.CurrentLanguage vazio -> en-US");
-            return "en-US";
+            CorruptionDiagnostics.Log($"GetCurrentLanguage (fallback): Loc vazio -> '{DefaultLanguage}'");
+            return DefaultLanguage;
         }
     }
 }
