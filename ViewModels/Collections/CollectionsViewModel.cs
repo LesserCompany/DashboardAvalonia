@@ -3082,6 +3082,14 @@ public partial class CollectionsViewModel : ViewModelBase
                 ? new List<string>() 
                 : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
+            // Desambigua nomes: fotos de eventos com mesmo nome que em reconhecimentos são renomeadas (_ev) para evitar conflito no backend
+            var (eventPathsToSend, recPathsToSend, disambiguateError) = DisambiguateEventAndRecPhotoPaths(eventsBase, eventFiles, eventFilesShortPaths, recFilesShortPaths);
+            if (disambiguateError != null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(disambiguateError);
+                return;
+            }
+
             bool shouldNotifyPipedriveAboutFirstUse = false;
             bool shouldNotifyPipedriveAboutFreeTrial50PercentReached = false;
             bool shouldNotifyPipedriveAboutFreeTrialLimitReached = false;
@@ -3091,7 +3099,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
-                int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
+                int totalCollectionPhotos = recPathsToSend!.Count + eventPathsToSend!.Count;
                 //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
                 if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
@@ -3106,7 +3114,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
 
-            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recFilesShortPaths, eventFilesShortPaths);
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recPathsToSend!, eventPathsToSend!);
             if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
@@ -3157,6 +3165,108 @@ public partial class CollectionsViewModel : ViewModelBase
             if (MainWindowViewModel.Instance != null)
                 _ = MainWindowViewModel.Instance.LoadUserMessagesAsync(forceReload: true);
         }
+    }
+
+    /// <summary>
+    /// Evita conflito de nomes entre pastas de eventos e reconhecimentos: fotos de eventos
+    /// com o mesmo nome que em reconhecimentos são renomeadas no disco (sufixo _ev) e
+    /// retorna as listas de short paths já desambiguadas para envio ao backend.
+    /// </summary>
+    /// <returns>(eventShortPaths, recShortPaths) em caso de sucesso; (null, null, mensagemErro) em caso de falha na renomeação.</returns>
+    private (List<string>? eventShortPaths, List<string>? recShortPaths, string? errorMessage) DisambiguateEventAndRecPhotoPaths(
+        string eventsBase,
+        List<FileInfo> eventFiles,
+        List<string> eventFilesShortPaths,
+        List<string> recFilesShortPaths)
+    {
+        if (recFilesShortPaths.Count == 0)
+            return (eventFilesShortPaths, recFilesShortPaths, null);
+
+        var recFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in recFilesShortPaths)
+            recFileNames.Add(Path.GetFileName(p));
+
+        var usedNames = new HashSet<string>(recFileNames, StringComparer.OrdinalIgnoreCase);
+        var updatedEventShortPaths = new List<string>(eventFilesShortPaths.Count);
+        var renamesToRollback = new List<(string fullPathOld, string fullPathNew)>();
+
+        try
+        {
+            for (int i = 0; i < eventFilesShortPaths.Count; i++)
+            {
+                var path = eventFilesShortPaths[i];
+                var fn = Path.GetFileName(path);
+                var dirPart = GetDirectoryPartOfShortPath(path);
+                var fullPathOld = Path.Combine(eventsBase, path.TrimStart('\\', '/'));
+
+                if (usedNames.Contains(fn))
+                {
+                    var newFn = GetUniqueFileNameWithSuffix(fn, usedNames, "_ev");
+                    usedNames.Add(newFn);
+                    var newPath = dirPart + newFn;
+                    var fullPathNew = Path.Combine(eventsBase, newPath.TrimStart('\\', '/'));
+
+                    if (!File.Exists(fullPathOld))
+                    {
+                        return (null, null, $"Ficheiro não encontrado: {fullPathOld}");
+                    }
+                    File.Move(fullPathOld, fullPathNew);
+                    renamesToRollback.Add((fullPathOld, fullPathNew));
+                    updatedEventShortPaths.Add(NormalizeShortPathSeparator(newPath));
+                }
+                else
+                {
+                    usedNames.Add(fn);
+                    updatedEventShortPaths.Add(eventFilesShortPaths[i]);
+                }
+            }
+
+            return (updatedEventShortPaths, recFilesShortPaths, null);
+        }
+        catch (Exception ex)
+        {
+            foreach (var (oldPath, newPath) in renamesToRollback.AsEnumerable().Reverse())
+            {
+                try
+                {
+                    if (File.Exists(newPath))
+                        File.Move(newPath, oldPath);
+                }
+                catch { /* best effort rollback */ }
+            }
+            return (null, null, ex.Message);
+        }
+    }
+
+    private static string GetDirectoryPartOfShortPath(string shortPath)
+    {
+        var lastSep = shortPath.LastIndexOfAny(new[] { '\\', '/' });
+        if (lastSep < 0)
+            return "";
+        return shortPath.Substring(0, lastSep + 1);
+    }
+
+    private static string GetUniqueFileNameWithSuffix(string fileName, HashSet<string> usedNames, string suffix)
+    {
+        var baseName = Path.GetFileNameWithoutExtension(fileName);
+        var ext = Path.GetExtension(fileName);
+        var candidate = baseName + suffix + ext;
+        if (!usedNames.Contains(candidate))
+            return candidate;
+        for (int n = 2; n < 10000; n++)
+        {
+            candidate = baseName + suffix + "_" + n + ext;
+            if (!usedNames.Contains(candidate))
+                return candidate;
+        }
+        return baseName + suffix + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) + ext;
+    }
+
+    private static string NormalizeShortPathSeparator(string shortPath)
+    {
+        if (string.IsNullOrEmpty(shortPath))
+            return shortPath;
+        return shortPath.Replace('/', '\\');
     }
 
     /// <summary>

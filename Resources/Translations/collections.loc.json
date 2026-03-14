@@ -139,6 +139,14 @@
     "en-US": "Allow photos to be found by anyone",
     "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
   },
+  "Allow CPFs to download photos even when blocked": {
+    "en-US": "Allow CPFs to download photos even when blocked",
+    "pt-BR": "Permitir que CPFs baixem fotos mesmo quando bloqueados"
+  },
+  "AllowCPFsToDownloadPhotosEvenWhenBlocked_Tooltip": {
+    "en-US": "When enabled, graduates can download their photos in the viewer even when the photos are blocked by watermark. When disabled, blocked graduates cannot download the photo.",
+    "pt-BR": "Quando ativado, formandos podem baixar suas fotos no visualizador mesmo com as fotos bloqueadas por marca d'água. Quando desativado, formandos bloqueados não podem baixar a foto."
+  },
   "Insert graduates names based on the recognitions folder": {
     "en-US": "Insert graduates' names based on the recognitions folder",
     "pt-BR": "Inserir nome dos formandos com base na pasta de reconhecimento"
@@ -178,6 +186,10 @@
   "Block type": {
     "en-US": "Block type",
     "pt-BR": "Tipo de bloqueio"
+  },
+  "Can download with watermark": {
+    "en-US": "Can download with watermark",
+    "pt-BR": "Pode baixar c/ marca d'água"
   },
   "Total photos:": {
     "en-US": "Total photos:",
