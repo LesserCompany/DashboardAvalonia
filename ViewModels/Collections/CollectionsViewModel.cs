@@ -160,6 +160,14 @@ public partial class CollectionsViewModel : ViewModelBase
             }
         }, token);
     }
+    /// <summary>Aba ativa na lista de coleções: normais, vencidas ou deletadas.</summary>
+    public enum CollectionsTabKind
+    {
+        Normal,
+        Expired,
+        Deleted
+    }
+
     public enum ActiveViews
     {
         QuickAccess,
@@ -229,27 +237,48 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsListFiltered = new();
     partial void OnCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
-    /// <summary>Modo "lista de coleções solicitadas para deleção". Quando true, a lista exibida é DeletedCollectionsList. Padrão false = lista normal como antes.</summary>
-    [ObservableProperty] private bool showDeletedCollections = false;
-    partial void OnShowDeletedCollectionsChanged(bool value)
+    /// <summary>Aba ativa na lista de coleções (normais, vencidas ou deletadas).</summary>
+    [ObservableProperty] private CollectionsTabKind selectedCollectionsTab = CollectionsTabKind.Normal;
+    partial void OnSelectedCollectionsTabChanged(CollectionsTabKind value)
     {
         OnPropertyChanged(nameof(VisibleCollectionsList));
         NotifyDeletedCollectionViewState();
-        OnPropertyChanged(nameof(ShowDeletedCollectionsLabel));
         OnPropertyChanged(nameof(ShowLoadMoreButtonInList));
         OnPropertyChanged(nameof(IsEnabledFiltersInList));
+        OnPropertyChanged(nameof(IsListAreaLoading));
+        OnPropertyChanged(nameof(IsExpiredTabActive));
+        OnPropertyChanged(nameof(IsDeletedTabActive));
+        OnPropertyChanged(nameof(IsNormalTabActive));
+        EnsureTabDataLoadedAsync(value);
     }
 
-    /// <summary>Lista de coleções com solicitação de exclusão pendente (exibida quando ShowDeletedCollections = true).</summary>
+    /// <summary>Lista de coleções vencidas (prazo expirado). Carregada ao abrir a aba "Vencidas" pela primeira vez.</summary>
+    [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsList = new();
+    partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+
+    [ObservableProperty] private bool expiredCollectionsListIsLoading;
+    partial void OnExpiredCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
+
+    /// <summary>Lista de coleções com solicitação de exclusão pendente (exibida na aba Deletadas).</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsList = new();
     partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
-    /// <summary>Lista que a view deve exibir: CollectionsListFiltered (lista normal, como antes) ou DeletedCollectionsList quando ShowDeletedCollections = true.</summary>
-    public IEnumerable<ProfessionalTask> VisibleCollectionsList => ShowDeletedCollections ? DeletedCollectionsList : CollectionsListFiltered;
+    /// <summary>Lista que a view deve exibir conforme a aba ativa: Normal → CollectionsListFiltered, Expired → ExpiredCollectionsList, Deleted → DeletedCollectionsList.</summary>
+    public IEnumerable<ProfessionalTask> VisibleCollectionsList =>
+        SelectedCollectionsTab == CollectionsTabKind.Deleted ? DeletedCollectionsList
+        : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsList
+        : CollectionsListFiltered;
+
+    /// <summary>True quando a aba "Deletadas" está ativa (para mostrar menu Restaurar nos itens).</summary>
+    public bool IsDeletedTabActive => SelectedCollectionsTab == CollectionsTabKind.Deleted;
+    /// <summary>True quando a aba "Vencidas" está ativa.</summary>
+    public bool IsExpiredTabActive => SelectedCollectionsTab == CollectionsTabKind.Expired;
+    /// <summary>True quando a aba "Normais" está ativa.</summary>
+    public bool IsNormalTabActive => SelectedCollectionsTab == CollectionsTabKind.Normal;
 
     /// <summary>True quando a coleção selecionada pertence à lista de deletadas (para mostrar botão "Cancelar deleção" no detalhe).</summary>
     public bool IsSelectedCollectionInDeletedList =>
-        ShowDeletedCollections && SelectedCollection != null &&
+        SelectedCollectionsTab == CollectionsTabKind.Deleted && SelectedCollection != null &&
         DeletedCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
 
     void NotifyDeletedCollectionViewState()
@@ -270,20 +299,20 @@ public partial class CollectionsViewModel : ViewModelBase
     /// <summary>Avançado expansível apenas quando a coleção não está cancelada e não é da lista de deletadas.</summary>
     public bool ExpanderAdvancedIsEnabled => SelectedCollection?.BillingCancelled != true && !IsSelectedCollectionInDeletedList;
 
-    /// <summary>Rótulo do botão de alternar: "Mostrar coleções deletadas" ou "Mostrar coleções normais".</summary>
-    public string ShowDeletedCollectionsLabel => ShowDeletedCollections ? Loc.Tr("Show normal collections", "Mostrar coleções normais") : Loc.Tr("Show deleted collections", "Mostrar coleções deletadas");
-
     [ObservableProperty] private bool deletedCollectionsListIsLoading;
     partial void OnDeletedCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
 
-    /// <summary>True quando a área da lista está em loading (lista normal ou lista de deletadas).</summary>
-    public bool IsListAreaLoading => CollectionsListIsLoading || (ShowDeletedCollections && DeletedCollectionsListIsLoading);
+    /// <summary>True quando a área da lista está em loading (conforme a aba ativa).</summary>
+    public bool IsListAreaLoading =>
+        SelectedCollectionsTab == CollectionsTabKind.Normal ? CollectionsListIsLoading
+        : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsListIsLoading
+        : DeletedCollectionsListIsLoading;
 
-    /// <summary>Mostrar botão "Carregar mais" apenas na lista normal.</summary>
-    public bool ShowLoadMoreButtonInList => ShowLoadMoreButton && !ShowDeletedCollections;
+    /// <summary>Mostrar botão "Carregar mais" apenas na aba de coleções normais.</summary>
+    public bool ShowLoadMoreButtonInList => ShowLoadMoreButton && SelectedCollectionsTab == CollectionsTabKind.Normal;
 
-    /// <summary>Filtros de busca habilitados apenas na lista normal (desabilitados na lista de deletadas).</summary>
-    public bool IsEnabledFiltersInList => IsEnabledFilters && !ShowDeletedCollections;
+    /// <summary>Filtros de busca habilitados apenas na aba de coleções normais.</summary>
+    public bool IsEnabledFiltersInList => IsEnabledFilters && SelectedCollectionsTab == CollectionsTabKind.Normal;
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
     [ObservableProperty] public bool collectionsListIsLoading = true;
@@ -1924,6 +1953,14 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 TbEventFolderError = false;
             }
+
+            // Combo apenas tratamento: exceção robusta — aceitar qualquer pasta; não sobrescrever TbEventFolder nem buscar reconhecimentos
+            if (IsTreatmentOnlyCombo)
+            {
+                TbRecFolder = "";
+                return;
+            }
+
             DirectoryInfo inputDir = new DirectoryInfo(TbEventFolder);
             DirectoryInfo eventFolder;
 
@@ -1952,12 +1989,6 @@ public partial class CollectionsViewModel : ViewModelBase
             else
             {
                 classFolder = inputDir;
-            }
-            // Se for apenas tratamento, não buscar pasta de reconhecimentos
-            if (IsTreatmentOnlyCombo)
-            {
-                TbRecFolder = "";
-                return;
             }
 
             DirectoryInfo parentFolder = classFolder.Parent;
@@ -2701,6 +2732,18 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
             return;
+        var viewModel = new DeleteCollectionChoiceViewModel(
+            GlobalAppStateViewModel.lfc,
+            SelectedCollection.classCode,
+            SelectedCollection.classCode);
+        var dialog = new DeleteCollectionChoiceWindow
+        {
+            DataContext = viewModel
+        };
+        viewModel.SetWindow(dialog);
+        await dialog.ShowDialog(MainWindow.instance);
+        if (viewModel.Result != DeleteCollectionChoiceResult.FullDeletion)
+            return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
             Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusão desta coleção? Esta ação pode ser cancelada depois na lista de coleções deletadas."),
             Loc.Tr("Delete collection", "Excluir coleção"));
@@ -2721,6 +2764,8 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             await UpdateProfessionalTasksList(null);
             await LoadDeletedCollectionsAsync();
+            // Atualiza a lista de vencidas para remover a coleção da UI se o usuário estava nessa aba
+            await LoadExpiredCollectionsAsync();
         }
         catch (Exception ex)
         {
@@ -2728,18 +2773,64 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>True se a lista de deletadas já foi carregada nesta sessão (evita chamar o endpoint a cada clique no botão).</summary>
+    /// <summary>True se a lista de deletadas já foi carregada nesta sessão (carrega só na primeira vez ao abrir a aba).</summary>
     private bool _deletedListLoadedOnce;
+    /// <summary>True se a lista de vencidas já foi carregada nesta sessão.</summary>
+    private bool _expiredListLoadedOnce;
 
-    /// <summary>Alterna entre lista normal e lista de coleções solicitadas para deleção. Carrega a lista de deletadas só na primeira vez ao ativar.</summary>
+    /// <summary>Seleciona a aba da lista de coleções (Normal, Expired, Deleted). Comando usado pelos botões de aba com CommandParameter.</summary>
     [RelayCommand]
-    public async Task ToggleShowDeletedCollectionsCommand()
+    public void SelectCollectionsTab(object parameter)
     {
-        ShowDeletedCollections = !ShowDeletedCollections;
-        if (ShowDeletedCollections && !_deletedListLoadedOnce)
+        if (parameter is string s && Enum.TryParse<CollectionsTabKind>(s, true, out var tab))
+            SelectedCollectionsTab = tab;
+    }
+
+    /// <summary>Garante que os dados da aba ativa foram carregados (na primeira vez que o usuário entra na aba).</summary>
+    private async void EnsureTabDataLoadedAsync(CollectionsTabKind tab)
+    {
+        if (tab == CollectionsTabKind.Expired && !_expiredListLoadedOnce)
         {
-            await LoadDeletedCollectionsAsync();
+            _expiredListLoadedOnce = true;
+            await LoadExpiredCollectionsAsync();
+        }
+        else if (tab == CollectionsTabKind.Deleted && !_deletedListLoadedOnce)
+        {
             _deletedListLoadedOnce = true;
+            await LoadDeletedCollectionsAsync();
+        }
+    }
+
+    /// <summary>Carrega a lista de coleções vencidas (prazo de armazenamento expirado).</summary>
+    public async Task LoadExpiredCollectionsAsync()
+    {
+        if (GlobalAppStateViewModel.lfc == null) return;
+        try
+        {
+            ExpiredCollectionsListIsLoading = true;
+            var list = await GlobalAppStateViewModel.lfc.getExpiredCompanyProfessionalTasks();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ExpiredCollectionsList.Clear();
+                if (list != null)
+                {
+                    foreach (var pt in list)
+                    {
+                        if (pt != null && !string.IsNullOrEmpty(pt.classCode))
+                            ExpiredCollectionsList.Add(pt);
+                    }
+                }
+                OnPropertyChanged(nameof(VisibleCollectionsList));
+            });
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro")));
+        }
+        finally
+        {
+            ExpiredCollectionsListIsLoading = false;
         }
     }
 
@@ -2792,7 +2883,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (item == null || string.IsNullOrEmpty(item.classCode)) return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
-            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your normal list.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para sua lista normal."),
+            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your normal list or expired list, depending on its expiration date.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para a lista normal ou para a lista de vencidas, conforme a data de vencimento."),
             Loc.Tr("Cancel deletion", "Cancelar deleção"));
         if (!confirmed) return;
         try
@@ -2814,12 +2905,24 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 if (pt != null)
                 {
-                    if (!CollectionsList.Any(c => c.classCode == pt.classCode))
-                        CollectionsList.Insert(0, pt);
-                    if (!CollectionsListFiltered.Any(c => c.classCode == pt.classCode))
-                        CollectionsListFiltered.Insert(0, pt);
-                    ShowDeletedCollections = false;
-                    SelectedCollection = CollectionsList.First(c => c.classCode == pt.classCode);
+                    // Coleção vencida: data de deleção já passou → vai para a lista de vencidas
+                    bool isExpired = pt.ScheduledDeletionDate.HasValue && pt.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
+                    if (isExpired)
+                    {
+                        if (!ExpiredCollectionsList.Any(c => c.classCode == pt.classCode))
+                            ExpiredCollectionsList.Insert(0, pt);
+                        SelectedCollectionsTab = CollectionsTabKind.Expired;
+                        SelectedCollection = ExpiredCollectionsList.First(c => c.classCode == pt.classCode);
+                    }
+                    else
+                    {
+                        if (!CollectionsList.Any(c => c.classCode == pt.classCode))
+                            CollectionsList.Insert(0, pt);
+                        if (!CollectionsListFiltered.Any(c => c.classCode == pt.classCode))
+                            CollectionsListFiltered.Insert(0, pt);
+                        SelectedCollectionsTab = CollectionsTabKind.Normal;
+                        SelectedCollection = CollectionsList.First(c => c.classCode == pt.classCode);
+                    }
                 }
                 OnPropertyChanged(nameof(VisibleCollectionsList));
                 NotifyDeletedCollectionViewState();
@@ -2979,6 +3082,14 @@ public partial class CollectionsViewModel : ViewModelBase
                 ? new List<string>() 
                 : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
+            // Desambigua nomes: fotos de eventos com mesmo nome que em reconhecimentos são renomeadas (_ev) para evitar conflito no backend
+            var (eventPathsToSend, recPathsToSend, disambiguateError) = DisambiguateEventAndRecPhotoPaths(eventsBase, eventFiles, eventFilesShortPaths, recFilesShortPaths);
+            if (disambiguateError != null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(disambiguateError);
+                return;
+            }
+
             bool shouldNotifyPipedriveAboutFirstUse = false;
             bool shouldNotifyPipedriveAboutFreeTrial50PercentReached = false;
             bool shouldNotifyPipedriveAboutFreeTrialLimitReached = false;
@@ -2988,7 +3099,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
-                int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
+                int totalCollectionPhotos = recPathsToSend!.Count + eventPathsToSend!.Count;
                 //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
                 if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
@@ -3003,7 +3114,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
 
-            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recFilesShortPaths, eventFilesShortPaths);
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recPathsToSend!, eventPathsToSend!);
             if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
@@ -3054,6 +3165,108 @@ public partial class CollectionsViewModel : ViewModelBase
             if (MainWindowViewModel.Instance != null)
                 _ = MainWindowViewModel.Instance.LoadUserMessagesAsync(forceReload: true);
         }
+    }
+
+    /// <summary>
+    /// Evita conflito de nomes entre pastas de eventos e reconhecimentos: fotos de eventos
+    /// com o mesmo nome que em reconhecimentos são renomeadas no disco (sufixo _ev) e
+    /// retorna as listas de short paths já desambiguadas para envio ao backend.
+    /// </summary>
+    /// <returns>(eventShortPaths, recShortPaths) em caso de sucesso; (null, null, mensagemErro) em caso de falha na renomeação.</returns>
+    private (List<string>? eventShortPaths, List<string>? recShortPaths, string? errorMessage) DisambiguateEventAndRecPhotoPaths(
+        string eventsBase,
+        List<FileInfo> eventFiles,
+        List<string> eventFilesShortPaths,
+        List<string> recFilesShortPaths)
+    {
+        if (recFilesShortPaths.Count == 0)
+            return (eventFilesShortPaths, recFilesShortPaths, null);
+
+        var recFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in recFilesShortPaths)
+            recFileNames.Add(Path.GetFileName(p));
+
+        var usedNames = new HashSet<string>(recFileNames, StringComparer.OrdinalIgnoreCase);
+        var updatedEventShortPaths = new List<string>(eventFilesShortPaths.Count);
+        var renamesToRollback = new List<(string fullPathOld, string fullPathNew)>();
+
+        try
+        {
+            for (int i = 0; i < eventFilesShortPaths.Count; i++)
+            {
+                var path = eventFilesShortPaths[i];
+                var fn = Path.GetFileName(path);
+                var dirPart = GetDirectoryPartOfShortPath(path);
+                var fullPathOld = Path.Combine(eventsBase, path.TrimStart('\\', '/'));
+
+                if (usedNames.Contains(fn))
+                {
+                    var newFn = GetUniqueFileNameWithSuffix(fn, usedNames, "_ev");
+                    usedNames.Add(newFn);
+                    var newPath = dirPart + newFn;
+                    var fullPathNew = Path.Combine(eventsBase, newPath.TrimStart('\\', '/'));
+
+                    if (!File.Exists(fullPathOld))
+                    {
+                        return (null, null, $"Ficheiro não encontrado: {fullPathOld}");
+                    }
+                    File.Move(fullPathOld, fullPathNew);
+                    renamesToRollback.Add((fullPathOld, fullPathNew));
+                    updatedEventShortPaths.Add(NormalizeShortPathSeparator(newPath));
+                }
+                else
+                {
+                    usedNames.Add(fn);
+                    updatedEventShortPaths.Add(eventFilesShortPaths[i]);
+                }
+            }
+
+            return (updatedEventShortPaths, recFilesShortPaths, null);
+        }
+        catch (Exception ex)
+        {
+            foreach (var (oldPath, newPath) in renamesToRollback.AsEnumerable().Reverse())
+            {
+                try
+                {
+                    if (File.Exists(newPath))
+                        File.Move(newPath, oldPath);
+                }
+                catch { /* best effort rollback */ }
+            }
+            return (null, null, ex.Message);
+        }
+    }
+
+    private static string GetDirectoryPartOfShortPath(string shortPath)
+    {
+        var lastSep = shortPath.LastIndexOfAny(new[] { '\\', '/' });
+        if (lastSep < 0)
+            return "";
+        return shortPath.Substring(0, lastSep + 1);
+    }
+
+    private static string GetUniqueFileNameWithSuffix(string fileName, HashSet<string> usedNames, string suffix)
+    {
+        var baseName = Path.GetFileNameWithoutExtension(fileName);
+        var ext = Path.GetExtension(fileName);
+        var candidate = baseName + suffix + ext;
+        if (!usedNames.Contains(candidate))
+            return candidate;
+        for (int n = 2; n < 10000; n++)
+        {
+            candidate = baseName + suffix + "_" + n + ext;
+            if (!usedNames.Contains(candidate))
+                return candidate;
+        }
+        return baseName + suffix + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) + ext;
+    }
+
+    private static string NormalizeShortPathSeparator(string shortPath)
+    {
+        if (string.IsNullOrEmpty(shortPath))
+            return shortPath;
+        return shortPath.Replace('/', '\\');
     }
 
     /// <summary>

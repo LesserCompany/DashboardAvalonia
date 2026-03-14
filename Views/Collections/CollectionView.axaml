@@ -31,7 +31,7 @@
           <!-- Quando a coleção é da lista de deletadas: só título + botão grande Restaurar -->
           <StackPanel IsVisible="{Binding IsSelectedCollectionInDeletedList}" 
                       VerticalAlignment="Center" 
-                      HorizontalAlignment="Stretch" 
+                      HorizontalAlignment="Center" 
                       Spacing="32" 
                       Margin="0,40,0,0">
             <TextBlock Text="{Binding SelectedCollection.classCode}" 
@@ -49,14 +49,15 @@
             <Button Command="{Binding CancelDeleteCollectionCommand}"
                     CommandParameter="{Binding SelectedCollection}"
                     HorizontalAlignment="Center"
+                    HorizontalContentAlignment="Center"
                     Padding="32,16"
                     FontSize="16"
                     MinWidth="280"
-                    Background="{DynamicResource CardBg}"
-                    BorderBrush="{DynamicResource CardBorder}"
-                    BorderThickness="1"
+                    Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                    Foreground="White"
+                    BorderThickness="0"
                     CornerRadius="10">
-              <TextBlock Text="{Tr 'Restaurar coleção'}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              <TextBlock Text="{Tr 'Restaurar coleção'}" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center"/>
             </Button>
           </StackPanel>
 

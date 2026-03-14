@@ -195,8 +195,12 @@ public partial class NewCollection : UserControl
         {
             string selectedPath = folder.Path.LocalPath;
             
-            // Validar se a pasta é de eventos
-            if (IsValidEventFolder(selectedPath))
+            // Combo apenas tratamento: exceção robusta — aceitar qualquer pasta existente (sem exigir nome 1.eventos/eventos/event)
+            bool acceptFolder = vm.IsTreatmentOnlyCombo
+                ? !string.IsNullOrWhiteSpace(selectedPath) && Directory.Exists(selectedPath)
+                : IsValidEventFolder(selectedPath);
+
+            if (acceptFolder)
             {
                 vm.TbEventFolder = selectedPath;
             }

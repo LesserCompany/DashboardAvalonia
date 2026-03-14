@@ -234,7 +234,7 @@ namespace LesserDashboardClient.Services
                 // Usar o idioma efetivamente aplicado na interface (mesma fonte do resto do dashboard)
                 string currentLanguage = LocalizationService.Instance.GetCurrentLanguage();
                 if (string.IsNullOrWhiteSpace(currentLanguage))
-                    currentLanguage = ViewModels.GlobalAppStateViewModel.options?.Language ?? "en-US";
+                    currentLanguage = ViewModels.GlobalAppStateViewModel.options?.Language ?? LocalizationService.DefaultLanguage;
 
                 // Converter para o formato esperado pela API (pt ou en)
                 if (currentLanguage.StartsWith("pt", StringComparison.OrdinalIgnoreCase))
@@ -243,7 +243,7 @@ namespace LesserDashboardClient.Services
             }
             catch (Exception)
             {
-                return "en"; // Fallback para inglês
+                return "pt"; // Fallback alinhado ao default do app (pt-BR)
             }
         }
     }

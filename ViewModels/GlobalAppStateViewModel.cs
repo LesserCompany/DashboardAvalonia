@@ -103,9 +103,9 @@ public partial class GlobalAppStateViewModel : ObservableObject
             // 1. Carrega opções do disco
             LoadOptionsModel();
 
-            // 2. Aplica Tema
-            string savedTheme = options.AppTheme;
-            if (string.IsNullOrEmpty(savedTheme)) savedTheme = "Default"; // Ou lógica do sistema
+            // 2. Aplica Tema (fallback: Dark — maioria dos programas de foto é preto)
+            string savedTheme = options?.AppTheme;
+            if (string.IsNullOrWhiteSpace(savedTheme)) savedTheme = OptionsModel.DefaultAppTheme; // "DarkMode"
             
             // Aplica visualmente
             ThemeManager.Instance.ApplyTheme(savedTheme);
@@ -119,9 +119,9 @@ public partial class GlobalAppStateViewModel : ObservableObject
             else
                 AppIsDarkMode = ThemeManager.Instance.IsCurrentThemeDark();
 
-            // 3. Aplica Idioma
-            string savedLang = options.Language;
-            // O service lida com fallback se savedLang for nulo
+            // 3. Aplica Idioma (fallback: pt-BR)
+            string savedLang = options?.Language;
+            if (string.IsNullOrWhiteSpace(savedLang)) savedLang = OptionsModel.DefaultLanguage;
             LocalizationService.Instance.ApplyLanguage(savedLang);
             
             // Atualiza propriedade

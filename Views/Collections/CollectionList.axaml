@@ -27,19 +27,44 @@
                     <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
-            <Button IsEnabled="{Binding !DeletedCollectionsListIsLoading}"
-                    Command="{Binding ToggleShowDeletedCollectionsCommand}"
-                    HorizontalAlignment="Stretch"
-                    Background="{DynamicResource CardBg}"
-                    BorderBrush="{DynamicResource CardBorder}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="12,8">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" VerticalAlignment="Center" FontSize="14"/>
-                    <TextBlock Text="{Binding ShowDeletedCollectionsLabel}" VerticalAlignment="Center" FontSize="12"/>
+            <!-- Abas: Coleções normais | Vencidas | Deletadas -->
+            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="4">
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <Button Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Normal"
+                            Background="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="12,8" CornerRadius="6" HorizontalAlignment="Stretch"
+                            ToolTip.Tip="{Tr 'Your active collections. Here you manage and access collections in use.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Normal collections'}" FontSize="12"/>
+                    </Button>
+                    <Button Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Expired"
+                            Background="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="12,8" CornerRadius="6"
+                            ToolTip.Tip="{Tr 'Collections whose storage period has expired. You can renew or request deletion.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Expired collections'}" FontSize="12"/>
+                    </Button>
+                    <Button Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Deleted"
+                            Background="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="12,8" CornerRadius="6"
+                            ToolTip.Tip="{Tr 'Collections with pending deletion request. You can restore them to the normal list.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Deleted collections'}" FontSize="12"/>
+                    </Button>
                 </StackPanel>
-            </Button>
+            </Border>
         </StackPanel>
             <local:SkeletonList Grid.Row="2" IsVisible="{Binding IsListAreaLoading}" />
             <!--
@@ -164,9 +189,9 @@
                           <local:PhotoSalesIcon IsVisible="{Binding EnablePhotosSales, FallbackValue=False}"/>
                           <!-- OCR -->
                           <local:OcrIcon IsVisible="{Binding OCR, FallbackValue=False}"/>
-                          <!-- Três pontinhos com dropdown (só na lista de coleções deletadas) -->
+                          <!-- Opções ocultas nas coleções deletadas: a única ação (Restaurar) já está no conteúdo da coleção -->
                           <Button x:Name="MoreActionsButton"
-                                  IsVisible="{Binding $parent[local:CollectionList].DataContext.ShowDeletedCollections}"
+                                  IsVisible="False"
                                   Padding="6,4" MinWidth="28"
                                   Background="Transparent"
                                   BorderThickness="0"

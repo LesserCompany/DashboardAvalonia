@@ -3,8 +3,8 @@
              x:Class="LesserDashboardClient.App"
              xmlns:local="clr-namespace:LesserDashboardClient"
              xmlns:converters="clr-namespace:LesserDashboardClient.Resources.Converters"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+             <!-- Padrão Dark (fallback visual). Quem quiser claro altera em Opções. ThemeManager aplica o tema salvo na inicialização. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
@@ -22,6 +22,7 @@
             <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
             <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
+            <converters:BoolToTabActiveBackgroundConverter x:Key="BoolToTabActiveBackgroundConverter" />
           </ResourceDictionary>
         </ResourceDictionary.MergedDictionaries>
         

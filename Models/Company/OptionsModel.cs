@@ -35,21 +35,43 @@ namespace LesserDashboardClient.Models.Company
                 CorruptionDiagnostics.Log($"OptionsModel.Save (suspeito) | Language='{Language ?? "(null)"}' | AppTheme='{AppTheme ?? "(null)"}'");
         }
 
+        /// <summary>Idioma padrão: português.</summary>
+        public const string DefaultLanguage = "pt-BR";
+        /// <summary>Tema padrão: escuro (maioria dos programas de foto usa preto).</summary>
+        public const string DefaultAppTheme = "DarkMode";
+
         public static OptionsModel Load()
         {
             if (File.Exists(SettingsFilePath))
             {
                 var json = File.ReadAllText(SettingsFilePath);
                 var loaded = JsonConvert.DeserializeObject<OptionsModel>(json);
-                // Só loga quando carregou valores vazios/nulos (possível corrupção do arquivo)
-                if (loaded != null && (string.IsNullOrWhiteSpace(loaded.Language) || string.IsNullOrWhiteSpace(loaded.AppTheme)))
-                    CorruptionDiagnostics.Log($"OptionsModel.Load (suspeito) | Language='{loaded.Language ?? "(null)"}' | AppTheme='{loaded.AppTheme ?? "(null)"}'");
-                return loaded;
+                if (loaded != null)
+                {
+                    if (string.IsNullOrWhiteSpace(loaded.Language))
+                    {
+                        loaded.Language = DefaultLanguage;
+                        CorruptionDiagnostics.Log($"OptionsModel.Load: Language vazio -> fallback '{DefaultLanguage}'");
+                    }
+                    if (string.IsNullOrWhiteSpace(loaded.AppTheme))
+                    {
+                        loaded.AppTheme = DefaultAppTheme;
+                        CorruptionDiagnostics.Log($"OptionsModel.Load: AppTheme vazio -> fallback '{DefaultAppTheme}'");
+                    }
+                }
+                return loaded ?? CreateDefault();
             }
 
+            return CreateDefault();
+        }
+
+        private static OptionsModel CreateDefault()
+        {
             var om = new OptionsModel
             {
-                DefaultPathToDownloadProfessionalTaskFiles = SharedClientSide.Helpers.Constants.SeparationFolder.FullName
+                DefaultPathToDownloadProfessionalTaskFiles = SharedClientSide.Helpers.Constants.SeparationFolder.FullName,
+                Language = DefaultLanguage,
+                AppTheme = DefaultAppTheme
             };
             om.Save();
             return om;
