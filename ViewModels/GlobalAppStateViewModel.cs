@@ -277,6 +277,34 @@ public partial class GlobalAppStateViewModel : ObservableObject
             var result = bbox.ShowAsync();
         }
     }
+
+    /// <summary>Mostra um diálogo OK com conteúdo em Markdown (ex.: negrito e cor para destaque).</summary>
+    public void ShowDialogOkMarkdown(string msg, string title = "")
+    {
+        var customParams = new MessageBoxCustomParams
+        {
+            MaxWidth = 500,
+            MaxHeight = 800,
+            ShowInCenter = true,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            SizeToContent = SizeToContent.WidthAndHeight,
+            ContentTitle = title,
+            ContentMessage = msg,
+            Markdown = true,
+            ButtonDefinitions = new List<ButtonDefinition> { new ButtonDefinition { Name = "OK", IsDefault = true } }
+        };
+        if (MainWindow.instance != null)
+        {
+            var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
+            _ = bbox.ShowWindowDialogAsync(MainWindow.instance);
+        }
+        else
+        {
+            var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
+            _ = bbox.ShowAsync();
+        }
+    }
+
     public async Task<bool> ShowDialogYesNo(string msg, string title = "")
     {
         if (MainWindow.instance != null)

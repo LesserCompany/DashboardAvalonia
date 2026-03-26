@@ -79,10 +79,6 @@
     "en-US": "Select",
     "pt-BR": "Selecionar"
   },
-  "Collection ID": {
-    "en-US": "Collection ID",
-    "pt-BR": "ID da coleção"
-  },
   "Company/Client Name": {
     "en-US": "Company/Client Name",
     "pt-BR": "Nome da Empresa/Cliente"
@@ -91,8 +87,8 @@
     "en-US": "Logout (Back to Login)",
     "pt-BR": "Sair (Voltar ao Login)"
   },
-  "ID collection:": {
-    "en-US": "ID collection:",
+  "Collection ID:": {
+    "en-US": "Collection ID:",
     "pt-BR": "ID da coleção:"
   },
   "New Collection": {
@@ -138,6 +134,10 @@
   "Allow photos to be found by anyone": {
     "en-US": "Allow photos to be found by anyone",
     "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
+  },
+  "Photos cannot have watermarks": {
+    "en-US": "Photos cannot have watermarks",
+    "pt-BR": "As fotos virão sem marca d'água"
   },
   "Allow CPFs to download photos even when blocked": {
     "en-US": "Allow CPFs to download photos even when blocked",
@@ -218,6 +218,10 @@
   "Choose the separation file you want to work with:": {
     "en-US": "Choose the separation file you want to work with:",
     "pt-BR": "Escolha o arquivo de separação com o qual deseja trabalhar:"
+  },
+  "Open file directory": {
+    "en-US": "Open file directory",
+    "pt-BR": "Abrir diretório do arquivo"
   },
   "This class has OCR processing.": {
     "en-US": "This class has OCR processing.",

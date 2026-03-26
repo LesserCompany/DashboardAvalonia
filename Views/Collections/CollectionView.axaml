@@ -143,6 +143,11 @@
             <TextBlock Grid.Row="0" Text="{Tr 'Choose the separation file you want to work with:'}" FontSize="12" />
             
             <ListBox Grid.Row="1" BorderBrush="Black" BorderThickness="0.6"  x:Name="ListBox" ItemsSource="{Binding ClassSeparationFiles}" SelectedItem="{Binding SelectedSeparationFile}" FontSize="11" >
+              <ListBox.ContextMenu>
+                <ContextMenu Opening="SeparationFileContextMenu_Opening">
+                  <MenuItem Header="{Tr 'Open file directory'}" Command="{Binding OpenSeparationFileDirectoryCommand}" />
+                </ContextMenu>
+              </ListBox.ContextMenu>
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal">

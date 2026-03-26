@@ -753,10 +753,16 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     [ObservableProperty] public bool? cbEnableAutoExclusion = true;
     [ObservableProperty] public bool? cbEnablePhotoSales;
+    [ObservableProperty] public bool? cbPhotosCannotHaveWatermarks;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
     [ObservableProperty] public double? tbTotalPhotosForFreePerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
-    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value) => OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value)
+    {
+        OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+        if (value != true)
+            CbPhotosCannotHaveWatermarks = false;
+    }
     [ObservableProperty] public bool? cbUploadedPhotosAreAlreadySorted;
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
@@ -771,6 +777,37 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnSelectedSeparationFileChanged(ClassSeparationFile value)
     {
         UpdateSeparationProgress();
+        OpenSeparationFileDirectoryCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanOpenSeparationFileDirectory =>
+        SelectedSeparationFile != null
+        && SelectedSeparationFile.FileLocationType == ClassSeparationFile.FileLocationTypes.LOCAL
+        && !string.IsNullOrWhiteSpace(SelectedSeparationFile.FilePathInLocalDisk);
+
+    [RelayCommand(CanExecute = nameof(CanOpenSeparationFileDirectory))]
+    private void OpenSeparationFileDirectory()
+    {
+        if (SelectedSeparationFile?.FilePathInLocalDisk == null) return;
+        try
+        {
+            var path = SelectedSeparationFile.FilePathInLocalDisk.Trim();
+            // Abrir a pasta Save (onde está o separacao.hermes)
+            var saveDir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(saveDir) && Directory.Exists(saveDir))
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{saveDir}\"") { UseShellExecute = true });
+                return;
+            }
+            // Fallback: pasta pai (ex.: .../17_03_2026__13_04_TesteEmbaralhamento)
+            var parentDir = Path.GetDirectoryName(saveDir);
+            if (!string.IsNullOrWhiteSpace(parentDir) && Directory.Exists(parentDir))
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{parentDir}\"") { UseShellExecute = true });
+        }
+        catch
+        {
+            // best-effort: não interromper se o Explorer falhar
+        }
     }
 
     [ObservableProperty] public bool classSeparationFilesIsVisible;
@@ -864,6 +901,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadComplete = SelectedCollection.UploadComplete,
                 Description = SelectedCollection.Description,
                 EnablePhotosSales = SelectedCollection.EnablePhotosSales,
+                PhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
                 TotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate,
                 OCR = SelectedCollection.OCR,
@@ -2324,6 +2362,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2367,6 +2406,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2411,6 +2451,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = options.BackupHd;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = options.EnablePhotoSales;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2467,6 +2508,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
+            CbPhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
             TbTotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
             TbProfessioanlTaskDescription = SelectedCollection.Description;
@@ -2599,6 +2641,7 @@ public partial class CollectionsViewModel : ViewModelBase
             collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
             collectionInList.OCR = updatedCollection.OCR;
             collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
             collectionInList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
             collectionInList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
             collectionInList.Status = updatedCollection.Status;
@@ -2623,6 +2666,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
                 collectionInFilteredList.OCR = updatedCollection.OCR;
                 collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
                 collectionInFilteredList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
                 collectionInFilteredList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
                 collectionInFilteredList.Status = updatedCollection.Status;
@@ -3026,6 +3070,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadComplete = false,
                 Description = TbProfessionalTaskDescription,
                 EnablePhotosSales = CbEnablePhotoSales,
+                PhotosCannotHaveWatermarks = CbPhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 TotalPhotosForFreePerGraduate = (int)(TbTotalPhotosForFreePerGraduate ?? 0.0),
                 OCR = CbOcr,
@@ -3082,12 +3127,46 @@ public partial class CollectionsViewModel : ViewModelBase
                 ? new List<string>() 
                 : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
-            // Desambigua nomes: fotos de eventos com mesmo nome que em reconhecimentos são renomeadas (_ev) para evitar conflito no backend
-            var (eventPathsToSend, recPathsToSend, disambiguateError) = DisambiguateEventAndRecPhotoPaths(eventsBase, eventFiles, eventFilesShortPaths, recFilesShortPaths);
-            if (disambiguateError != null)
+            // Impedir criar coleção se existirem fotos com o mesmo nome em Eventos e Reconhecimentos
+            // Se o usuário corrigir os nomes, ao clicar em "Já corrigi, continuar" recarregamos os arquivos e repetimos a verificação.
+            while (true)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(disambiguateError);
-                return;
+                var duplicates = GetDuplicatePhotoNamesBetweenEventsAndRec(eventsBase, recBase, eventFilesShortPaths, recFilesShortPaths);
+                if (duplicates.Count == 0)
+                    break;
+
+                const int maxShow = 15;
+                var intro = "Existem fotos com o mesmo nome na pasta de Eventos e na pasta de Reconhecimentos. " +
+                    "Para evitar conflitos, renomeie as fotos duplicadas (em uma das pastas) e tente novamente." +
+                    "\n\n— Fotos com o mesmo nome —";
+                var moreCount = duplicates.Count > maxShow ? duplicates.Count - maxShow : 0;
+
+                var dialog = new DuplicatePhotosWarningWindow();
+                dialog.SetContent(intro, duplicates, maxShow, moreCount);
+
+                var owner = MainWindow.instance;
+                await (owner != null ? dialog.ShowDialog(owner) : dialog.ShowDialog(null!));
+
+                if (!dialog.ContinueRequested)
+                    return;
+
+                // Recarrega as pastas para refletir os renomeios feitos durante o diálogo
+                eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
+                recFiles = IsTreatmentOnlyCombo
+                    ? new List<FileInfo>()
+                    : FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
+
+                var checkIfClassCanBeCreatedAgain = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
+                if (checkIfClassCanBeCreatedAgain.response == false)
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(checkIfClassCanBeCreatedAgain.message);
+                    return;
+                }
+
+                eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(eventsBase.Length)).ToList();
+                recFilesShortPaths = string.IsNullOrEmpty(recBase)
+                    ? new List<string>()
+                    : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
             }
 
             bool shouldNotifyPipedriveAboutFirstUse = false;
@@ -3099,7 +3178,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
-                int totalCollectionPhotos = recPathsToSend!.Count + eventPathsToSend!.Count;
+                int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
                 //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
                 if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
@@ -3114,7 +3193,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
 
-            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recPathsToSend!, eventPathsToSend!);
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recFilesShortPaths, eventFilesShortPaths);
             if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
@@ -3168,105 +3247,37 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Evita conflito de nomes entre pastas de eventos e reconhecimentos: fotos de eventos
-    /// com o mesmo nome que em reconhecimentos são renomeadas no disco (sufixo _ev) e
-    /// retorna as listas de short paths já desambiguadas para envio ao backend.
+    /// Devolve as fotos que têm o mesmo nome na pasta de Eventos e na de Reconhecimentos (comparação case-insensitive).
+    /// Cada entrada contém o nome do ficheiro e os caminhos completos em cada pasta para exibir ao utilizador.
     /// </summary>
-    /// <returns>(eventShortPaths, recShortPaths) em caso de sucesso; (null, null, mensagemErro) em caso de falha na renomeação.</returns>
-    private (List<string>? eventShortPaths, List<string>? recShortPaths, string? errorMessage) DisambiguateEventAndRecPhotoPaths(
+    private static List<(string fileName, string eventFullPath, string recFullPath)> GetDuplicatePhotoNamesBetweenEventsAndRec(
         string eventsBase,
-        List<FileInfo> eventFiles,
+        string recBase,
         List<string> eventFilesShortPaths,
         List<string> recFilesShortPaths)
     {
-        if (recFilesShortPaths.Count == 0)
-            return (eventFilesShortPaths, recFilesShortPaths, null);
+        if (string.IsNullOrEmpty(recBase) || recFilesShortPaths.Count == 0)
+            return new List<(string, string, string)>();
 
-        var recFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var recByFileName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var p in recFilesShortPaths)
-            recFileNames.Add(Path.GetFileName(p));
-
-        var usedNames = new HashSet<string>(recFileNames, StringComparer.OrdinalIgnoreCase);
-        var updatedEventShortPaths = new List<string>(eventFilesShortPaths.Count);
-        var renamesToRollback = new List<(string fullPathOld, string fullPathNew)>();
-
-        try
         {
-            for (int i = 0; i < eventFilesShortPaths.Count; i++)
-            {
-                var path = eventFilesShortPaths[i];
-                var fn = Path.GetFileName(path);
-                var dirPart = GetDirectoryPartOfShortPath(path);
-                var fullPathOld = Path.Combine(eventsBase, path.TrimStart('\\', '/'));
-
-                if (usedNames.Contains(fn))
-                {
-                    var newFn = GetUniqueFileNameWithSuffix(fn, usedNames, "_ev");
-                    usedNames.Add(newFn);
-                    var newPath = dirPart + newFn;
-                    var fullPathNew = Path.Combine(eventsBase, newPath.TrimStart('\\', '/'));
-
-                    if (!File.Exists(fullPathOld))
-                    {
-                        return (null, null, $"Ficheiro não encontrado: {fullPathOld}");
-                    }
-                    File.Move(fullPathOld, fullPathNew);
-                    renamesToRollback.Add((fullPathOld, fullPathNew));
-                    updatedEventShortPaths.Add(NormalizeShortPathSeparator(newPath));
-                }
-                else
-                {
-                    usedNames.Add(fn);
-                    updatedEventShortPaths.Add(eventFilesShortPaths[i]);
-                }
-            }
-
-            return (updatedEventShortPaths, recFilesShortPaths, null);
+            var fn = Path.GetFileName(p);
+            if (!string.IsNullOrEmpty(fn))
+                recByFileName[fn] = Path.Combine(recBase, p.TrimStart('\\', '/'));
         }
-        catch (Exception ex)
+
+        var duplicates = new List<(string fileName, string eventFullPath, string recFullPath)>();
+        foreach (var eventShort in eventFilesShortPaths)
         {
-            foreach (var (oldPath, newPath) in renamesToRollback.AsEnumerable().Reverse())
-            {
-                try
-                {
-                    if (File.Exists(newPath))
-                        File.Move(newPath, oldPath);
-                }
-                catch { /* best effort rollback */ }
-            }
-            return (null, null, ex.Message);
+            var fn = Path.GetFileName(eventShort);
+            if (string.IsNullOrEmpty(fn) || !recByFileName.TryGetValue(fn, out var recFullPath))
+                continue;
+            var eventFullPath = Path.Combine(eventsBase, eventShort.TrimStart('\\', '/'));
+            duplicates.Add((fn, eventFullPath, recFullPath));
         }
-    }
 
-    private static string GetDirectoryPartOfShortPath(string shortPath)
-    {
-        var lastSep = shortPath.LastIndexOfAny(new[] { '\\', '/' });
-        if (lastSep < 0)
-            return "";
-        return shortPath.Substring(0, lastSep + 1);
-    }
-
-    private static string GetUniqueFileNameWithSuffix(string fileName, HashSet<string> usedNames, string suffix)
-    {
-        var baseName = Path.GetFileNameWithoutExtension(fileName);
-        var ext = Path.GetExtension(fileName);
-        var candidate = baseName + suffix + ext;
-        if (!usedNames.Contains(candidate))
-            return candidate;
-        for (int n = 2; n < 10000; n++)
-        {
-            candidate = baseName + suffix + "_" + n + ext;
-            if (!usedNames.Contains(candidate))
-                return candidate;
-        }
-        return baseName + suffix + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) + ext;
-    }
-
-    private static string NormalizeShortPathSeparator(string shortPath)
-    {
-        if (string.IsNullOrEmpty(shortPath))
-            return shortPath;
-        return shortPath.Replace('/', '\\');
+        return duplicates;
     }
 
     /// <summary>

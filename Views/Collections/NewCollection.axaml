@@ -21,7 +21,7 @@
             </StackPanel>
             <!-- form -->
             <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
-              <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="0" Grid.Column="1">
                 <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
                   <TextBox.Styles>
@@ -236,6 +236,10 @@
                            IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
                            Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
+                  <StackPanel Margin="10 2 0 0" IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
+                    <CheckBox IsChecked="{Binding CbPhotosCannotHaveWatermarks}"
+                              Content="{Tr 'Photos cannot have watermarks'}" />
+                  </StackPanel>
                   <StackPanel Margin="10 2 0 0 " IsVisible="{Binding IsTotalPhotosForFreePerGraduateVisible}">
                     <TextBlock Text="{Tr 'TotalPhotosForFreePerGraduate'}"   />
                     <NumericUpDown Minimum="0"
