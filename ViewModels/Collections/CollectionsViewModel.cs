@@ -108,7 +108,16 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
         SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
-    
+
+    /// <summary>Exibe "Deletar coleção" para coleções HD (exceto na lista de deletadas).</summary>
+    public bool IsDeleteCollectionButtonVisible =>
+        !IsSelectedCollectionInDeletedList &&
+        SelectedCollection?.UploadHD == true;
+
+    /// <summary>Habilita "Deletar coleção" apenas quando estiver na aba Vencidas e a data de deleção já passou.</summary>
+    public bool IsDeleteCollectionButtonEnabled =>
+        IsSelectedCollectionInExpiredList && IsDeletionDatePassed;
+
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
         if (_isUpdatingSelectedCollection)
@@ -150,6 +159,8 @@ public partial class CollectionsViewModel : ViewModelBase
                     OnPropertyChanged(nameof(DeletionDateForeground));
                     OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
                     OnPropertyChanged(nameof(IsDeletionDatePassed));
+                    OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+                    OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
                     NotifyDeletedCollectionViewState();
                 });
             }
@@ -159,6 +170,88 @@ public partial class CollectionsViewModel : ViewModelBase
                 _isUpdatingSelectedCollection = false;
             }
         }, token);
+    }
+
+    [RelayCommand]
+    private async Task CopyCollectionCpfsAsync(ProfessionalTask professionalTask)
+    {
+        if (professionalTask == null || string.IsNullOrWhiteSpace(professionalTask.classCode))
+        {
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Coleção inválida: classCode ausente.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+            return;
+        }
+
+        if (CopyingCollectionCpfs)
+            return;
+
+        CopyingCollectionCpfs = true;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.GetGraduatesByCPFByClassCode(professionalTask.classCode);
+            if (!result.success || result.Content == null)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Erro",
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+                return;
+            }
+
+            var cpfs = result.Content
+                .Select(g => (g?.CPF ?? string.Empty))
+                .Select(raw => new string(raw.Where(char.IsDigit).ToArray()))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            if (cpfs.Count == 0)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Aviso",
+                    "Nenhum CPF encontrado nessa coleção.",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
+                return;
+            }
+
+            var text = string.Join(" ", cpfs);
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var topLevel = Avalonia.Application.Current?.ApplicationLifetime switch
+                {
+                    Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop => desktop.MainWindow,
+                    Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime singleView => Avalonia.Controls.TopLevel.GetTopLevel(singleView.MainView),
+                    _ => null
+                };
+                if (topLevel != null)
+                {
+                    await topLevel.Clipboard.SetTextAsync(text);
+                }
+            });
+
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Sucesso",
+                $"{cpfs.Count} CPF(s) copiado(s) para a área de transferência.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Success).ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Erro ao copiar CPFs da coleção.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+        }
+        finally
+        {
+            CopyingCollectionCpfs = false;
+        }
     }
     /// <summary>Aba ativa na lista de coleções: normais, vencidas ou deletadas.</summary>
     public enum CollectionsTabKind
@@ -254,7 +347,12 @@ public partial class CollectionsViewModel : ViewModelBase
 
     /// <summary>Lista de coleções vencidas (prazo expirado). Carregada ao abrir a aba "Vencidas" pela primeira vez.</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsList = new();
-    partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+    partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value)
+    {
+        OnPropertyChanged(nameof(VisibleCollectionsList));
+        OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+    }
 
     [ObservableProperty] private bool expiredCollectionsListIsLoading;
     partial void OnExpiredCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
@@ -281,9 +379,17 @@ public partial class CollectionsViewModel : ViewModelBase
         SelectedCollectionsTab == CollectionsTabKind.Deleted && SelectedCollection != null &&
         DeletedCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
 
+    /// <summary>True quando a coleção selecionada está na lista de vencidas (aba "Vencidas").</summary>
+    public bool IsSelectedCollectionInExpiredList =>
+        SelectedCollectionsTab == CollectionsTabKind.Expired && SelectedCollection != null &&
+        ExpiredCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
+
     void NotifyDeletedCollectionViewState()
     {
         OnPropertyChanged(nameof(IsSelectedCollectionInDeletedList));
+        OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
         OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
         OnPropertyChanged(nameof(BtExportIsEnabledForView));
         OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
@@ -315,6 +421,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool IsEnabledFiltersInList => IsEnabledFilters && SelectedCollectionsTab == CollectionsTabKind.Normal;
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
+    [ObservableProperty] private bool copyingCollectionCpfs;
     [ObservableProperty] public bool collectionsListIsLoading = true;
     partial void OnCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
     [ObservableProperty] public bool isEnabledFilters = false;
@@ -3198,8 +3305,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 foreach (var g in graduatesDataToUpload)
                     g.ClassCode = pt.classCode;
-                if (graduatesDataToUpload.Count > 0)
-                    await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
+                // Registro/gerenciamento de CPF (incl. permissões) é feito após a turma existir, na tela de gerenciamento de CPF.
 
 
 

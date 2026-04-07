@@ -60,8 +60,19 @@ namespace LesserDashboardClient.Models
         
         [JsonProperty("features")]
         public ServerComboFeatures Features { get; set; }
-        
+
+        // Campo legado (backend antigo). Mantido por compatibilidade.
         [JsonProperty("discountPercentage")]
-        public double DiscountPercentage { get; set; }
+        public double? DiscountPercentage { get; set; }
+
+        // Campos novos do endpoint GetCompanyComboPrices
+        [JsonProperty("comboDiscount")]
+        public double? ComboDiscount { get; set; }
+
+        [JsonProperty("comboOrder")]
+        public int? ComboOrder { get; set; }
+
+        [JsonProperty("storageTimeMonths")]
+        public int? StorageTimeMonths { get; set; }
     }
 }

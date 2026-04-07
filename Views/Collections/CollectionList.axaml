@@ -152,7 +152,7 @@
                   <ListBox.ItemTemplate>
                     <DataTemplate>
                       <!-- 3 colunas: avatar | conteúdo | badges + ações -->
-                      <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+                      <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
 
                         <!-- Avatar + label de ambiente -->
                         <StackPanel Grid.RowSpan="3" Margin="0,2,12,0" VerticalAlignment="Center">
@@ -242,6 +242,21 @@
                                      Foreground="{DynamicResource MetaFg}"
                                      IsVisible="{Binding UploadHD, FallbackValue=False}"/>
                         </StackPanel>
+
+                        <!-- Prazo para restaurar (aba Deletadas + FinalScheduledDeletionDate) -->
+                        <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource MetaFg}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   Text="{Binding FinalScheduledDeletionDate, Converter={StaticResource RestorationDeadlineMessageConverter}}">
+                          <TextBlock.IsVisible>
+                            <MultiBinding Converter="{StaticResource DeletedTabAndDateToVisibleConverter}">
+                              <Binding Path="IsDeletedTabActive" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              <Binding Path="FinalScheduledDeletionDate"/>
+                            </MultiBinding>
+                          </TextBlock.IsVisible>
+                        </TextBlock>
 
                       </Grid>
                     </DataTemplate>

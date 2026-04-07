@@ -23,6 +23,9 @@
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
             <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
             <converters:BoolToTabActiveBackgroundConverter x:Key="BoolToTabActiveBackgroundConverter" />
+            <converters:RestorationDeadlineMessageConverter x:Key="RestorationDeadlineMessageConverter" />
+            <converters:DeletedTabAndDateToVisibleConverter x:Key="DeletedTabAndDateToVisibleConverter" />
+            <converters:FinalDeletionDateToStringConverter x:Key="FinalDeletionDateToStringConverter" />
           </ResourceDictionary>
         </ResourceDictionary.MergedDictionaries>
         

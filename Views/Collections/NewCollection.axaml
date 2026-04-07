@@ -333,15 +333,6 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="{Tr 'Can download with watermark'}">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <CheckBox IsChecked="{Binding GraduateCanDownloadWatermarkedPhoto, TargetNullValue=False}"
-                                                      ToolTip.Tip="{Tr 'AllowCPFsToDownloadPhotosEvenWhenBlocked_Tooltip'}"
-                                                      VerticalAlignment="Center" HorizontalAlignment="Center" />
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>

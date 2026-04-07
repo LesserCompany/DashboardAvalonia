@@ -9,14 +9,12 @@
              Name="Host">
   <UserControl.Resources>
     <x:Double x:Key="DefaultWidth">360</x:Double>
-    <x:Double x:Key="DefaultHeightCard">280</x:Double>
     <x:Double x:Key="DefaultSizeIcons">30</x:Double>
   </UserControl.Resources>
   <Border 
           Name="MainBorder"
           CornerRadius="8"
           Width="{DynamicResource DefaultWidth}"
-          Height="{DynamicResource DefaultHeightCard}"
           Padding="20" Margin="8"
           BorderThickness="2"
           BorderBrush="{DynamicResource BorderBrushCustom}"
@@ -57,6 +55,20 @@
                    FontSize="12"
                    Text="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
+        <!-- Metadados do combo -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+          <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="8,3"
+                  IsVisible="{Binding CollectionCombo.StorageTimeMonths, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
+            <TextBlock Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold">
+              <TextBlock.Text>
+                <MultiBinding StringFormat="{}{0} meses de armazenamento">
+                  <Binding Path="CollectionCombo.StorageTimeMonths" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
+                </MultiBinding>
+              </TextBlock.Text>
+            </TextBlock>
+          </Border>
+        </StackPanel>
+
         <!-- Ícones -->
         <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,12,0,0">
           <!-- OCR -->
@@ -84,7 +96,7 @@
         </Grid.ColumnDefinitions>
         
         <!-- Preço -->
-        <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+        <StackPanel Grid.Column="0" VerticalAlignment="Bottom" Spacing="2">
           <TextBlock Text="{Tr 'Price for each 1000 photos'}"
                      Foreground="{DynamicResource TextSecondaryBrush}"
                      FontSize="12"
@@ -96,6 +108,18 @@
               <MultiBinding StringFormat="{}{0} {1:0.00}">
                 <Binding Path="CollectionCombo.CurrencySymbol" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
                 <Binding Path="CollectionCombo.ComboPrice" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
+              </MultiBinding>
+            </TextBlock.Text>
+          </TextBlock>
+
+          <!-- Desconto -->
+          <TextBlock FontSize="12"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource SystemAccentColor}"
+                     IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
+            <TextBlock.Text>
+              <MultiBinding StringFormat="{}Desconto: -{0:0}%">
+                <Binding Path="CollectionCombo.DiscountPercentage" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
               </MultiBinding>
             </TextBlock.Text>
           </TextBlock>

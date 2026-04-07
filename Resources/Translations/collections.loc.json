@@ -391,6 +391,14 @@
     "en-US": "Price for each 1000 photos",
     "pt-BR": "Preço para cada 1000 fotos"
   },
+  "Copy all CPFs of this collection": {
+    "en-US": "Copy all CPFs of this collection",
+    "pt-BR": "Copiar todos os CPFs desta coleção"
+  },
+  "Copy CPFs": {
+    "en-US": "Copy CPFs",
+    "pt-BR": "Copiar CPFs"
+  },
   "Combos": {
     "en-US": "Combos",
     "pt-BR": "Combos"
@@ -706,5 +714,9 @@
   "Could not remove graduate.": {
     "en-US": "Could not remove graduate.",
     "pt-BR": "Não foi possível remover o formando."
+  },
+  "Your collection can be restored until {0}, after which it will be permanently removed.": {
+    "en-US": "Your collection can be restored until {0}, after which it will be permanently removed.",
+    "pt-BR": "Sua coleção pode ser restaurada até {0}, depois disso ela será removida permanentemente."
   }
 }

@@ -31,6 +31,21 @@ namespace LesserDashboardClient.Models
         /// ID do combo no servidor
         /// </summary>
         public int ComboId { get; set; }
+
+        /// <summary>
+        /// Ordem de exibição do combo (backend)
+        /// </summary>
+        public int? ComboOrder { get; set; }
+
+        /// <summary>
+        /// Tempo de armazenamento em meses (backend)
+        /// </summary>
+        public int? StorageTimeMonths { get; set; }
+
+        /// <summary>
+        /// Desconto do combo em porcentagem (backend). Pode vir do campo novo comboDiscount ou legado discountPercentage.
+        /// </summary>
+        public double? DiscountPercentage { get; set; }
         
         /// <summary>
         /// Símbolo da moeda (R$ ou $)

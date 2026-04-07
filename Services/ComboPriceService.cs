@@ -98,6 +98,9 @@ namespace LesserDashboardClient.Services
                 UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
                 IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo),
                 ComboId = serverCombo.Id,
+                ComboOrder = serverCombo.ComboOrder,
+                StorageTimeMonths = serverCombo.StorageTimeMonths,
+                DiscountPercentage = serverCombo.ComboDiscount ?? serverCombo.DiscountPercentage,
                 CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };
         }
