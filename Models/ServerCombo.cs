@@ -36,6 +36,14 @@ namespace LesserDashboardClient.Models
         
         [JsonProperty("backupFiveYears")]
         public bool BackupFiveYears { get; set; }
+
+        /// <summary>Distribuição/separação por pessoa (vem do backend no combo).</summary>
+        /// <remarks>API envia <c>photosDistribution</c>; mantém fallback <c>photoDistribution</c> por compatibilidade.</remarks>
+        [JsonProperty("photosDistribution")]
+        public bool PhotoDistribution { get; set; }
+
+        [JsonProperty("photoDistribution")]
+        public bool PhotoDistributionLegacyAlias { get; set; }
     }
 
     /// <summary>

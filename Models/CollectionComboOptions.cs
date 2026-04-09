@@ -16,6 +16,12 @@ namespace LesserDashboardClient.Models
         public bool AllowCPFsToSeeAllPhotos { get; set; }
         public bool AllowDeletedProductionToBeFoundAnyone { get; set; }
         public bool UploadedPhotosAreAlreadySorted { get; set; }
+
+        /// <summary>Espelho do combo no servidor: separação/distribuição por pessoa.</summary>
+        public bool PhotosDistribution { get; set; }
+
+        /// <summary>Espelho do combo no servidor: relevância facial / exclusão automática.</summary>
+        public bool EnableFaceRelevanceDetection { get; set; }
         
         /// <summary>
         /// Indica se este combo é apenas para tratamento (sem reconhecimento facial)

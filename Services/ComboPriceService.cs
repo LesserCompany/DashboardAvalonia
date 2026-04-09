@@ -84,23 +84,26 @@ namespace LesserDashboardClient.Services
         /// </summary>
         private static CollectionComboOptions ConvertServerComboToClientCombo(ServerCombo serverCombo)
         {
+            var f = serverCombo.Features ?? new ServerComboFeatures();
             return new CollectionComboOptions
             {
                 ComboTitle = serverCombo.ComboName,
                 ComboDescription = serverCombo.Description,
                 ComboColorAccent = GetColorForCombo(serverCombo.ComboName),
-                BackupHd = serverCombo.Features.UploadHD,
-                AutoTreatment = serverCombo.Features.AutoTreatment,
-                EnablePhotoSales = serverCombo.Features.EnablePhotosSales,
-                AllowCPFsToSeeAllPhotos = serverCombo.Features.AllowCPFsToSeeAllPhotos,
-                AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
-                Ocr = serverCombo.Features.OCR,
-                UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
+                BackupHd = f.UploadHD,
+                AutoTreatment = f.AutoTreatment,
+                EnablePhotoSales = f.EnablePhotosSales,
+                AllowCPFsToSeeAllPhotos = f.AllowCPFsToSeeAllPhotos,
+                AllowDeletedProductionToBeFoundAnyone = f.AllowDeletedProductionToBeFoundAnyone,
+                Ocr = f.OCR,
+                UploadedPhotosAreAlreadySorted = f.UploadPhotosAreAlreadySorted,
+                PhotosDistribution = f.PhotoDistribution || f.PhotoDistributionLegacyAlias,
+                EnableFaceRelevanceDetection = f.EnableFaceRelevanceDetection,
                 IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo),
                 ComboId = serverCombo.Id,
                 ComboOrder = serverCombo.ComboOrder,
                 StorageTimeMonths = serverCombo.StorageTimeMonths,
-                BackupFiveYears = serverCombo.Features?.BackupFiveYears ?? false,
+                BackupFiveYears = f.BackupFiveYears,
                 DiscountPercentage = serverCombo.ComboDiscount ?? serverCombo.DiscountPercentage,
                 CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };

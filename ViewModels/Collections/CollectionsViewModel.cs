@@ -67,6 +67,8 @@ public partial class CollectionsViewModel : ViewModelBase
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     private bool _isOpeningSelectProfessionalView = false; // Evita fechar a lista no 1º clique (quando LoadProfessionals define SelectedProfessional)
+    /// <summary>Combo da coleção pré-configurada; ao criar turma, a PT deve espelhar estes valores (autoridade máxima).</summary>
+    private CollectionComboOptions _preConfiguredComboAuthority;
     [ObservableProperty] public ProfessionalTask selectedCollection;
     
     /// <summary>
@@ -2658,6 +2660,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova cole��o personalizada
+        _preConfiguredComboAuthority = null;
 
         GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
@@ -2703,6 +2706,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
+        _preConfiguredComboAuthority = null;
 
         GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
@@ -2751,6 +2755,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
+        _preConfiguredComboAuthority = options;
         GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
@@ -2827,6 +2832,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedCollection.professionalLogin;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection;
+        _preConfiguredComboAuthority = null;
 
         TbCollectionName = SelectedCollection.classCode;
 
@@ -2869,6 +2875,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             ScrollComponentNewCollection = 0;
             ActiveComponent = ActiveViews.NewCollection;
+            _preConfiguredComboAuthority = null;
 
             ExpanderAdvancedOptions = true;
             ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
@@ -3478,6 +3485,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 //pt.UploadHD = false; -> this line was removed when implementing the change to let users make backups without CPFs.
             }
 
+            if (_preConfiguredComboAuthority != null)
+                PreConfiguredComboProfessionalTaskAuthority.Apply(_preConfiguredComboAuthority, pt);
 
             // CORREÇÃO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
             // O Beta não tem barra final no originalEventsFolder, então os shortPaths ficam com \ no início
