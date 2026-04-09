@@ -315,6 +315,22 @@
     "en-US": "Advanced",
     "pt-BR": "Avançado"
   },
+  "Add IDs": {
+    "en-US": "Add IDs",
+    "pt-BR": "Adicionar IDs"
+  },
+  "Add IDs without reupload": {
+    "en-US": "Add IDs without reupload",
+    "pt-BR": "Adicionar IDs sem reupload"
+  },
+  "Add ID": {
+    "en-US": "Add ID",
+    "pt-BR": "Adicionar ID"
+  },
+  "New ID": {
+    "en-US": "New ID",
+    "pt-BR": "Novo ID"
+  },
   "General Report": {
     "en-US": "General report",
     "pt-BR": "Relatório geral"
@@ -398,6 +414,14 @@
   "Copy CPFs": {
     "en-US": "Copy CPFs",
     "pt-BR": "Copiar CPFs"
+  },
+  "Manage CPF": {
+    "en-US": "Manage CPF",
+    "pt-BR": "Gerenciar CPF"
+  },
+  "Open CPF protection for this collection filter": {
+    "en-US": "Open User by CPF → CPF management with this collection’s CPFs in the filter",
+    "pt-BR": "Abrir Usuário por CPF → Gerenciamento de CPF com os CPFs desta coleção no filtro"
   },
   "Combos": {
     "en-US": "Combos",

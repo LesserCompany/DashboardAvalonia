@@ -17,13 +17,14 @@
             <!-- Title -->
             <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
+                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding !IsAddIdsOnlyMode}" />
+                <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding IsAddIdsOnlyMode}" />
             </StackPanel>
             <!-- form -->
             <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="0" Grid.Column="1">
-                <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
+                <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" IsReadOnly="{Binding IsAddIdsOnlyMode}" TextInput="TextBox_TextInput">
                   <TextBox.Styles>
                     <Style Selector="TextBox.error /template/ Border#PART_BorderElement">
                       <Setter Property="BorderBrush" Value="Red"/>
@@ -39,8 +40,8 @@
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasError}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
               </StackPanel>
                 
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
-              <StackPanel Grid.Row="1" Grid.Column="1">
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center" IsVisible="{Binding !IsAddIdsOnlyMode}" />
+              <StackPanel Grid.Row="1" Grid.Column="1" IsVisible="{Binding !IsAddIdsOnlyMode}">
                 <Grid ColumnDefinitions="*, Auto">
                   <TextBox Grid.Column="0" Text="{Binding TbEventFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
                   <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenEventFolderDialog_Click" Cursor="Hand" />
@@ -48,8 +49,8 @@
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbEventFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>  
                 
-              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center" IsVisible="{Binding !IsTreatmentOnlyCombo}" />
-              <StackPanel Grid.Row="2"  Grid.Column="1" IsVisible="{Binding !IsTreatmentOnlyCombo}">
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Recognize Folder:'}" VerticalAlignment="Center" IsVisible="{Binding RecFolderFieldIsVisible}" />
+              <StackPanel Grid.Row="2"  Grid.Column="1" IsVisible="{Binding RecFolderFieldIsVisible}">
                 <Grid ColumnDefinitions="*, Auto">
                   <TextBox Grid.Column="0" Text="{Binding TbRecFolder, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,5,0" />
                   <Button Grid.Column="1" Content="..." Width="40" HorizontalContentAlignment="Center" Click="OpenRecFolderDialog_Click" Cursor="Hand" />
@@ -57,7 +58,7 @@
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
                 
-              <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="{Binding !IsAddIdsOnlyMode}">
                   <CheckBox Content="{Tr 'HD Storage in the cloud.'}" 
                            IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
                            IsEnabled="{Binding !CbHDBackupIsDisabled}"
@@ -176,7 +177,7 @@
                            IsVisible="{Binding IsHdStoragePriceTextVisible}" />
               </StackPanel>
                 
-              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="{Binding !IsAddIdsOnlyMode}">
                   <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
                            IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
                            IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
@@ -211,7 +212,7 @@
             </Grid>
             
             <!-- Options -->
-            <Expander Grid.Row="2" Margin="30" Header="{Tr 'Options'}" HorizontalAlignment="Stretch" IsExpanded="{Binding ExpanderAdvancedOptions}" IsEnabled="{Binding ExpanderAdvancedOptionsIsEnabled}" >
+            <Expander Grid.Row="2" Margin="30" Header="{Tr 'Options'}" HorizontalAlignment="Stretch" IsExpanded="{Binding ExpanderAdvancedOptions}" IsEnabled="{Binding ExpanderAdvancedOptionsIsEnabled}" IsVisible="{Binding !IsAddIdsOnlyMode}" >
                 <StackPanel Spacing="6">
                   <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
                     <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
@@ -339,6 +340,94 @@
                   </StackPanel>
                 </StackPanel>
             </Expander>
+
+            <!-- Add IDs (sem reupload): mostra apenas Graduates + nome da coleção + botão -->
+            <Expander Grid.Row="2" Margin="30" Header="{Tr 'Graduates'}" HorizontalAlignment="Stretch" IsExpanded="True" IsVisible="{Binding IsAddIdsOnlyMode}">
+              <StackPanel Spacing="10">
+                <TextBlock Text="{Binding TbCollectionName}" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" />
+
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+
+                  <DataGrid  Margin="20" ItemsSource="{Binding GraduatesData}"
+                            Grid.Row="0"
+                            GridLinesVisibility="All"
+                            CanUserResizeColumns="True"
+                            IsReadOnly="{Binding !CanAddCPFs}"
+                            BorderThickness="1" BorderBrush="Gray">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="{Tr 'Photo'}" Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
+                      <DataGridTextColumn Header="{Tr 'CPF'}" Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+                      <DataGridTextColumn Header="{Tr 'Email'}" Binding="{Binding Email}" FontSize="8" />
+                      <DataGridTextColumn Header="{Tr 'Max photos'}" Binding="{Binding MaxPhotos}" FontSize="8" />
+
+                      <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
+                        <DataGridTextColumn.Header>
+                          <TextBlock Text="{Tr 'Max photos to enhancement'}"
+                                     TextWrapping="Wrap"
+                                     MaxWidth="100"
+                                     TextAlignment="Center"/>
+                        </DataGridTextColumn.Header>
+                      </DataGridTextColumn>
+
+                      <DataGridCheckBoxColumn Header="{Tr 'Blocked'}" Binding="{Binding Blocked, TargetNullValue=False}" />
+                      <DataGridTemplateColumn Header="{Tr 'Block type'}">
+                        <DataGridTemplateColumn.CellTemplate>
+                          <DataTemplate>
+                            <StackPanel>
+                              <TextBlock Text="{Tr 'None'}" IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="10" />
+                              <ComboBox
+                                IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                ItemsSource="{Binding #root.DataContext.BlockTypeOptions}"
+                                SelectedItem="{Binding BlockType, Mode=TwoWay}"
+                                FontSize="10"  MaxDropDownHeight="100"
+                                Margin="4"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center" >
+                                <ComboBox.ItemTemplate>
+                                  <DataTemplate>
+                                    <ContentControl Content="{Binding .}">
+                                      <ContentControl.ContentTemplate>
+                                        <DataTemplate>
+                                          <TextBlock Text="{Binding .}"/>
+                                        </DataTemplate>
+                                      </ContentControl.ContentTemplate>
+                                    </ContentControl>
+                                  </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                              </ComboBox>
+                            </StackPanel>
+                          </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                      </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                  </DataGrid>
+
+                  <Button Grid.Row="1"
+                          Click="NewId_Click"
+                          Content="{Tr 'New ID'}"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Center"
+                          Margin="20,2,20,6" />
+                </Grid>
+              </StackPanel>
+            </Expander>
+
+            <!-- Add ID fora do Graduates (modo "Adicionar IDs") -->
+            <Button Grid.Row="3"
+                    IsVisible="{Binding IsAddIdsOnlyMode}"
+                    Command="{Binding RegisterGraduatesIdsCommand}"
+                    HorizontalAlignment="Center"
+                    Height="46"
+                    Margin="0,10,0,20"
+                    Padding="26,10"
+                    VerticalContentAlignment="Center"
+                    HorizontalContentAlignment="Center">
+              <TextBlock Text="{Tr 'Add ID'}" VerticalAlignment="Center" />
+            </Button>
             
             <!-- Button Create new Collection -->
             <Button Grid.Row="3" 
@@ -349,7 +438,8 @@
                     VerticalContentAlignment="Center" 
                     HorizontalContentAlignment="Center" 
                     Command="{Binding CreateCollectionCommand}" 
-                    IsEnabled="{Binding !IsCreatingCollection}">
+                    IsEnabled="{Binding !IsCreatingCollection}"
+                    IsVisible="{Binding !IsAddIdsOnlyMode}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />

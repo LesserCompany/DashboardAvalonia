@@ -6,8 +6,10 @@ using CommunityToolkit.Mvvm.Input;
 using ExCSS;
 using JavaScriptCore;
 using LesserDashboardClient.Models;
+using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using LesserDashboardClient.Views.Collections;
+using LesserDashboardClient.Views.SearchGraduate;
 using MsBox.Avalonia;
 using Newtonsoft.Json;
 using OfficeOpenXml;
@@ -185,7 +187,7 @@ public partial class CollectionsViewModel : ViewModelBase
             return;
         }
 
-        if (CopyingCollectionCpfs)
+        if (CopyingCollectionCpfs || ManagingCollectionCpfs)
             return;
 
         CopyingCollectionCpfs = true;
@@ -253,6 +255,83 @@ public partial class CollectionsViewModel : ViewModelBase
             CopyingCollectionCpfs = false;
         }
     }
+
+    [RelayCommand]
+    private async Task ManageCollectionCpfsAsync(ProfessionalTask professionalTask)
+    {
+        if (professionalTask == null || string.IsNullOrWhiteSpace(professionalTask.classCode))
+        {
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Coleção inválida: classCode ausente.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+            return;
+        }
+
+        if (CopyingCollectionCpfs || ManagingCollectionCpfs)
+            return;
+
+        ManagingCollectionCpfs = true;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.GetGraduatesByCPFByClassCode(professionalTask.classCode);
+            if (!result.success || result.Content == null)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Erro",
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+                return;
+            }
+
+            var cpfs = result.Content
+                .Select(g => (g?.CPF ?? string.Empty))
+                .Select(raw => new string(raw.Where(char.IsDigit).ToArray()))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            if (cpfs.Count == 0)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Aviso",
+                    "Nenhum CPF encontrado nessa coleção.",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (MainWindowViewModel.Instance.SelectedTabIndex == 2)
+                {
+                    // Já na aba – injetar via ExecuteScriptAsync no WebView existente.
+                    SearchGraduateControl.InjectCpfsIfVisible(cpfs);
+                }
+                else
+                {
+                    // Gravar CPFs no estado; o construtor do controle os consome.
+                    SearchGraduateNavigationState.PendingCpfs = cpfs;
+                    MainWindowViewModel.Instance.SelectedTabIndex = 2;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Erro ao abrir gerenciamento de CPF para esta coleção.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+        }
+        finally
+        {
+            ManagingCollectionCpfs = false;
+        }
+    }
+
     /// <summary>Aba ativa na lista de coleções: normais, vencidas ou deletadas.</summary>
     public enum CollectionsTabKind
     {
@@ -279,6 +358,12 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
+
+        // Ao sair da tela de NewCollection, sempre resetar o modo "Adicionar IDs".
+        if (newValue != ActiveViews.NewCollection && IsAddIdsOnlyMode)
+        {
+            IsAddIdsOnlyMode = false;
+        }
 
         // Detectar navegação manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
@@ -422,6 +507,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
     [ObservableProperty] private bool copyingCollectionCpfs;
+    [ObservableProperty] private bool managingCollectionCpfs;
+
+    public bool CollectionCpfsCommandsEnabled => !CopyingCollectionCpfs && !ManagingCollectionCpfs;
+
+    partial void OnCopyingCollectionCpfsChanged(bool value) => OnPropertyChanged(nameof(CollectionCpfsCommandsEnabled));
+
+    partial void OnManagingCollectionCpfsChanged(bool value) => OnPropertyChanged(nameof(CollectionCpfsCommandsEnabled));
     [ObservableProperty] public bool collectionsListIsLoading = true;
     partial void OnCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
     [ObservableProperty] public bool isEnabledFilters = false;
@@ -443,6 +535,11 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Indica se o combo selecionado é apenas para tratamento (sem reconhecimento facial)
     /// </summary>
     [ObservableProperty] public bool isTreatmentOnlyCombo = false;
+
+    /// <summary>
+    /// Modo "Adicionar IDs" (sem reupload): mostra apenas Graduates + nome da coleção.
+    /// </summary>
+    [ObservableProperty] private bool isAddIdsOnlyMode = false;
 
     //ProfessionalTask Props
     [ObservableProperty] public string tbCollectionName;
@@ -940,6 +1037,12 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Exibe o campo "Total de fotos grátis por formando" quando há pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" está marcado.
     /// </summary>
     public bool IsTotalPhotosForFreePerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
+
+    /// <summary>Visibilidade do campo de pasta de reconhecimentos (não aparece em combo apenas tratamento nem no modo "Adicionar IDs").</summary>
+    public bool RecFolderFieldIsVisible => !IsTreatmentOnlyCombo && !IsAddIdsOnlyMode;
+
+    partial void OnIsTreatmentOnlyComboChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
+    partial void OnIsAddIdsOnlyModeChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -1859,6 +1962,67 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         SortGraduatesDataAlphabetically();
     }
+
+    [RelayCommand]
+    public async Task RegisterGraduatesIdsCommand()
+    {
+        try
+        {
+            if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
+                return;
+            }
+
+            if (GlobalAppStateViewModel.lfc == null)
+                return;
+
+            if (!CanAddCPFs)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
+                return;
+            }
+
+            var grads = GraduatesData
+                .Where(g => g != null && !string.IsNullOrWhiteSpace(g.CPF))
+                .Select(g =>
+                {
+                    // Garante vínculo com a coleção atual
+                    g.ClassCode = SelectedCollection.classCode;
+                    g.Company = SelectedCollection.companyUsername;
+                    g.Blocked ??= false;
+                    g.BlockType = string.IsNullOrWhiteSpace(g.BlockType) ? GraduateByCPF.BlockTypes.WATERMARK : g.BlockType;
+                    g.RegistredBy ??= GraduateByCPF.RegistredByTypes.COMPANY;
+                    return g;
+                })
+                .ToList();
+
+            if (grads.Count == 0)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhum ID/CPF para adicionar.");
+                return;
+            }
+
+            var r = await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(grads);
+            if (r?.loginFailed == true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r.message ?? Loc.Tr("Login failed.", "Falha no login."), Loc.Tr("Error", "Erro"));
+                return;
+            }
+            if (r?.success != true)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Não foi possível adicionar os IDs.", Loc.Tr("Error", "Erro"));
+                return;
+            }
+
+            GlobalAppStateViewModel.Instance.ShowDialogOk("IDs adicionados com sucesso.");
+            LoadGraduatesData(SelectedCollection);
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro"));
+        }
+    }
     public async Task UpdateClassSeparationFile(string classCode)
     {
         List<ClassSeparationFile> sepFiles = new List<ClassSeparationFile>();
@@ -2547,6 +2711,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         IsReupload = false;
+        IsAddIdsOnlyMode = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
@@ -2586,6 +2751,45 @@ public partial class CollectionsViewModel : ViewModelBase
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
     }
+
+    [RelayCommand]
+    public void OpenAddIdsViewCommand()
+    {
+        if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
+            return;
+
+        IsReupload = false;
+        IsAddIdsOnlyMode = true;
+
+        CurrentProfessionalName = SelectedCollection.professionalLogin;
+        ScrollComponentNewCollection = 0;
+        ActiveComponent = ActiveViews.NewCollection;
+
+        TbCollectionName = SelectedCollection.classCode;
+
+        // Tentar popular a pasta de reconhecimentos local para o seletor de arquivos.
+        TbEventFolder = SelectedCollection.originalEventsFolder;
+        TbRecFolder = SelectedCollection.originalRecFolder;
+        if (string.IsNullOrWhiteSpace(TbRecFolder) || !Directory.Exists(TbRecFolder))
+        {
+            // Se vier apenas a pasta de eventos, tenta inferir a pasta de reconhecimentos pelo layout da turma.
+            CheckPathEventFolder();
+        }
+
+        // Regras de CPF/ID: mantém o mesmo bloqueio usado no reupload (outro período + não-HD).
+        CanAddCPFs = true;
+        CPFsErrorMessage = string.Empty;
+        if (IsCollectionFromDifferentBillingPeriod(SelectedCollection) && (SelectedCollection.UploadHD != true))
+        {
+            CanAddCPFs = false;
+            CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+        }
+
+        LoadGraduatesData(SelectedCollection);
+    }
+
+    public void SortGraduatesDataAlphabeticallyForUi() => SortGraduatesDataAlphabetically();
+
     [RelayCommand]
     public void OpenReuploadViewCommand()
     {
@@ -2597,6 +2801,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         try
         {
+            IsAddIdsOnlyMode = false;
             CurrentProfessionalName = SelectedCollection.professionalLogin;
 
             ScrollComponentNewCollection = 0;
