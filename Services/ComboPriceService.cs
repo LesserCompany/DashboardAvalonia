@@ -100,6 +100,7 @@ namespace LesserDashboardClient.Services
                 ComboId = serverCombo.Id,
                 ComboOrder = serverCombo.ComboOrder,
                 StorageTimeMonths = serverCombo.StorageTimeMonths,
+                BackupFiveYears = serverCombo.Features?.BackupFiveYears ?? false,
                 DiscountPercentage = serverCombo.ComboDiscount ?? serverCombo.DiscountPercentage,
                 CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };

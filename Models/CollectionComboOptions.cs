@@ -42,6 +42,9 @@ namespace LesserDashboardClient.Models
         /// </summary>
         public int? StorageTimeMonths { get; set; }
 
+        /// <summary>Indica backup HD de 5 anos (feature do servidor; usado quando <see cref="StorageTimeMonths"/> não veio preenchido).</summary>
+        public bool BackupFiveYears { get; set; }
+
         /// <summary>
         /// Desconto do combo em porcentagem (backend). Pode vir do campo novo comboDiscount ou legado discountPercentage.
         /// </summary>

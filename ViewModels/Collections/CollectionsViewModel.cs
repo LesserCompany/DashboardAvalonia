@@ -584,6 +584,22 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Mensagem de erro para exibir quando o HD não pode ser habilitado
     /// </summary>
     [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
+
+    /// <summary>
+    /// HD marcado e o toggle bloqueado porque há CPF/ID na lista (paridade com WPF CreateNewClassView.UpdateCbHdBackupIsEnabled).
+    /// </summary>
+    [ObservableProperty] public bool cbHDBackupLockedByCpfs = false;
+
+    /// <summary>
+    /// Habilita o checkbox HD quando não está travado por faturamento nem por CPFs na lista.
+    /// </summary>
+    public bool CbHDBackupToggleIsEnabled => !CbHDBackupIsDisabled && !CbHDBackupLockedByCpfs;
+
+    partial void OnCbHDBackupIsDisabledChanged(bool value) =>
+        OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
+
+    partial void OnCbHDBackupLockedByCpfsChanged(bool value) =>
+        OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
     
     /// <summary>
     /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
@@ -1273,6 +1289,7 @@ public partial class CollectionsViewModel : ViewModelBase
             foreach (var inpc in _graduatePropertyChangedSubscriptions)
                 inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
             _graduatePropertyChangedSubscriptions.Clear();
+            UpdateHdBackupStateFromGraduatesData();
             return;
         }
         if (e.NewItems != null)
@@ -1297,12 +1314,28 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
         }
+        UpdateHdBackupStateFromGraduatesData();
     }
 
     private void GraduateByCPF_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(GraduateByCPF.CPF))
+        {
             OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+            UpdateHdBackupStateFromGraduatesData();
+        }
+    }
+
+    /// <summary>
+    /// Com CPF/ID na lista, o backup HD fica obrigatório e o toggle é desabilitado (igual ao dashboard WPF).
+    /// </summary>
+    private void UpdateHdBackupStateFromGraduatesData()
+    {
+        var hasCpfs = GraduatesData != null &&
+                      GraduatesData.Any(static g => g != null && !string.IsNullOrWhiteSpace(g.CPF));
+        CbHDBackupLockedByCpfs = hasCpfs;
+        if (hasCpfs && CbHDBackup != true)
+            CbHDBackup = true;
     }
 
     private bool _hasCheckedInitialMessages = false;
@@ -1961,6 +1994,7 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(g);
         }
         SortGraduatesDataAlphabetically();
+        UpdateHdBackupStateFromGraduatesData();
     }
 
     [RelayCommand]
@@ -2625,6 +2659,7 @@ public partial class CollectionsViewModel : ViewModelBase
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova cole��o personalizada
 
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2669,6 +2704,7 @@ public partial class CollectionsViewModel : ViewModelBase
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
 
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2715,6 +2751,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2744,12 +2781,38 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
-        CbHDStorageThreeMonths = false;
-        CbHDStorageTwoYears = false;
-        CbHDStorageFiveYears = options.BackupHd == true ? true : false;
+        ApplyHdStoragePeriodFromComboOptions(options);
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
+    }
+
+    /// <summary>
+    /// Aplica o prazo de armazenamento definido no combo (meses no backend) aos toggles 3 meses / 2 anos / 5 anos da criação da turma.
+    /// </summary>
+    private void ApplyHdStoragePeriodFromComboOptions(CollectionComboOptions options)
+    {
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
+        CbHDStorageFiveYears = false;
+        if (options.BackupHd != true)
+            return;
+
+        if (options.StorageTimeMonths.HasValue)
+        {
+            int m = options.StorageTimeMonths.Value;
+            int best = new[] { 3, 24, 60 }.OrderBy(b => Math.Abs(b - m)).First();
+            if (best == 3)
+                CbHDStorageThreeMonths = true;
+            else if (best == 24)
+                CbHDStorageTwoYears = true;
+            else
+                CbHDStorageFiveYears = true;
+            return;
+        }
+
+        // Sem meses explícitos no backend: manter o padrão já usado no app (5 anos quando HD está no combo)
+        CbHDStorageFiveYears = true;
     }
 
     [RelayCommand]
@@ -3087,18 +3150,6 @@ public partial class CollectionsViewModel : ViewModelBase
     public async Task DeleteClassCommand()
     {
         if (SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
-            return;
-        var viewModel = new DeleteCollectionChoiceViewModel(
-            GlobalAppStateViewModel.lfc,
-            SelectedCollection.classCode,
-            SelectedCollection.classCode);
-        var dialog = new DeleteCollectionChoiceWindow
-        {
-            DataContext = viewModel
-        };
-        viewModel.SetWindow(dialog);
-        await dialog.ShowDialog(MainWindow.instance);
-        if (viewModel.Result != DeleteCollectionChoiceResult.FullDeletion)
             return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
             Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusão desta coleção? Esta ação pode ser cancelada depois na lista de coleções deletadas."),

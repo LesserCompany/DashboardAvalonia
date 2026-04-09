@@ -42,14 +42,14 @@
       <!-- Título e Descrição -->
       <StackPanel Spacing="8" Grid.Row="0">
         <!-- Título -->
-        <TextBlock FontWeight="Bold"
+        <SelectableTextBlock FontWeight="Bold"
                    TextWrapping="Wrap"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    FontSize="18"
                    Text="{Binding CollectionCombo.ComboTitle, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"/>
 
         <!-- Descrição -->
-        <TextBlock TextWrapping="Wrap"
+        <SelectableTextBlock TextWrapping="Wrap"
                    ToolTip.Tip="{Binding CollectionCombo.ComboDescription, RelativeSource={RelativeSource AncestorType=local:CardCombo}}"
                    Foreground="{DynamicResource TextSecondaryBrush}"
                    FontSize="12"
@@ -59,13 +59,13 @@
         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
           <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="8,3"
                   IsVisible="{Binding CollectionCombo.StorageTimeMonths, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
-            <TextBlock Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold">
-              <TextBlock.Text>
+            <SelectableTextBlock Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold">
+              <SelectableTextBlock.Text>
                 <MultiBinding StringFormat="{}{0} meses de armazenamento">
                   <Binding Path="CollectionCombo.StorageTimeMonths" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
                 </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
+              </SelectableTextBlock.Text>
+            </SelectableTextBlock>
           </Border>
         </StackPanel>
 
@@ -97,32 +97,32 @@
         
         <!-- Preço -->
         <StackPanel Grid.Column="0" VerticalAlignment="Bottom" Spacing="2">
-          <TextBlock Text="{Tr 'Price for each 1000 photos'}"
+          <SelectableTextBlock Text="{Tr 'Price for each 1000 photos'}"
                      Foreground="{DynamicResource TextSecondaryBrush}"
                      FontSize="12"
                      Margin="0,0,0,4"/>
-          <TextBlock FontSize="24"
+          <SelectableTextBlock FontSize="24"
                      FontWeight="Bold"
                      Foreground="{DynamicResource SystemAccentColor}">
-            <TextBlock.Text>
+            <SelectableTextBlock.Text>
               <MultiBinding StringFormat="{}{0} {1:0.00}">
                 <Binding Path="CollectionCombo.CurrencySymbol" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
                 <Binding Path="CollectionCombo.ComboPrice" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
               </MultiBinding>
-            </TextBlock.Text>
-          </TextBlock>
+            </SelectableTextBlock.Text>
+          </SelectableTextBlock>
 
           <!-- Desconto -->
-          <TextBlock FontSize="12"
+          <SelectableTextBlock FontSize="12"
                      FontWeight="SemiBold"
                      Foreground="{DynamicResource SystemAccentColor}"
                      IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
-            <TextBlock.Text>
+            <SelectableTextBlock.Text>
               <MultiBinding StringFormat="{}Desconto: -{0:0}%">
                 <Binding Path="CollectionCombo.DiscountPercentage" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
               </MultiBinding>
-            </TextBlock.Text>
-          </TextBlock>
+            </SelectableTextBlock.Text>
+          </SelectableTextBlock>
         </StackPanel>
 
         <!-- Botão -->
