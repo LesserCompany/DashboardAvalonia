@@ -304,7 +304,7 @@
           <Grid Grid.Row="7">
               <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}">
                   <StackPanel Spacing="6">
-                      <Button Width="325" Command="{Binding OpenAddIdsViewCommand}">
+                      <Button Width="325" Command="{Binding OpenAddIdsViewCommand} IsVisible="False">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" />
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Add IDs without reupload'}" />
