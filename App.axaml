@@ -21,6 +21,7 @@
             <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
             <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:DiscountPercentVisibleConverter x:Key="DiscountPercentVisibleConverter" />
             <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
             <converters:BoolToTabActiveBackgroundConverter x:Key="BoolToTabActiveBackgroundConverter" />
             <converters:RestorationDeadlineMessageConverter x:Key="RestorationDeadlineMessageConverter" />

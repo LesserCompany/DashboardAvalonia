@@ -116,9 +116,9 @@
           <SelectableTextBlock FontSize="12"
                      FontWeight="SemiBold"
                      Foreground="{DynamicResource SystemAccentColor}"
-                     IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource NullToBoolConverter}}">
+                     IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource DiscountPercentVisibleConverter}}">
             <SelectableTextBlock.Text>
-              <MultiBinding StringFormat="{}Desconto: -{0:0}%">
+              <MultiBinding StringFormat="{}Desconto: {0:0}%">
                 <Binding Path="CollectionCombo.DiscountPercentage" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
               </MultiBinding>
             </SelectableTextBlock.Text>
