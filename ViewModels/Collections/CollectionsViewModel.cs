@@ -3569,11 +3569,12 @@ public partial class CollectionsViewModel : ViewModelBase
             if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
+                {
                     g.ClassCode = pt.classCode;
-                // Registro/gerenciamento de CPF (incl. permissões) é feito após a turma existir, na tela de gerenciamento de CPF.
-
-
-
+                    g.Company = pt.companyUsername;
+                }
+                if (graduatesDataToUpload.Count > 0)
+                    await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
 
                 Action<int> callback = MainWindowViewModel.Instance != null
                     ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
