@@ -101,6 +101,20 @@
                      Foreground="{DynamicResource TextSecondaryBrush}"
                      FontSize="12"
                      Margin="0,0,0,4"/>
+
+          <!-- Preço original (riscado) -->
+          <SelectableTextBlock FontSize="12"
+                     Foreground="{DynamicResource TextSecondaryBrush}"
+                     TextDecorations="Strikethrough"
+                     IsVisible="{Binding CollectionCombo.ComboOriginalPrice, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource DiscountPercentVisibleConverter}}">
+            <SelectableTextBlock.Text>
+              <MultiBinding StringFormat="{}{0} {1:0.00}">
+                <Binding Path="CollectionCombo.CurrencySymbol" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
+                <Binding Path="CollectionCombo.ComboOriginalPrice" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
+              </MultiBinding>
+            </SelectableTextBlock.Text>
+          </SelectableTextBlock>
+
           <SelectableTextBlock FontSize="24"
                      FontWeight="Bold"
                      Foreground="{DynamicResource SystemAccentColor}">
@@ -112,17 +126,23 @@
             </SelectableTextBlock.Text>
           </SelectableTextBlock>
 
-          <!-- Desconto -->
-          <SelectableTextBlock FontSize="12"
-                     FontWeight="SemiBold"
-                     Foreground="{DynamicResource SystemAccentColor}"
-                     IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource DiscountPercentVisibleConverter}}">
-            <SelectableTextBlock.Text>
-              <MultiBinding StringFormat="{}Desconto: {0:0}%">
-                <Binding Path="CollectionCombo.DiscountPercentage" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
-              </MultiBinding>
-            </SelectableTextBlock.Text>
-          </SelectableTextBlock>
+          <!-- Badge de desconto (% OFF) -->
+          <Border CornerRadius="6"
+                  Padding="8,3"
+                  Margin="0,6,0,0"
+                  HorizontalAlignment="Left"
+                  Background="{DynamicResource SystemAccentColor}"
+                  IsVisible="{Binding CollectionCombo.DiscountPercentage, RelativeSource={RelativeSource AncestorType=local:CardCombo}, Converter={StaticResource DiscountPercentVisibleConverter}}">
+            <SelectableTextBlock FontSize="12"
+                                 FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}">
+              <SelectableTextBlock.Text>
+                <MultiBinding StringFormat="{}{0:0}% OFF">
+                  <Binding Path="CollectionCombo.DiscountPercentage" RelativeSource="{RelativeSource AncestorType=local:CardCombo}"/>
+                </MultiBinding>
+              </SelectableTextBlock.Text>
+            </SelectableTextBlock>
+          </Border>
         </StackPanel>
 
         <!-- Botão -->

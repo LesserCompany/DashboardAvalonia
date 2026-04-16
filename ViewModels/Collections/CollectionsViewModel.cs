@@ -602,6 +602,44 @@ public partial class CollectionsViewModel : ViewModelBase
 
     partial void OnCbHDBackupLockedByCpfsChanged(bool value) =>
         OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
+
+    /// <summary>Toast: ao incluir CPF/ID em graduandos, a coleção passa a HD automaticamente.</summary>
+    [ObservableProperty] public bool isGraduateHdToastVisible;
+
+    [ObservableProperty] public string graduateHdToastMessage = string.Empty;
+
+    private bool _graduateHdToastShownUntilCleared;
+    private CancellationTokenSource? _graduateHdToastDismissCts;
+
+    private void ShowGraduateForcesHdToast()
+    {
+        GraduateHdToastMessage = Loc.Tr(
+            "When you add graduates with CPF/ID, the collection becomes HD automatically.",
+            "Ao incluir graduandos (CPF/ID), a coleção passa a ser em HD automaticamente.");
+        IsGraduateHdToastVisible = true;
+        _graduateHdToastDismissCts?.Cancel();
+        _graduateHdToastDismissCts = new CancellationTokenSource();
+        var ct = _graduateHdToastDismissCts.Token;
+        _ = DismissGraduateHdToastAfterDelayAsync(ct);
+    }
+
+    private async Task DismissGraduateHdToastAfterDelayAsync(CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(5000, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (!ct.IsCancellationRequested)
+                IsGraduateHdToastVisible = false;
+        });
+    }
     
     /// <summary>
     /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
@@ -1338,6 +1376,14 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackupLockedByCpfs = hasCpfs;
         if (hasCpfs && CbHDBackup != true)
             CbHDBackup = true;
+
+        if (hasCpfs && !_graduateHdToastShownUntilCleared)
+        {
+            _graduateHdToastShownUntilCleared = true;
+            ShowGraduateForcesHdToast();
+        }
+        else if (!hasCpfs)
+            _graduateHdToastShownUntilCleared = false;
     }
 
     private bool _hasCheckedInitialMessages = false;
@@ -3593,7 +3639,7 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(r.message);
+                await GlobalAppStateViewModel.Instance.ShowCollectionCreationSupportDialogAsync(r?.message);
             }
 
             // PipeDrive notifications are now handled server-side

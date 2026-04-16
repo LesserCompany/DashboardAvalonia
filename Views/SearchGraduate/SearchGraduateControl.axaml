@@ -34,17 +34,17 @@
           <Setter Property="Foreground" Value="White" />
         </Style>
       </ListBox.Styles>
-      <ListBoxItem>
-        <TextBlock Text="Busca de CPF" FontSize="14" FontWeight="Bold" />
+      <ListBoxItem ToolTip.Tip="{Tr 'SG tab CPF by collection tooltip'}">
+        <TextBlock Text="{Tr 'SG tab CPF by collection'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>
-      <ListBoxItem>
-        <TextBlock Text="Revisão de fotos escolhidas pelos CPFs" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
+      <ListBoxItem ToolTip.Tip="{Tr 'SG tab CPF for collection tooltip'}">
+        <TextBlock Text="{Tr 'SG tab CPF for collection'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>
-      <ListBoxItem>
-        <TextBlock Text="Fotos para tratamento manual" FontSize="14" FontWeight="Bold" />
+      <ListBoxItem ToolTip.Tip="{Tr 'SG tab review photos chosen tooltip'}">
+        <TextBlock Text="{Tr 'SG tab review photos chosen'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>
-      <ListBoxItem>
-        <TextBlock Text="Gerenciamento de CPF" FontSize="14" FontWeight="Bold" />
+      <ListBoxItem ToolTip.Tip="{Tr 'SG tab manual treatment photos tooltip'}">
+        <TextBlock Text="{Tr 'SG tab manual treatment photos'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>
     </ListBox>
 

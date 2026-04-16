@@ -420,8 +420,8 @@
     "pt-BR": "Gerenciar CPF"
   },
   "Open CPF protection for this collection filter": {
-    "en-US": "Open User by CPF → CPF management with this collection’s CPFs in the filter",
-    "pt-BR": "Abrir Usuário por CPF → Gerenciamento de CPF com os CPFs desta coleção no filtro"
+    "en-US": "Open CPF management → CPF protection and access control with this collection’s CPFs in the filter",
+    "pt-BR": "Abrir Gerenciamento de CPF → Proteção e controle de CPFs com os CPFs desta coleção no filtro"
   },
   "Combos": {
     "en-US": "Combos",

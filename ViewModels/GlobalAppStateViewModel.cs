@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LesserDashboardClient.Views.Collections;
 
 namespace LesserDashboardClient.ViewModels;
 
@@ -250,6 +251,17 @@ public partial class GlobalAppStateViewModel : ObservableObject
         Console.WriteLine("ResetLesserFunctionClient: Criando nova instância limpa...");
         LoadLesserFunctionClient();
         Console.WriteLine($"ResetLesserFunctionClient: Nova instância criada: {_lfc != null}");
+    }
+
+    /// <summary>Diálogo amigável quando o servidor não processa a coleção — destaca WhatsApp de suporte (evita aparência de MessageBox de erro).</summary>
+    public async Task ShowCollectionCreationSupportDialogAsync(string? serverMessage)
+    {
+        var dlg = new CollectionCreationSupportDialog();
+        dlg.SetMessage(serverMessage ?? "");
+        if (MainWindow.instance != null)
+            await dlg.ShowDialog(MainWindow.instance);
+        else
+            await dlg.ShowDialog(null!);
     }
 
     public void ShowDialogOk(string msg = "", string title = "")

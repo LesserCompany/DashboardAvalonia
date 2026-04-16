@@ -49,14 +49,14 @@ public partial class SearchGraduateControl : UserControl
 
         if (_lastInstance.DataContext is SearchGraduateViewModel vm)
         {
-            if (vm.SelectedSectionIndex == 3)
+            if (vm.SelectedSectionIndex == 1)
             {
                 vm.NotifyActiveUrlChanged();
                 _ = _lastInstance.InjectCpfsWhenReadyAsync();
             }
             else
             {
-                vm.SelectedSectionIndex = 3;
+                vm.SelectedSectionIndex = 1;
             }
         }
     }
@@ -74,7 +74,7 @@ public partial class SearchGraduateControl : UserControl
                 if (args.PropertyName == nameof(SearchGraduateViewModel.SelectedSectionIndex))
                 {
                     SyncOpenInWebButton(vm);
-                    if (vm.SelectedSectionIndex == 3 && _pendingCpfsToInject is { Count: > 0 })
+                    if (vm.SelectedSectionIndex == 1 && _pendingCpfsToInject is { Count: > 0 })
                         _ = InjectCpfsWhenReadyAsync();
                 }
                 else if (args.PropertyName == nameof(SearchGraduateViewModel.ActiveUrlWeb))
@@ -85,7 +85,7 @@ public partial class SearchGraduateControl : UserControl
 
             SyncOpenInWebButton(vm);
 
-            if (_pendingCpfsToInject is { Count: > 0 } && vm.SelectedSectionIndex == 3)
+            if (_pendingCpfsToInject is { Count: > 0 } && vm.SelectedSectionIndex == 1)
                 _ = InjectCpfsWhenReadyAsync();
         }
     }

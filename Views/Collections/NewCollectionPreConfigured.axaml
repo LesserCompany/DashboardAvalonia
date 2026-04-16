@@ -10,6 +10,7 @@
              IsEnabled="{Binding ComponentNewCollectionIsEnabled}"
              x:Name="root"
              x:Class="LesserDashboardClient.Views.Collections.NewCollectionPreConfigured">
+  <Grid>
   <ScrollViewer x:Name="ScrollViewerNewCollectionPreConfigured" Offset="{Binding ScrollComponentNewCollection}" Padding="30" >
 
     <StackPanel Spacing="6" Margin="0,0,0,30">
@@ -357,4 +358,23 @@
     </StackPanel>
     
   </ScrollViewer>
+
+  <Border ZIndex="1000"
+          VerticalAlignment="Bottom"
+          HorizontalAlignment="Center"
+          Margin="16,0,16,24"
+          MaxWidth="520"
+          Padding="14,10"
+          CornerRadius="8"
+          Background="#CC2D2D30"
+          BorderBrush="{DynamicResource SystemAccentColor}"
+          BorderThickness="1"
+          IsVisible="{Binding IsGraduateHdToastVisible}"
+          BoxShadow="0 4 16 0 #40000000">
+    <TextBlock Text="{Binding GraduateHdToastMessage}"
+               TextWrapping="Wrap"
+               Foreground="{DynamicResource TextPrimaryBrush}"
+               FontSize="13" />
+  </Border>
+  </Grid>
 </UserControl>

@@ -11,7 +11,7 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         }
 
         //private string baseUrl = "http://localhost:5173";
-        private string baseUrl = "https://graduates-explorer.lesser.biz/";
+        private string baseUrl = "https://graduates-explorer.lesser.biz";
 
         private int _selectedSectionIndex;
 
@@ -33,24 +33,25 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         public string ActiveUrl => SelectedSectionIndex switch
         {
             0 => UrlSearchCPF,
-            1 => UrlReviewPhotos,
-            2 => UrlPhotosForTreatment,
-            3 => UrlProtectedCpf,
+            1 => UrlProtectedCpf,
+            2 => UrlReviewPhotos,
+            3 => UrlPhotosForTreatment,
             _ => "about:blank"
         };
 
         public string ActiveUrlWeb => SelectedSectionIndex switch
         {
             0 => UrlSearchCPFWeb,
-            1 => UrlReviewPhotosWeb,
-            2 => UrlPhotosForTreatmentWeb,
-            3 => UrlProtectedCpfWeb,
+            1 => UrlProtectedCpfWeb,
+            2 => UrlReviewPhotosWeb,
+            3 => UrlPhotosForTreatmentWeb,
             _ => ""
         };
 
         public SearchGraduateViewModel()
         {
-            _selectedSectionIndex = SearchGraduateNavigationState.HasPendingCpfs ? 3 : 0;
+            // Índice 0 = busca web (Busca de CPF por coleção); índice 1 = CPFs protegidos (antigo Gerenciamento de CPF).
+            _selectedSectionIndex = SearchGraduateNavigationState.HasPendingCpfs ? 1 : 0;
         }
 
         public void NotifyActiveUrlChanged()
@@ -93,7 +94,7 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             get
             {
                 if (string.IsNullOrEmpty(loginToken)) return "about:blank";
-                return baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + DarkModeParam + "&hideNavbar=true";
+                return baseUrl + "/management-cpfs/" + $"?token={loginToken}" + DarkModeParam + "&hideNavbar=true";
             }
         }
 
@@ -131,7 +132,7 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             get
             {
                 if (string.IsNullOrEmpty(loginToken)) return "";
-                return baseUrl + "/protected-cpfs/" + $"?token={loginToken}" + DarkModeParam;
+                return baseUrl + "/management-cpfs/" + $"?token={loginToken}" + DarkModeParam;
             }
         }
 

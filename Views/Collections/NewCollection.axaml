@@ -11,6 +11,7 @@
              IsEnabled="{Binding ComponentNewCollectionIsEnabled}"
              x:Name="root"
              >
+    <Grid>
     <ScrollViewer x:Name="ScrollViewerNewCollection" Offset="{Binding ScrollComponentNewCollection}" Padding="0,0,0,20">
 
       <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding !IsCreatingCollection}" Margin="0,0,0,30">
@@ -452,4 +453,24 @@
             </Button>
         </Grid>
     </ScrollViewer>
+
+    <!-- Toast: graduandos com CPF/ID obrigam coleção HD -->
+    <Border ZIndex="1000"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Center"
+            Margin="16,0,16,24"
+            MaxWidth="520"
+            Padding="14,10"
+            CornerRadius="8"
+            Background="#CC2D2D30"
+            BorderBrush="{DynamicResource SystemAccentColor}"
+            BorderThickness="1"
+            IsVisible="{Binding IsGraduateHdToastVisible}"
+            BoxShadow="0 4 16 0 #40000000">
+      <TextBlock Text="{Binding GraduateHdToastMessage}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextPrimaryBrush}"
+                 FontSize="13" />
+    </Border>
+    </Grid>
 </UserControl>

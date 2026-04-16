@@ -1,0 +1,74 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="360"
+        x:Class="LesserDashboardClient.Views.Collections.CollectionCreationSupportDialog"
+        Title="Processamento da coleção"
+        Width="480"
+        MinHeight="260"
+        SizeToContent="Height"
+        MaxHeight="640"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <!-- Faixa accent (mesma ideia do InvoicesOnlyWindow / suporte) -->
+    <Border Grid.Row="0"
+            Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+            Padding="20,14">
+      <StackPanel Spacing="6">
+        <TextBlock Text="Não foi possível concluir o processamento dessa coleção nesse momento."
+                   FontSize="17"
+                   FontWeight="SemiBold"
+                   Foreground="White"
+                   TextWrapping="Wrap"/>
+        <TextBlock Text="Fale com o suporte para resolver esse problema de forma rápida e eficiente."
+                   FontSize="13"
+                   Foreground="White"
+                   Opacity="0.95"
+                   TextWrapping="Wrap"
+                   LineHeight="20"/>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Grid.Row="1"
+               Margin="22,16,22,8"
+               Text="Detalhes (pode copiar e enviar ao suporte):"
+               FontWeight="SemiBold"
+               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+
+    <ScrollViewer Grid.Row="2"
+                  Margin="20,0,20,12"
+                  MaxHeight="280"
+                  VerticalScrollBarVisibility="Auto">
+      <SelectableTextBlock x:Name="DetailMessageText"
+                           TextWrapping="Wrap"
+                           FontSize="13"
+                           LineHeight="20"
+                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="3"
+                Margin="20,0,20,20"
+                Spacing="10">
+      <Button x:Name="BtWhatsApp"
+              Click="BtWhatsApp_OnClick"
+              HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Center"
+              Padding="16,12"
+              Cursor="Hand"
+              Background="White"
+              BorderThickness="0">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="📱" FontSize="15" VerticalAlignment="Center"
+                     Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+          <TextBlock Text="Falar com o suporte no WhatsApp"
+                     FontWeight="SemiBold"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+        </StackPanel>
+      </Button>
+    </StackPanel>
+  </Grid>
+</Window>

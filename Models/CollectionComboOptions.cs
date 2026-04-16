@@ -60,6 +60,15 @@ namespace LesserDashboardClient.Models
         /// Símbolo da moeda (R$ ou $)
         /// </summary>
         public string CurrencySymbol { get; set; } = "R$";
+
+        /// <summary>
+        /// Preço original (antes do desconto) para 1000 fotos, quando fornecido dinamicamente.
+        /// </summary>
+        public double? ComboOriginalPrice
+        {
+            get => _dynamicOriginalPrice;
+        }
+
         public double ComboPrice
         {
             get {
@@ -80,6 +89,7 @@ namespace LesserDashboardClient.Models
         }
 
         private double? _dynamicPrice = null;
+        private double? _dynamicOriginalPrice = null;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -94,11 +104,21 @@ namespace LesserDashboardClient.Models
         }
 
         /// <summary>
+        /// Define o preço original dinâmico (antes do desconto), para exibição riscada.
+        /// </summary>
+        public void SetDynamicOriginalPrice(double? originalPrice)
+        {
+            _dynamicOriginalPrice = originalPrice;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComboOriginalPrice)));
+        }
+
+        /// <summary>
         /// Limpa o preço dinâmico para voltar ao cálculo estático
         /// </summary>
         public void ClearDynamicPrice()
         {
             _dynamicPrice = null;
+            _dynamicOriginalPrice = null;
         }
 
         // Valores estáticos mantidos como fallback
