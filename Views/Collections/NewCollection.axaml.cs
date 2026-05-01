@@ -174,7 +174,12 @@ public partial class NewCollection : UserControl
                 }
 
                 var fileInfo = new FileInfo(firstFile);
-                vm.UpdateGraduateDataFromFile(fileInfo);
+                var importError = vm.UpdateGraduateDataFromFile(fileInfo);
+                if (importError != null)
+                {
+                    var bbox = MessageBoxManager.GetMessageBoxStandard("Erro", importError);
+                    await bbox.ShowWindowDialogAsync(MainWindow.instance);
+                }
             }
         }
     }
@@ -386,6 +391,7 @@ public partial class NewCollection : UserControl
             vm.GraduatesData.Add(new GraduateByCPF
             {
                 ShortPath = shortPath,
+                Name = "",
                 Blocked = false,
                 BlockType = GraduateByCPF.BlockTypes.WATERMARK
             });

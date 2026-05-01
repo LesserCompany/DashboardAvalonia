@@ -348,6 +348,7 @@ public partial class CollectionsViewModel : ViewModelBase
         NewsView,
         MessagesView,
         NewCollection,
+        AddIds,
         NewCollectionPreConfigured,
         CollectionView,
         SelectProfessional,
@@ -360,12 +361,6 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
-
-        // Ao sair da tela de NewCollection, sempre resetar o modo "Adicionar IDs".
-        if (newValue != ActiveViews.NewCollection && IsAddIdsOnlyMode)
-        {
-            IsAddIdsOnlyMode = false;
-        }
 
         // Detectar navegação manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
@@ -390,6 +385,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
+        OnPropertyChanged(nameof(ComponentAddIdsIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
         OnPropertyChanged(nameof(ComponentSelectProfessionalIsIsVisible));
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
@@ -407,6 +403,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
     public bool ComponentNewCollectionIsVisible => ActiveComponent == ActiveViews.NewCollection;
+    public bool ComponentAddIdsIsVisible => ActiveComponent == ActiveViews.AddIds;
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
@@ -1094,11 +1091,10 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     public bool IsTotalPhotosForFreePerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
 
-    /// <summary>Visibilidade do campo de pasta de reconhecimentos (não aparece em combo apenas tratamento nem no modo "Adicionar IDs").</summary>
-    public bool RecFolderFieldIsVisible => !IsTreatmentOnlyCombo && !IsAddIdsOnlyMode;
+    /// <summary>Visibilidade do campo de pasta de reconhecimentos (não aparece em combo apenas tratamento).</summary>
+    public bool RecFolderFieldIsVisible => !IsTreatmentOnlyCombo;
 
     partial void OnIsTreatmentOnlyComboChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
-    partial void OnIsAddIdsOnlyModeChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -1243,6 +1239,8 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public ObservableCollection<string> BlockTypeOptions { get; } =
     new ObservableCollection<string> { "WATERMARK", "ACCESS_DENIED" };
+
+    [ObservableProperty] private AddIdsViewModel? addIdsVm;
 
     [ObservableProperty] public ProfessionalTask selectedCollectionForCancelBilling;
     [ObservableProperty] public bool cancelBillingIsRunning;
@@ -2045,66 +2043,6 @@ public partial class CollectionsViewModel : ViewModelBase
         UpdateHdBackupStateFromGraduatesData();
     }
 
-    [RelayCommand]
-    public async Task RegisterGraduatesIdsCommand()
-    {
-        try
-        {
-            if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
-                return;
-            }
-
-            if (GlobalAppStateViewModel.lfc == null)
-                return;
-
-            if (!CanAddCPFs)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
-                return;
-            }
-
-            var grads = GraduatesData
-                .Where(g => g != null && !string.IsNullOrWhiteSpace(g.CPF))
-                .Select(g =>
-                {
-                    // Garante vínculo com a coleção atual
-                    g.ClassCode = SelectedCollection.classCode;
-                    g.Company = SelectedCollection.companyUsername;
-                    g.Blocked ??= false;
-                    g.BlockType = string.IsNullOrWhiteSpace(g.BlockType) ? GraduateByCPF.BlockTypes.WATERMARK : g.BlockType;
-                    g.RegistredBy ??= GraduateByCPF.RegistredByTypes.COMPANY;
-                    return g;
-                })
-                .ToList();
-
-            if (grads.Count == 0)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhum ID/CPF para adicionar.");
-                return;
-            }
-
-            var r = await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(grads);
-            if (r?.loginFailed == true)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(r.message ?? Loc.Tr("Login failed.", "Falha no login."), Loc.Tr("Error", "Erro"));
-                return;
-            }
-            if (r?.success != true)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Não foi possível adicionar os IDs.", Loc.Tr("Error", "Erro"));
-                return;
-            }
-
-            GlobalAppStateViewModel.Instance.ShowDialogOk("IDs adicionados com sucesso.");
-            LoadGraduatesData(SelectedCollection);
-        }
-        catch (Exception ex)
-        {
-            GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro"));
-        }
-    }
     public async Task UpdateClassSeparationFile(string classCode)
     {
         List<ClassSeparationFile> sepFiles = new List<ClassSeparationFile>();
@@ -2412,6 +2350,29 @@ public partial class CollectionsViewModel : ViewModelBase
                 TbRecFolder = "";
             }
         }
+        catch (UnauthorizedAccessException uex)
+        {
+            TbEventFolderError = true;
+            var denied = FileHelper.GetDeniedPathFromUnauthorizedAccess(uex) ?? TbEventFolder ?? "";
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(
+                    TbEventFolder ?? "",
+                    denied,
+                    uex,
+                    "Não foi possível ler o conteúdo da pasta de eventos. O Windows negou permissão ao listar as subpastas — a pasta pode estar bloqueada, ser de outro usuário ou exigir permissões de administrador.");
+            });
+        }
+        catch (IOException ioex)
+        {
+            TbEventFolderError = true;
+            _ = Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(
+                    "Não foi possível acessar a pasta de eventos ao listar subpastas.\n\n" + ioex.Message,
+                    "Acesso à pasta");
+            });
+        }
         finally
         {
         }
@@ -2506,68 +2467,226 @@ public partial class CollectionsViewModel : ViewModelBase
         RefreshSeparationProgressPollingState();
     }
 
-    public void UpdateGraduateDataFromFile(FileInfo f)
+    /// <summary>
+    /// Retorna null em caso de sucesso, ou a mensagem de erro para o caller exibir com await.
+    /// </summary>
+    public string? UpdateGraduateDataFromFile(FileInfo f)
     {
         // Se for apenas tratamento, não processar dados de reconhecimento
         if (IsTreatmentOnlyCombo)
         {
-            return;
+            return null;
         }
 
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
-            return;
+            return CPFsErrorMessage;
         }
         
         GraduatesData.Clear();
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-        var package = new ExcelPackage(f);
+        using var package = new ExcelPackage(f);
 
         ExcelWorksheet workSheet = package.Workbook.Worksheets[0];
+        if (workSheet?.Dimension == null)
+            return null;
 
-        for (int i = 1;
-                 i <= 1000000;
-                 i++)
+        // Mapear colunas por cabeçalho (inclui Nome / Name)
+        static string NormalizeHeader(string? h)
         {
-            GraduateByCPF gradByCPF = new GraduateByCPF();
+            return (h ?? "")
+                .Trim()
+                .ToLowerInvariant()
+                .Replace("á", "a").Replace("à", "a").Replace("ã", "a").Replace("â", "a")
+                .Replace("é", "e").Replace("ê", "e")
+                .Replace("í", "i")
+                .Replace("ó", "o").Replace("ô", "o").Replace("õ", "o")
+                .Replace("ú", "u")
+                .Replace("ç", "c");
+        }
 
-            var photoPathCell = workSheet.Cells[i, 1].Value;
+        var colCount = workSheet.Dimension.End.Column;
+        var rowCount = workSheet.Dimension.End.Row;
+        var headerToCol = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int c = 1; c <= colCount; c++)
+        {
+            var headerText = workSheet.Cells[1, c].Text;
+            var norm = NormalizeHeader(headerText);
+            if (!string.IsNullOrWhiteSpace(norm) && !headerToCol.ContainsKey(norm))
+                headerToCol[norm] = c;
+        }
+
+        bool LooksLikeHeaderRow()
+        {
+            // Se a primeira célula parece um nome de arquivo de imagem, é dado (não cabeçalho).
+            var firstCell = (workSheet.Cells[1, 1].Text ?? "").Trim().ToLowerInvariant();
+            if (firstCell.EndsWith(".jpg") || firstCell.EndsWith(".jpeg") || firstCell.EndsWith(".png")
+                || firstCell.EndsWith(".nef") || firstCell.EndsWith(".cr2") || firstCell.EndsWith(".cr3")
+                || firstCell.EndsWith(".raw") || firstCell.EndsWith(".crw") || firstCell.EndsWith(".arw")
+                || firstCell.EndsWith(".dng") || firstCell.EndsWith(".heic") || firstCell.EndsWith(".raf"))
+                return false;
+
+            // Evitar falsos positivos quando uma tradução vier vazia (Contains("") seria sempre true).
+            var photoKey = NormalizeHeader(TranslationHelper.Default.PHOTO_NAME);
+            var idKey = NormalizeHeader(TranslationHelper.Default.ID);
+            var maxKey = NormalizeHeader(TranslationHelper.Default.MAX_PHOTOS);
+            var maxTreatKey = NormalizeHeader(TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT);
+
+            int hits = 0;
+            for (int c = 1; c <= colCount; c++)
+            {
+                var norm = NormalizeHeader(workSheet.Cells[1, c].Text);
+                if (string.IsNullOrWhiteSpace(norm))
+                    continue;
+
+                // Só contar "contains" quando o token tem conteúdo suficiente.
+                if ((!string.IsNullOrWhiteSpace(photoKey) && photoKey.Length >= 3 && norm.Contains(photoKey))
+                    || norm == "photo" || norm == "foto" || norm.Contains("shortpath") || norm.Contains("short path"))
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(idKey) && idKey.Length >= 2 && norm == idKey) || norm == "cpf" || norm == "id")
+                    hits++;
+                else if (norm == "email" || norm == "e-mail" || norm.Replace(" ", "") == "email")
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(maxKey) && maxKey.Length >= 3 && norm.Contains(maxKey)) || norm.Contains("max fotos") || norm.Contains("max photos"))
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(maxTreatKey) && maxTreatKey.Length >= 3 && norm.Contains(maxTreatKey)) || norm.Contains("trat") || norm.Contains("treatment"))
+                    hits++;
+
+                if (hits >= 2)
+                    return true;
+            }
+            return false;
+        }
+
+        int getCol(params string[] keys)
+        {
+            foreach (var k in keys)
+            {
+                var nk = NormalizeHeader(k);
+                if (headerToCol.TryGetValue(nk, out var col))
+                    return col;
+            }
+            return -1;
+        }
+
+        var colPhoto = getCol(TranslationHelper.Default.PHOTO_NAME, "photo", "foto", "nome da foto", "shortpath", "short path");
+        var colCpf = getCol(TranslationHelper.Default.ID, "cpf", "id");
+        var colName = getCol("nome", "name");
+        var colEmail = getCol("email", "e-mail", "e mail");
+        var colMaxPhotos = getCol(TranslationHelper.Default.MAX_PHOTOS, "max photos", "max fotos");
+        var colMaxTreatment = getCol(TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, "max photos for treatment", "max fotos p/ tratar", "max fotos para tratamento");
+        var colBlocked = getCol(TranslationHelper.Default.BLOCKED, "blocked", "bloqueado");
+        var colBlockMode = getCol(TranslationHelper.Default.BLOCK_MODE, "block mode", "block type", "tipo de bloqueio");
+
+        static string ExcelColumnName(int colNumber)
+        {
+            if (colNumber <= 0) return "?";
+            var name = "";
+            while (colNumber > 0)
+            {
+                colNumber--;
+                name = (char)('A' + (colNumber % 26)) + name;
+                colNumber /= 26;
+            }
+            return name;
+        }
+
+        // Fallback compatível com layout antigo (sem a coluna Nome)
+        if (colPhoto == -1) colPhoto = 1;
+        if (colCpf == -1) colCpf = 2;
+        if (colName == -1) colName = 3;
+        if (colEmail == -1) colEmail = headerToCol.ContainsKey(NormalizeHeader("nome")) || headerToCol.ContainsKey(NormalizeHeader("name")) ? 4 : 3;
+        if (colMaxPhotos == -1) colMaxPhotos = colEmail + 1;
+        if (colMaxTreatment == -1) colMaxTreatment = colMaxPhotos + 1;
+        if (colBlocked == -1) colBlocked = colMaxTreatment + 1;
+        if (colBlockMode == -1) colBlockMode = colBlocked + 1;
+
+        var hasHeader = LooksLikeHeaderRow();
+        var startRow = hasHeader ? 2 : 1;
+
+        for (int i = startRow; i <= rowCount && i <= 1_000_000; i++)
+        {
+            GraduateByCPF gradByCPF = new GraduateByCPF { Name = "" };
+
+            var photoPathCell = workSheet.Cells[i, colPhoto].Value;
             if (photoPathCell == null)
                 break;
-
-            if (photoPathCell.ToString() == TranslationHelper.Default.PHOTO_NAME)
-                continue;
 
             var recFolder = TbRecFolder.Replace("\\", "/");
             var photoPath = photoPathCell.ToString().Replace("\\", "/");
             if (photoPath.StartsWith(recFolder))
-                photoPath.Replace(recFolder, "");
+                photoPath = photoPath.Replace(recFolder, "").TrimStart('/');
+
             if (!File.Exists(recFolder + "/" + photoPath))
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " não existe.");
-                break;
+                return "O arquivo " + recFolder + "/" + photoPath + " não existe.";
             }
             gradByCPF.ShortPath = photoPath;
 
-            var CPFCell = workSheet.Cells[i, 2].Value;
+            var CPFCell = workSheet.Cells[i, colCpf].Value;
             if (CPFCell != null)
                 gradByCPF.CPF = CPFCell.ToString();
 
-            var emailCell = workSheet.Cells[i, 3].Value;
+            var nameCell = workSheet.Cells[i, colName].Value;
+            if (nameCell != null)
+                gradByCPF.Name = nameCell.ToString();
+
+            var emailCell = workSheet.Cells[i, colEmail].Value;
             if (emailCell != null)
                 gradByCPF.Email = emailCell.ToString();
 
-            var maxPhotosCell = workSheet.Cells[i, 4].Value;
-            if (maxPhotosCell != null && (maxPhotosCell as string) != "")
-                gradByCPF.MaxPhotos = int.Parse(StringHelper.RemoveAllCharactersButNumbers(maxPhotosCell.ToString()));
+            var maxPhotosCell = workSheet.Cells[i, colMaxPhotos].Value;
+            if (maxPhotosCell == null || string.IsNullOrWhiteSpace(maxPhotosCell.ToString()))
+            {
+                gradByCPF.MaxPhotos = null;
+            }
+            else
+            {
+                var raw = maxPhotosCell.ToString();
+                var onlyDigits = StringHelper.RemoveAllCharactersButNumbers(raw);
+                if (string.IsNullOrWhiteSpace(onlyDigits) || !int.TryParse(onlyDigits, out var parsed))
+                {
+                    var header = hasHeader ? workSheet.Cells[1, colMaxPhotos].Text : "(sem cabeçalho)";
+                    var colExcel = ExcelColumnName(colMaxPhotos);
+                    return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                           $"Linha: {i}\n" +
+                           $"Campo: {TranslationHelper.Default.MAX_PHOTOS}\n" +
+                           $"Coluna (Excel): {colExcel} (#{colMaxPhotos})\n" +
+                           $"Cabeçalho: \"{header}\"\n" +
+                           $"Valor encontrado: \"{raw}\"\n\n" +
+                           "Esperado: um número inteiro (ex.: 10) ou célula vazia.\n" +
+                           "Corrija o Excel e tente novamente.";
+                }
+                gradByCPF.MaxPhotos = parsed;
+            }
 
-            var maxPhotosForTreatmentCell = workSheet.Cells[i, 5].Value;
-            if (maxPhotosForTreatmentCell != null && (maxPhotosForTreatmentCell as string) != "")
-                gradByCPF.MaxPhotosForTreatmentRequest = int.Parse(StringHelper.RemoveAllCharactersButNumbers(maxPhotosForTreatmentCell.ToString()));
+            var maxPhotosForTreatmentCell = workSheet.Cells[i, colMaxTreatment].Value;
+            if (maxPhotosForTreatmentCell == null || string.IsNullOrWhiteSpace(maxPhotosForTreatmentCell.ToString()))
+            {
+                gradByCPF.MaxPhotosForTreatmentRequest = null;
+            }
+            else
+            {
+                var raw = maxPhotosForTreatmentCell.ToString();
+                var onlyDigits = StringHelper.RemoveAllCharactersButNumbers(raw);
+                if (string.IsNullOrWhiteSpace(onlyDigits) || !int.TryParse(onlyDigits, out var parsed))
+                {
+                    var header = hasHeader ? workSheet.Cells[1, colMaxTreatment].Text : "(sem cabeçalho)";
+                    var colExcel = ExcelColumnName(colMaxTreatment);
+                    return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                           $"Linha: {i}\n" +
+                           $"Campo: {TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT}\n" +
+                           $"Coluna (Excel): {colExcel} (#{colMaxTreatment})\n" +
+                           $"Cabeçalho: \"{header}\"\n" +
+                           $"Valor encontrado: \"{raw}\"\n\n" +
+                           "Esperado: um número inteiro (ex.: 10) ou célula vazia.\n" +
+                           "Corrija o Excel e tente novamente.";
+                }
+                gradByCPF.MaxPhotosForTreatmentRequest = parsed;
+            }
 
-            var blockedCellValue = workSheet.Cells[i, 6].Value ?? false;
+            var blockedCellValue = workSheet.Cells[i, colBlocked].Value ?? false;
             if (blockedCellValue == null || string.IsNullOrWhiteSpace(blockedCellValue.ToString()))
             {
                 gradByCPF.Blocked = false;
@@ -2595,7 +2714,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                 }
             }
-            var blockTypeCellValue = workSheet.Cells[i, 7].Value;
+            var blockTypeCellValue = workSheet.Cells[i, colBlockMode].Value;
             if (blockTypeCellValue == null || string.IsNullOrWhiteSpace(blockTypeCellValue.ToString()))
             {
                 gradByCPF.BlockType = "watermark";
@@ -2626,6 +2745,7 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(gradByCPF);
         }
         SortGraduatesDataAlphabetically();
+        return null;
     }
     /// <summary>
     /// Ordena a lista GraduatesData alfabeticamente crescente pelo nome da foto (ShortPath)
@@ -2797,7 +2917,6 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         IsReupload = false;
-        IsAddIdsOnlyMode = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
@@ -2867,17 +2986,16 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    public void OpenAddIdsViewCommand()
+    public async Task OpenAddIdsViewCommand()
     {
         if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
             return;
 
         IsReupload = false;
-        IsAddIdsOnlyMode = true;
 
         CurrentProfessionalName = SelectedCollection.professionalLogin;
         ScrollComponentNewCollection = 0;
-        ActiveComponent = ActiveViews.NewCollection;
+        ActiveComponent = ActiveViews.AddIds;
         _preConfiguredComboAuthority = null;
 
         TbCollectionName = SelectedCollection.classCode;
@@ -2892,15 +3010,24 @@ public partial class CollectionsViewModel : ViewModelBase
         }
 
         // Regras de CPF/ID: mantém o mesmo bloqueio usado no reupload (outro período + não-HD).
-        CanAddCPFs = true;
-        CPFsErrorMessage = string.Empty;
+        var canAddCpfs = true;
+        var cpfsErrorMessage = string.Empty;
         if (IsCollectionFromDifferentBillingPeriod(SelectedCollection) && (SelectedCollection.UploadHD != true))
         {
-            CanAddCPFs = false;
-            CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+            canAddCpfs = false;
+            cpfsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
         }
 
-        LoadGraduatesData(SelectedCollection);
+        AddIdsVm = new AddIdsViewModel(
+            GlobalAppStateViewModel.lfc,
+            SelectedCollection,
+            CurrentProfessionalName,
+            TbRecFolder,
+            canAddCpfs,
+            cpfsErrorMessage);
+
+        // Abrir rápido: navega já com título/ID/separador preenchidos e carrega a lista em background.
+        _ = AddIdsVm.InitializeAsync();
     }
 
     public void SortGraduatesDataAlphabeticallyForUi() => SortGraduatesDataAlphabetically();
@@ -2916,7 +3043,6 @@ public partial class CollectionsViewModel : ViewModelBase
 
         try
         {
-            IsAddIdsOnlyMode = false;
             CurrentProfessionalName = SelectedCollection.professionalLogin;
 
             ScrollComponentNewCollection = 0;
@@ -3506,8 +3632,30 @@ public partial class CollectionsViewModel : ViewModelBase
                 pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             }
 
-            var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
-            var recFiles = IsTreatmentOnlyCombo ? new List<FileInfo>() : FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
+            if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out var eventFiles, out var deniedEventsPath, out var eventsErr))
+            {
+                if (eventsErr is UnauthorizedAccessException)
+                    await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
+                else
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                return;
+            }
+
+            List<FileInfo> recFiles;
+            string deniedRecPath = null;
+            Exception recErr = null;
+            if (IsTreatmentOnlyCombo)
+            {
+                recFiles = new List<FileInfo>();
+            }
+            else if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalRecFolder, out recFiles, out deniedRecPath, out recErr))
+            {
+                if (recErr is UnauthorizedAccessException)
+                    await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
+                else
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                return;
+            }
             var checkIfClassCanBeCreated = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
             if (checkIfClassCanBeCreated.response == false)
             {
@@ -3569,10 +3717,27 @@ public partial class CollectionsViewModel : ViewModelBase
                     return;
 
                 // Recarrega as pastas para refletir os renomeios feitos durante o diálogo
-                eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
-                recFiles = IsTreatmentOnlyCombo
-                    ? new List<FileInfo>()
-                    : FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
+                if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out eventFiles, out deniedEventsPath, out eventsErr))
+                {
+                    if (eventsErr is UnauthorizedAccessException)
+                        await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
+                    else
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                    return;
+                }
+
+                if (IsTreatmentOnlyCombo)
+                {
+                    recFiles = new List<FileInfo>();
+                }
+                else if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalRecFolder, out recFiles, out deniedRecPath, out recErr))
+                {
+                    if (recErr is UnauthorizedAccessException)
+                        await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
+                    else
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                    return;
+                }
 
                 var checkIfClassCanBeCreatedAgain = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
                 if (checkIfClassCanBeCreatedAgain.response == false)
@@ -3597,17 +3762,29 @@ public partial class CollectionsViewModel : ViewModelBase
                     shouldNotifyPipedriveAboutFirstUse = true;
 
                 int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
+                // Em reupload, a cota do teste deve considerar apenas as fotos NOVAS (diferença vs. o que já existe na coleção).
+                int existingCollectionPhotos = 0;
+                if (IsReupload && SelectedCollection != null)
+                    existingCollectionPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
+                int photosToConsumeFromFreeTrial = IsReupload
+                    ? Math.Max(0, totalCollectionPhotos - existingCollectionPhotos)
+                    : totalCollectionPhotos;
+
                 //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
-                if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
+                if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
 
                 //VERIFICA SE A QUOTA DE TESTE EST� SENDO EXCEDIDA
-                if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
+                if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0
+                    && photosToConsumeFromFreeTrial > 0
+                    && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
-                    if (dialog != true)
-                        return;
+                    var msg = $"**Você atingiu o limite de fotos grátis do teste.**\n\n" +
+                              $"Neste envio, **{photosToConsumeFromFreeTrial}** foto(s) serão contabilizadas na cota grátis.\n" +
+                              $"Saldo grátis disponível: **{RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}** foto(s).\n\n" +
+                              $"A partir de agora, as fotos adicionais desta turma (e de turmas futuras) poderão estar sujeitas a cobrança.";
+                    await GlobalAppStateViewModel.Instance.ShowDialogEntendi(msg, "Limite de fotos grátis do teste atingido");
                 }
             }
 
@@ -4011,7 +4188,19 @@ public partial class CollectionsViewModel : ViewModelBase
             //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
             return;
         }
-        var gradPhotos = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
+        if (!FileHelper.TryGetFilesWithExtensionsAndFilters(TbRecFolder, out var gradPhotos, out var deniedPath, out var err))
+        {
+            if (err is UnauthorizedAccessException)
+            {
+                // Este comando não é async; mostrar diálogo sem bloquear.
+                _ = GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(TbRecFolder, deniedPath ?? TbRecFolder, err);
+            }
+            else
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{err?.Message}");
+            }
+            return;
+        }
 
         string getShortpathFromImagePath(string fullPath)
         {
@@ -4028,6 +4217,7 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(new GraduateByCPF()
             {
                 ShortPath = shortPath,
+                Name = ""
             });
 
         }
@@ -4075,7 +4265,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 List<string[]> cellsData = new List<string[]>()
                     {
-                      new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
+                      new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
                     };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(cellsData[0].Length + 64) + "1";
                 excelWorksheet.Cells[headerRange].Style.Font.Bold = true;
@@ -4086,6 +4276,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 //New Columns
                 excelWorksheet.Column(5).Width = 30;
                 excelWorksheet.Column(6).Width = 30;
+                excelWorksheet.Column(7).Width = 18;
+                excelWorksheet.Column(8).Width = 18;
 
                 foreach (var g in GraduatesData)
                 {
@@ -4093,7 +4285,17 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         g.BlockType = "WATERMARK";
                     }
-                    cellsData.Add(new string[] { g.ShortPath, g.CPF, g.Email, g.MaxPhotos.ToString(), g.MaxPhotosForTreatmentRequest.ToString(), g.Blocked.ToString(), g.BlockType.ToString() });
+                    cellsData.Add(new string[]
+                    {
+                        g.ShortPath,
+                        g.CPF,
+                        g.Name ?? "",
+                        g.Email,
+                        g.MaxPhotos.ToString(),
+                        g.MaxPhotosForTreatmentRequest.ToString(),
+                        g.Blocked.ToString(),
+                        g.BlockType.ToString()
+                    });
                 }
                 excelWorksheet.Cells[1, 1].LoadFromArrays(cellsData);
 
@@ -4112,7 +4314,12 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
                 excel.SaveAs(excelFile);
 
-                UpdateGraduateDataFromFile(excelFile);
+                var importError1 = UpdateGraduateDataFromFile(excelFile);
+                if (importError1 != null)
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError1, "Erro");
+                    return;
+                }
 
                 var p = new System.Diagnostics.Process();
                 p.StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -4124,7 +4331,9 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 await Task.Run(() => WaitForProcess(p));
 
-                UpdateGraduateDataFromFile(excelFile);
+                var importError2 = UpdateGraduateDataFromFile(excelFile);
+                if (importError2 != null)
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError2, "Erro");
             }
         }
         catch (Exception e) 

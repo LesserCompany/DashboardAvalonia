@@ -131,6 +131,7 @@
               <DataGrid.Columns>
                 <DataGridTextColumn Header="{Tr 'Photo'}"    Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
                 <DataGridTextColumn Header="{Tr 'CPF'}"  Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+              <DataGridTextColumn Header="{Tr 'Name'}" Binding="{Binding Name, Mode=TwoWay}" FontSize="8" />
                 <DataGridTextColumn Header="{Tr 'Email'}"  Binding="{Binding Email}" FontSize="8" />
                 <DataGridTextColumn Header="{Tr 'Max photos'}"  Binding="{Binding MaxPhotos}" FontSize="8" />
 
