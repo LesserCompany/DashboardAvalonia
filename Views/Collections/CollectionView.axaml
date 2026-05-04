@@ -34,11 +34,39 @@
                       HorizontalAlignment="Center" 
                       Spacing="32" 
                       Margin="0,40,0,0">
-            <TextBlock Text="{Binding SelectedCollection.classCode}" 
+            <SelectableTextBlock Text="{Binding SelectedCollection.classCode}" 
                        FontSize="22" 
                        FontWeight="SemiBold" 
                        HorizontalAlignment="Center"
                        TextAlignment="Center"/>
+            <StackPanel Orientation="Vertical" Spacing="6" HorizontalAlignment="Center">
+            <Button Command="{Binding CopyCollectionCpfsCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                    CommandParameter="{Binding SelectedCollection}"
+                    IsEnabled="{Binding CollectionCpfsCommandsEnabled, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                    HorizontalAlignment="Center"
+                    Padding="12,8"
+                    MinHeight="36"
+                    ToolTip.Tip="{Tr 'Copy all CPFs of this collection'}">
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8C8;" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="{Tr 'Copy CPFs'}" VerticalAlignment="Center"/>
+                <ui:ProgressRing IsVisible="{Binding CopyingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding ManageCollectionCpfsCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                    CommandParameter="{Binding SelectedCollection}"
+                    IsEnabled="{Binding CollectionCpfsCommandsEnabled, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                    HorizontalAlignment="Center"
+                    Padding="12,8"
+                    MinHeight="36"
+                    ToolTip.Tip="{Tr 'Open CPF protection for this collection filter'}">
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="{Tr 'Manage CPF'}" VerticalAlignment="Center"/>
+                <ui:ProgressRing IsVisible="{Binding ManagingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
+              </StackPanel>
+            </Button>
+            </StackPanel>
             <TextBlock Text="{Tr 'Esta coleção está com solicitação de exclusão. Restaure para voltar a usá-la.'}" 
                        FontSize="14" 
                        HorizontalAlignment="Center"
@@ -46,6 +74,18 @@
                        TextWrapping="Wrap"
                        Foreground="{DynamicResource MetaFg}"
                        MaxWidth="400"/>
+            <TextBlock FontSize="13"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource MetaFg}"
+                       MaxWidth="420"
+                       IsVisible="{Binding SelectedCollection.FinalScheduledDeletionDate, Converter={StaticResource NullToBoolConverter}}">
+              <Run Text="{Tr 'Sua coleção pode ser restaurada até '}" />
+              <Run Text="{Binding SelectedCollection.FinalScheduledDeletionDate, Converter={StaticResource FinalDeletionDateToStringConverter}}"
+                   Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" />
+              <Run Text="{Tr ', depois disso ela será removida permanentemente.'}" />
+            </TextBlock>
             <Button Command="{Binding CancelDeleteCollectionCommand}"
                     CommandParameter="{Binding SelectedCollection}"
                     HorizontalAlignment="Center"
@@ -64,8 +104,8 @@
           <!-- Conteúdo normal (oculto quando coleção é da lista de deletadas) -->
           <StackPanel IsVisible="{Binding !IsSelectedCollectionInDeletedList}" Spacing="{DynamicResource DefaultRowSpacing}">
           <TextBlock Text="{Tr 'Canceled'}" FontSize="18" TextAlignment="Center" Foreground="Red" IsVisible="{Binding SelectedCollectionIsCanceled}" />
-          <Grid RowDefinitions="80" ColumnDefinitions="200, * " Grid.Row="0" >
-                <Grid Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+          <Grid RowDefinitions="80" ColumnDefinitions="Auto, *, Auto" Grid.Row="0">
+                <Grid Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">
                   <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                     <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
@@ -80,7 +120,48 @@
                     </Button>
                   </StackPanel>
                 </Grid>
-                <SelectableTextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="18" HorizontalAlignment="Center" Text="{Binding SelectedCollection.classCode}"></SelectableTextBlock>
+                <SelectableTextBlock Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    FontSize="18"
+                                    HorizontalAlignment="Center"
+                                    Text="{Binding SelectedCollection.classCode}"/>
+
+                <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Command="{Binding CopyCollectionCpfsCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                        CommandParameter="{Binding SelectedCollection}"
+                        IsEnabled="{Binding CollectionCpfsCommandsEnabled, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                        HorizontalAlignment="Right"
+                        Padding="12,8"
+                        MinHeight="36"
+                        CornerRadius="8"
+                        Background="{DynamicResource CardBg}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        ToolTip.Tip="{Tr 'Copy all CPFs of this collection'}">
+                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8C8;" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Tr 'Copy CPFs'}" VerticalAlignment="Center"/>
+                    <ui:ProgressRing IsVisible="{Binding CopyingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding ManageCollectionCpfsCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                        CommandParameter="{Binding SelectedCollection}"
+                        IsEnabled="{Binding CollectionCpfsCommandsEnabled, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                        HorizontalAlignment="Right"
+                        Padding="12,8"
+                        MinHeight="36"
+                        CornerRadius="8"
+                        Background="{DynamicResource CardBg}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        ToolTip.Tip="{Tr 'Open CPF protection for this collection filter'}">
+                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Tr 'Manage CPF'}" VerticalAlignment="Center"/>
+                    <ui:ProgressRing IsVisible="{Binding ManagingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
+                  </StackPanel>
+                </Button>
+                </StackPanel>
           </Grid>
           
           <TextBlock Grid.Row="1" IsVisible="{Binding !UploadComplete}" TextWrapping="Wrap" TextAlignment="Center" Text="{Tr 'Upload incomplete ...'}" />
@@ -108,6 +189,7 @@
                       Cursor="Hand" />
             <Button Grid.Column="3"
                     Command="{Binding OpenChangeDeletionDateDialogCommand}"
+                    IsVisible="{Binding SelectedCollection.UploadHD}"
                     Padding="8,4"
                     Height="28"
                     VerticalAlignment="Center"
@@ -143,6 +225,11 @@
             <TextBlock Grid.Row="0" Text="{Tr 'Choose the separation file you want to work with:'}" FontSize="12" />
             
             <ListBox Grid.Row="1" BorderBrush="Black" BorderThickness="0.6"  x:Name="ListBox" ItemsSource="{Binding ClassSeparationFiles}" SelectedItem="{Binding SelectedSeparationFile}" FontSize="11" >
+              <ListBox.ContextMenu>
+                <ContextMenu Opening="SeparationFileContextMenu_Opening">
+                  <MenuItem Header="{Tr 'Open file directory'}" Command="{Binding OpenSeparationFileDirectoryCommand}" />
+                </ContextMenu>
+              </ListBox.ContextMenu>
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <StackPanel Orientation="Horizontal">
@@ -215,8 +302,14 @@
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
           <Grid Grid.Row="7">
-              <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}">
+              <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}" >
                   <StackPanel Spacing="6">
+                      <Button Width="325" Command="{Binding OpenAddIdsViewCommand}" IsVisible="False">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Add IDs without reupload'}" />
+                          </StackPanel>
+                      </Button>
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Reupload'}" VerticalAlignment="Center" />
@@ -251,8 +344,8 @@
                       </Button>
                       <Button Width="325" 
                               Command="{Binding DeleteClassCommand}" 
-                              IsEnabled="{Binding IsDeletionDatePassed}"
-                              IsVisible="{Binding !IsSelectedCollectionInDeletedList}"
+                              IsEnabled="{Binding IsDeleteCollectionButtonEnabled}"
+                              IsVisible="{Binding IsDeleteCollectionButtonVisible}"
                               ToolTip.Tip="{Tr 'Delete collection if expiration date expired and do not want to extend storage or continue billing.'}"
                               ToolTip.Placement="Right"
                               ToolTip.ShowOnDisabled="True">

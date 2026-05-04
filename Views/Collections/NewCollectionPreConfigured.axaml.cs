@@ -173,7 +173,12 @@ public partial class NewCollectionPreConfigured : UserControl
                 }
 
                 var fileInfo = new FileInfo(firstFile);
-                vm.UpdateGraduateDataFromFile(fileInfo);
+                var importError = vm.UpdateGraduateDataFromFile(fileInfo);
+                if (importError != null)
+                {
+                    var bbox = MessageBoxManager.GetMessageBoxStandard("Erro", importError);
+                    await bbox.ShowWindowDialogAsync(MainWindow.instance);
+                }
             }
         }
     }

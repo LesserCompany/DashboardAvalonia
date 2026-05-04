@@ -250,10 +250,16 @@ public partial class MessagesView : UserControl
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top
             };
 
+            // Converter createdAt para horário local (o backend normalmente envia UTC)
+            var createdAt = message.CreatedDate;
+            if (createdAt.Kind == DateTimeKind.Unspecified)
+                createdAt = DateTime.SpecifyKind(createdAt, DateTimeKind.Utc);
+            var createdAtLocal = createdAt.ToLocalTime();
+
             // Criar o TextBlock da data
             var dateText = new TextBlock
             {
-                Text = message.CreatedDate.ToString("dd/MM/yy"),
+                Text = createdAtLocal.ToString("dd/MM/yy"),
                 FontWeight = FontWeight.Bold,
                 FontSize = 16,
                 Foreground = primaryTextBrush
@@ -262,7 +268,7 @@ public partial class MessagesView : UserControl
             // Criar o TextBlock da hora
             var timeText = new TextBlock
             {
-                Text = message.CreatedDate.ToString("HH:mm"),
+                Text = createdAtLocal.ToString("HH:mm"),
                 FontSize = 11,
                 FontWeight = FontWeight.Normal,
                 Foreground = secondaryTextBrush,

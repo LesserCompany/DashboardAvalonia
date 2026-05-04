@@ -79,10 +79,6 @@
     "en-US": "Select",
     "pt-BR": "Selecionar"
   },
-  "Collection ID": {
-    "en-US": "Collection ID",
-    "pt-BR": "ID da coleção"
-  },
   "Company/Client Name": {
     "en-US": "Company/Client Name",
     "pt-BR": "Nome da Empresa/Cliente"
@@ -91,8 +87,8 @@
     "en-US": "Logout (Back to Login)",
     "pt-BR": "Sair (Voltar ao Login)"
   },
-  "ID collection:": {
-    "en-US": "ID collection:",
+  "Collection ID:": {
+    "en-US": "Collection ID:",
     "pt-BR": "ID da coleção:"
   },
   "New Collection": {
@@ -138,6 +134,10 @@
   "Allow photos to be found by anyone": {
     "en-US": "Allow photos to be found by anyone",
     "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
+  },
+  "Photos cannot have watermarks": {
+    "en-US": "Photos cannot have watermarks",
+    "pt-BR": "As fotos virão sem marca d'água"
   },
   "Allow CPFs to download photos even when blocked": {
     "en-US": "Allow CPFs to download photos even when blocked",
@@ -218,6 +218,10 @@
   "Choose the separation file you want to work with:": {
     "en-US": "Choose the separation file you want to work with:",
     "pt-BR": "Escolha o arquivo de separação com o qual deseja trabalhar:"
+  },
+  "Open file directory": {
+    "en-US": "Open file directory",
+    "pt-BR": "Abrir diretório do arquivo"
   },
   "This class has OCR processing.": {
     "en-US": "This class has OCR processing.",
@@ -311,6 +315,22 @@
     "en-US": "Advanced",
     "pt-BR": "Avançado"
   },
+  "Add IDs": {
+    "en-US": "Add IDs",
+    "pt-BR": "Adicionar IDs"
+  },
+  "Add IDs without reupload": {
+    "en-US": "Add IDs without reupload",
+    "pt-BR": "Adicionar IDs sem reupload"
+  },
+  "Add ID": {
+    "en-US": "Add ID",
+    "pt-BR": "Adicionar ID"
+  },
+  "New ID": {
+    "en-US": "New ID",
+    "pt-BR": "Novo ID"
+  },
   "General Report": {
     "en-US": "General report",
     "pt-BR": "Relatório geral"
@@ -386,6 +406,22 @@
   "Price for each 1000 photos": {
     "en-US": "Price for each 1000 photos",
     "pt-BR": "Preço para cada 1000 fotos"
+  },
+  "Copy all CPFs of this collection": {
+    "en-US": "Copy all CPFs of this collection",
+    "pt-BR": "Copiar todos os CPFs desta coleção"
+  },
+  "Copy CPFs": {
+    "en-US": "Copy CPFs",
+    "pt-BR": "Copiar CPFs"
+  },
+  "Manage CPF": {
+    "en-US": "Manage CPF",
+    "pt-BR": "Gerenciar CPF"
+  },
+  "Open CPF protection for this collection filter": {
+    "en-US": "Open CPF management → CPF protection and access control with this collection’s CPFs in the filter",
+    "pt-BR": "Abrir Gerenciamento de CPF → Proteção e controle de CPFs com os CPFs desta coleção no filtro"
   },
   "Combos": {
     "en-US": "Combos",
@@ -644,8 +680,8 @@
     "pt-BR": "Coleções vencidas"
   },
   "Deleted collections": {
-    "en-US": "Deleted collections",
-    "pt-BR": "Coleções deletadas"
+    "en-US": "Trash",
+    "pt-BR": "Lixeira"
   },
   "Your active collections. Here you manage and access collections in use.": {
     "en-US": "Your active collections. Here you manage and access collections in use.",
@@ -702,5 +738,9 @@
   "Could not remove graduate.": {
     "en-US": "Could not remove graduate.",
     "pt-BR": "Não foi possível remover o formando."
+  },
+  "Your collection can be restored until {0}, after which it will be permanently removed.": {
+    "en-US": "Your collection can be restored until {0}, after which it will be permanently removed.",
+    "pt-BR": "Sua coleção pode ser restaurada até {0}, depois disso ela será removida permanentemente."
   }
 }

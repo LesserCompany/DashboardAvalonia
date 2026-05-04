@@ -13,8 +13,8 @@ public partial class SettingsUserViewModel : ViewModelBase
             get => LesserFunctionClient.loginFileResult?.User?.loginToken ?? "";
         }
 
-        //private const string BaseUrl = "https://graduates-explorer.lesser.biz/settings-user/";
-        private const string BaseUrl = "http://localhost:5173/settings-user/";
+        private const string BaseUrl = "https://graduates-explorer.lesser.biz/settings-user/";
+        //private const string BaseUrl = "http://localhost:5173/settings-user/";
         private string _url = "";
 
         public string Url

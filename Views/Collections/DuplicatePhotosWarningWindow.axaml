@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="320"
+        x:Class="LesserDashboardClient.Views.Collections.DuplicatePhotosWarningWindow"
+        x:DataType="local:DuplicatePhotosWarningWindow"
+        Title="Não é possível criar a coleção"
+        Width="560"
+        SizeToContent="Height"
+        MinHeight="180"
+        MaxHeight="700"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,Auto">
+    <!-- Introdução -->
+    <TextBlock x:Name="IntroText"
+               Grid.Row="0"
+               TextWrapping="Wrap"
+               Margin="0,0,0,16"/>
+
+    <!-- Lista de fotos duplicadas com destaque Eventos / Reconhecimentos (cresce até MaxHeight, depois scroll) -->
+    <ScrollViewer Grid.Row="1"
+                  MaxHeight="380"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+      <StackPanel x:Name="DuplicatesPanel" Spacing="12"/>
+    </ScrollViewer>
+
+    <!-- Botão OK -->
+    <Button Grid.Row="2"
+            x:Name="OkButton"
+            Content="Já corrigi, continuar"
+            HorizontalAlignment="Right"
+            Margin="0,20,0,0"
+            MinWidth="100"/>
+  </Grid>
+</Window>

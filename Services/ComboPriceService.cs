@@ -84,20 +84,29 @@ namespace LesserDashboardClient.Services
         /// </summary>
         private static CollectionComboOptions ConvertServerComboToClientCombo(ServerCombo serverCombo)
         {
+            var f = serverCombo.Features ?? new ServerComboFeatures();
             return new CollectionComboOptions
             {
                 ComboTitle = serverCombo.ComboName,
                 ComboDescription = serverCombo.Description,
                 ComboColorAccent = GetColorForCombo(serverCombo.ComboName),
-                BackupHd = serverCombo.Features.UploadHD,
-                AutoTreatment = serverCombo.Features.AutoTreatment,
-                EnablePhotoSales = serverCombo.Features.EnablePhotosSales,
-                AllowCPFsToSeeAllPhotos = serverCombo.Features.AllowCPFsToSeeAllPhotos,
-                AllowDeletedProductionToBeFoundAnyone = serverCombo.Features.AllowDeletedProductionToBeFoundAnyone,
-                Ocr = serverCombo.Features.OCR,
-                UploadedPhotosAreAlreadySorted = serverCombo.Features.UploadPhotosAreAlreadySorted,
+                BackupHd = f.UploadHD,
+                AutoTreatment = f.AutoTreatment,
+                EnablePhotoSales = f.EnablePhotosSales,
+                AllowCPFsToSeeAllPhotos = f.AllowCPFsToSeeAllPhotos,
+                AllowDeletedProductionToBeFoundAnyone = f.AllowDeletedProductionToBeFoundAnyone,
+                Ocr = f.OCR,
+                UploadedPhotosAreAlreadySorted = f.UploadPhotosAreAlreadySorted,
+                PhotosDistribution = f.PhotoDistribution || f.PhotoDistributionLegacyAlias,
+                EnableFaceRelevanceDetection = f.EnableFaceRelevanceDetection,
                 IsTreatmentOnly = IsTreatmentOnlyCombo(serverCombo),
                 ComboId = serverCombo.Id,
+                ComboOrder = serverCombo.ComboOrder,
+                StorageTimeMonths = serverCombo.StorageTimeMonths,
+                BackupFiveYears = f.BackupFiveYears,
+                // IMPORTANT: comboDiscount (novo) é valor absoluto (centavos), não porcentagem.
+                // O percentual correto é calculado depois, a partir de Price + comboDiscount.
+                DiscountPercentage = serverCombo.DiscountPercentage,
                 CurrencySymbol = GetCurrencySymbol(serverCombo.Coin)
             };
         }
@@ -193,10 +202,40 @@ namespace LesserDashboardClient.Services
                     {
                         var clientCombo = ConvertServerComboToClientCombo(serverCombo);
                         
-                        // Definir o preço dinâmico (mesma lógica do Svelte: price / 100 * 1000)
-                        // O preço vem por 100 fotos, então para 1000 fotos multiplicamos por 10
-                        double priceFor1000Photos = (serverCombo.Price / 100.0) * 1000.0;
-                        clientCombo.SetDynamicPrice(priceFor1000Photos);
+                        // Backend envia:
+                        // - Price: valor final por 100 fotos (mesma unidade que comboDiscount)
+                        // - comboDiscount: desconto absoluto por 100 fotos (mesma unidade que Price), NÃO é %
+                        //
+                        // Valor inicial do combo = Price + comboDiscount
+                        // Valor final do combo   = Price
+                        // Preço/1000 fotos = (valorPor100 / 100) * 1000
+                        // Percentual de desconto = 1 - (Price / valor_inicial)
+                        var discountAmount = serverCombo.ComboDiscount ?? 0.0;
+                        var finalValueFor100 = serverCombo.Price;
+                        var originalValueFor100 = finalValueFor100 + discountAmount;
+
+                        double finalFor1000Photos = (finalValueFor100 / 100.0) * 1000.0;
+                        clientCombo.SetDynamicPrice(finalFor1000Photos);
+
+                        // Só exibe "valor riscado" e % OFF quando há um original válido > final
+                        if (originalValueFor100 > finalValueFor100 + 0.0000001)
+                        {
+                            double originalFor1000Photos = (originalValueFor100 / 100.0) * 1000.0;
+                            clientCombo.SetDynamicOriginalPrice(originalFor1000Photos);
+
+                            var discountPercent = 1.0 - (finalValueFor100 / originalValueFor100);
+                            // Clamp defensivo
+                            if (discountPercent < 0) discountPercent = 0;
+                            if (discountPercent > 1) discountPercent = 1;
+                            clientCombo.DiscountPercentage = discountPercent * 100.0;
+                        }
+                        else
+                        {
+                            clientCombo.SetDynamicOriginalPrice(null);
+                            // Mantém DiscountPercentage legado (se existir) quando não houver comboDiscount aplicável
+                            if (serverCombo.ComboDiscount.HasValue)
+                                clientCombo.DiscountPercentage = null;
+                        }
                         
                         dynamicCombos.Add(clientCombo);
                     }

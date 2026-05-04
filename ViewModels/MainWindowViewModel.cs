@@ -10,6 +10,7 @@ using LesserDashboardClient.Models;
 using SharedClientSide.ServerInteraction.Users.Results;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.ViewModels.Options;
+using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
@@ -71,6 +72,15 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private int selectedTabIndex = 0;
 
+    private int _previousSelectedTabIndex;
+
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        if (_previousSelectedTabIndex == 2 && value != 2)
+            SearchGraduateNavigationState.Clear();
+        _previousSelectedTabIndex = value;
+    }
+
     public bool HasUnreadMessages => UnreadMessagesCount > 0;
 
     /// <summary>
@@ -91,6 +101,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Define o título da janela com o modo de build
         TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
         
+        _previousSelectedTabIndex = SelectedTabIndex;
+
         // Carrega mensagens do usuário ao inicializar
         _ = LoadUserMessagesAsync();
         

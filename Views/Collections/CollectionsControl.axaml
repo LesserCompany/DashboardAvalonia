@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
              x:DataType="vm:CollectionsViewModel"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
-             x:Class="LesserDashboardClient.Views.Collections.CollectionsControl">
+             x:Class="LesserDashboardClient.Views.Collections.CollectionsControl"
+             x:Name="root">
     <UserControl.DataContext>
         <vm:CollectionsViewModel />
     </UserControl.DataContext>
@@ -34,6 +35,11 @@
       <local:MessagesView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentMessagesViewIsVisible}" />
       <local:CollectionView Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionViewIsVisibleAndSafe}" Margin="5" />
       <local:NewCollection Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionIsVisible}" Margin="5" />
+      <local:AddIds Grid.Row="1"
+                    Grid.Column="1"
+                    IsVisible="{Binding DataContext.ComponentAddIdsIsVisible, ElementName=root}"
+                    DataContext="{Binding AddIdsVm}"
+                    Margin="5" />
       <local:NewCollectionPreConfigured Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionPreConfiguredIsVisible}"  Margin="5" />
       <local:SelectProfessional Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentSelectProfessionalIsIsVisible}" />
       <local:CancelBilling Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCancelBillingIsVisible}" />

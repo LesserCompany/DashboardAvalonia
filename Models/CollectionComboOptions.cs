@@ -16,6 +16,12 @@ namespace LesserDashboardClient.Models
         public bool AllowCPFsToSeeAllPhotos { get; set; }
         public bool AllowDeletedProductionToBeFoundAnyone { get; set; }
         public bool UploadedPhotosAreAlreadySorted { get; set; }
+
+        /// <summary>Espelho do combo no servidor: separação/distribuição por pessoa.</summary>
+        public bool PhotosDistribution { get; set; }
+
+        /// <summary>Espelho do combo no servidor: relevância facial / exclusão automática.</summary>
+        public bool EnableFaceRelevanceDetection { get; set; }
         
         /// <summary>
         /// Indica se este combo é apenas para tratamento (sem reconhecimento facial)
@@ -31,11 +37,38 @@ namespace LesserDashboardClient.Models
         /// ID do combo no servidor
         /// </summary>
         public int ComboId { get; set; }
+
+        /// <summary>
+        /// Ordem de exibição do combo (backend)
+        /// </summary>
+        public int? ComboOrder { get; set; }
+
+        /// <summary>
+        /// Tempo de armazenamento em meses (backend)
+        /// </summary>
+        public int? StorageTimeMonths { get; set; }
+
+        /// <summary>Indica backup HD de 5 anos (feature do servidor; usado quando <see cref="StorageTimeMonths"/> não veio preenchido).</summary>
+        public bool BackupFiveYears { get; set; }
+
+        /// <summary>
+        /// Desconto do combo em porcentagem (backend). Pode vir do campo novo comboDiscount ou legado discountPercentage.
+        /// </summary>
+        public double? DiscountPercentage { get; set; }
         
         /// <summary>
         /// Símbolo da moeda (R$ ou $)
         /// </summary>
         public string CurrencySymbol { get; set; } = "R$";
+
+        /// <summary>
+        /// Preço original (antes do desconto) para 1000 fotos, quando fornecido dinamicamente.
+        /// </summary>
+        public double? ComboOriginalPrice
+        {
+            get => _dynamicOriginalPrice;
+        }
+
         public double ComboPrice
         {
             get {
@@ -56,6 +89,7 @@ namespace LesserDashboardClient.Models
         }
 
         private double? _dynamicPrice = null;
+        private double? _dynamicOriginalPrice = null;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -70,11 +104,21 @@ namespace LesserDashboardClient.Models
         }
 
         /// <summary>
+        /// Define o preço original dinâmico (antes do desconto), para exibição riscada.
+        /// </summary>
+        public void SetDynamicOriginalPrice(double? originalPrice)
+        {
+            _dynamicOriginalPrice = originalPrice;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ComboOriginalPrice)));
+        }
+
+        /// <summary>
         /// Limpa o preço dinâmico para voltar ao cálculo estático
         /// </summary>
         public void ClearDynamicPrice()
         {
             _dynamicPrice = null;
+            _dynamicOriginalPrice = null;
         }
 
         // Valores estáticos mantidos como fallback

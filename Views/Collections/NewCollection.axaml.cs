@@ -8,6 +8,7 @@ using LesserDashboardClient.ViewModels;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
+using SharedClientSide.ServerInteraction.Users.Graduate;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -173,7 +174,12 @@ public partial class NewCollection : UserControl
                 }
 
                 var fileInfo = new FileInfo(firstFile);
-                vm.UpdateGraduateDataFromFile(fileInfo);
+                var importError = vm.UpdateGraduateDataFromFile(fileInfo);
+                if (importError != null)
+                {
+                    var bbox = MessageBoxManager.GetMessageBoxStandard("Erro", importError);
+                    await bbox.ShowWindowDialogAsync(MainWindow.instance);
+                }
             }
         }
     }
@@ -310,5 +316,89 @@ public partial class NewCollection : UserControl
         }
 
         return false;
+    }
+
+    private async void NewId_Click(object? sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider == null)
+            return;
+
+        if (DataContext is not CollectionsViewModel vm)
+            return;
+
+        if (string.IsNullOrWhiteSpace(vm.TbRecFolder) || !Directory.Exists(vm.TbRecFolder))
+        {
+            var bbox = MessageBoxManager.GetMessageBoxStandard(
+                "Pasta inválida",
+                "Não foi possível localizar a pasta de reconhecimentos desta coleção neste computador.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error);
+            await bbox.ShowWindowDialogAsync(MainWindow.instance);
+            return;
+        }
+
+        IStorageFolder? startFolder = null;
+        try
+        {
+            // Em Avalonia 11, o StorageProvider geralmente expõe TryGetFolderFromPathAsync(string).
+            startFolder = await topLevel.StorageProvider.TryGetFolderFromPathAsync(vm.TbRecFolder);
+        }
+        catch
+        {
+            // Se não suportar, apenas abre o picker sem pasta sugerida.
+        }
+
+        var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            AllowMultiple = true,
+            Title = "Selecionar novo(s) ID(s)",
+            SuggestedStartLocation = startFolder,
+            FileTypeFilter = new List<FilePickerFileType>
+            {
+                new("Imagens")
+                {
+                    Patterns = new List<string> { "*.jpg", "*.jpeg", "*.png", "*.webp", "*.bmp" }
+                },
+                FilePickerFileTypes.All
+            }
+        });
+
+        if (files == null || files.Count == 0)
+            return;
+
+        var recRoot = vm.TbRecFolder.TrimEnd('\\', '/');
+        int added = 0;
+
+        foreach (var f in files)
+        {
+            var fullPath = f?.Path.LocalPath;
+            if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
+                continue;
+
+            string shortPath;
+            if (fullPath.StartsWith(recRoot, StringComparison.OrdinalIgnoreCase))
+                shortPath = fullPath.Substring(recRoot.Length).TrimStart('\\', '/');
+            else
+                shortPath = Path.GetFileName(fullPath);
+
+            if (string.IsNullOrWhiteSpace(shortPath))
+                continue;
+
+            if (vm.GraduatesData.Any(g => g != null && string.Equals(g.ShortPath, shortPath, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            vm.GraduatesData.Add(new GraduateByCPF
+            {
+                ShortPath = shortPath,
+                Name = "",
+                Blocked = false,
+                BlockType = GraduateByCPF.BlockTypes.WATERMARK
+            });
+            added++;
+        }
+
+        if (added > 0)
+            vm.SortGraduatesDataAlphabeticallyForUi();
     }
 }

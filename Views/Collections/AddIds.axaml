@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="vm:AddIdsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+             x:Class="LesserDashboardClient.Views.Collections.AddIds"
+             x:Name="root">
+  <Grid>
+    <ScrollViewer Padding="0,0,0,20">
+      <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="6" Margin="0,0,0,30">
+
+        <!-- Cabeçalho: ícone + título -->
+        <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+          <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
+          <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" FontSize="20" />
+        </StackPanel>
+
+        <!-- Form (apenas ID da coleção, read-only) -->
+        <Grid Grid.Row="1"
+              Margin="10"
+              RowDefinitions="Auto"
+              ColumnDefinitions="Auto,*"
+              RowSpacing="6"
+              ColumnSpacing="6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center" />
+          <TextBox Grid.Row="0"
+                   Grid.Column="1"
+                   Text="{Binding TbCollectionName}"
+                   IsReadOnly="True"
+                   VerticalAlignment="Center" />
+        </Grid>
+
+        <!-- Graduates + Novo ID -->
+        <Expander Grid.Row="2"
+                  Margin="30"
+                  Header="{Tr 'Graduates'}"
+                  HorizontalAlignment="Stretch"
+                  IsExpanded="True">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding TbCollectionName}" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" />
+
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+
+              <DataGrid Margin="20"
+                        ItemsSource="{Binding GraduatesData}"
+                        Grid.Row="0"
+                        GridLinesVisibility="All"
+                        CanUserResizeColumns="True"
+                        IsReadOnly="{Binding !CanAddCPFs}"
+                        BorderThickness="1"
+                        BorderBrush="Gray">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="{Tr 'Photo'}" Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
+                  <DataGridTextColumn Header="{Tr 'CPF'}" Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Name'}" Binding="{Binding Name, Mode=TwoWay}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Email'}" Binding="{Binding Email}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Max photos'}" Binding="{Binding MaxPhotos}" FontSize="8" />
+
+                  <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Tr 'Max photos to enhancement'}"
+                                 TextWrapping="Wrap"
+                                 MaxWidth="100"
+                                 TextAlignment="Center" />
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridCheckBoxColumn Header="{Tr 'Blocked'}" Binding="{Binding Blocked, TargetNullValue=False}" />
+                  <DataGridTemplateColumn Header="{Tr 'Block type'}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <StackPanel>
+                          <TextBlock Text="{Tr 'None'}"
+                                     IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Center"
+                                     FontSize="10" />
+                          <ComboBox IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                    ItemsSource="{Binding DataContext.BlockTypeOptions, ElementName=root}"
+                                    SelectedItem="{Binding BlockType, Mode=TwoWay}"
+                                    FontSize="10"
+                                    MaxDropDownHeight="100"
+                                    Margin="4"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+                            <ComboBox.ItemTemplate>
+                              <DataTemplate>
+                                <ContentControl Content="{Binding .}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                      <TextBlock Text="{Binding .}" />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                              </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                          </ComboBox>
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+              </DataGrid>
+
+              <Button Grid.Row="1"
+                      Click="NewId_Click"
+                      Content="{Tr 'New ID'}"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center"
+                      Margin="20,2,20,6" />
+            </Grid>
+          </StackPanel>
+        </Expander>
+
+        <!-- Botão final: Adicionar ID -->
+        <StackPanel Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,20" Spacing="10">
+          <Button Command="{Binding RegisterGraduatesIdsCommand}"
+                  IsEnabled="{Binding !IsRegistering}"
+                  HorizontalAlignment="Center"
+                  Height="46"
+                  Padding="26,10"
+                  VerticalContentAlignment="Center"
+                  HorizontalContentAlignment="Center">
+            <TextBlock Text="{Tr 'Add ID'}" VerticalAlignment="Center" />
+          </Button>
+
+          <!-- Loading/progresso -->
+          <StackPanel IsVisible="{Binding IsRegistering}" Width="360" Spacing="6">
+            <ProgressBar Minimum="0" Maximum="100" Value="{Binding RegisterProgressPercent}" Height="10" />
+            <TextBlock Text="{Binding RegisterProgressText}" HorizontalAlignment="Center" />
+            <TextBlock Text="Este processo pode demorar alguns minutos. Por favor, aguarde."
+                       TextWrapping="Wrap"
+                       FontSize="11"
+                       Opacity="0.85"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Margin="0,2,0,0" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

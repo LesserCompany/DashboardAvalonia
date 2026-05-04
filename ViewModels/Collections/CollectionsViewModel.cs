@@ -6,8 +6,10 @@ using CommunityToolkit.Mvvm.Input;
 using ExCSS;
 using JavaScriptCore;
 using LesserDashboardClient.Models;
+using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using LesserDashboardClient.Views.Collections;
+using LesserDashboardClient.Views.SearchGraduate;
 using MsBox.Avalonia;
 using Newtonsoft.Json;
 using OfficeOpenXml;
@@ -65,6 +67,8 @@ public partial class CollectionsViewModel : ViewModelBase
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
     private bool _isOpeningSelectProfessionalView = false; // Evita fechar a lista no 1º clique (quando LoadProfessionals define SelectedProfessional)
+    /// <summary>Combo da coleção pré-configurada; ao criar turma, a PT deve espelhar estes valores (autoridade máxima).</summary>
+    private CollectionComboOptions _preConfiguredComboAuthority;
     [ObservableProperty] public ProfessionalTask selectedCollection;
     
     /// <summary>
@@ -108,7 +112,16 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
         SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
-    
+
+    /// <summary>Exibe "Deletar coleção" para coleções HD (exceto na lista de deletadas).</summary>
+    public bool IsDeleteCollectionButtonVisible =>
+        !IsSelectedCollectionInDeletedList &&
+        SelectedCollection?.UploadHD == true;
+
+    /// <summary>Habilita "Deletar coleção" apenas quando estiver na aba Vencidas e a data de deleção já passou.</summary>
+    public bool IsDeleteCollectionButtonEnabled =>
+        IsSelectedCollectionInExpiredList && IsDeletionDatePassed;
+
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
         if (_isUpdatingSelectedCollection)
@@ -150,6 +163,8 @@ public partial class CollectionsViewModel : ViewModelBase
                     OnPropertyChanged(nameof(DeletionDateForeground));
                     OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
                     OnPropertyChanged(nameof(IsDeletionDatePassed));
+                    OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+                    OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
                     NotifyDeletedCollectionViewState();
                 });
             }
@@ -160,6 +175,165 @@ public partial class CollectionsViewModel : ViewModelBase
             }
         }, token);
     }
+
+    [RelayCommand]
+    private async Task CopyCollectionCpfsAsync(ProfessionalTask professionalTask)
+    {
+        if (professionalTask == null || string.IsNullOrWhiteSpace(professionalTask.classCode))
+        {
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Coleção inválida: classCode ausente.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+            return;
+        }
+
+        if (CopyingCollectionCpfs || ManagingCollectionCpfs)
+            return;
+
+        CopyingCollectionCpfs = true;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.GetGraduatesByCPFByClassCode(professionalTask.classCode);
+            if (!result.success || result.Content == null)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Erro",
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+                return;
+            }
+
+            var cpfs = result.Content
+                .Select(g => (g?.CPF ?? string.Empty))
+                .Select(raw => new string(raw.Where(char.IsDigit).ToArray()))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            if (cpfs.Count == 0)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Aviso",
+                    "Nenhum CPF encontrado nessa coleção.",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
+                return;
+            }
+
+            var text = string.Join(" ", cpfs);
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var topLevel = Avalonia.Application.Current?.ApplicationLifetime switch
+                {
+                    Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop => desktop.MainWindow,
+                    Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime singleView => Avalonia.Controls.TopLevel.GetTopLevel(singleView.MainView),
+                    _ => null
+                };
+                if (topLevel != null)
+                {
+                    await topLevel.Clipboard.SetTextAsync(text);
+                }
+            });
+
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Sucesso",
+                $"{cpfs.Count} CPF(s) copiado(s) para a área de transferência.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Success).ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Erro ao copiar CPFs da coleção.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+        }
+        finally
+        {
+            CopyingCollectionCpfs = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ManageCollectionCpfsAsync(ProfessionalTask professionalTask)
+    {
+        if (professionalTask == null || string.IsNullOrWhiteSpace(professionalTask.classCode))
+        {
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Coleção inválida: classCode ausente.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+            return;
+        }
+
+        if (CopyingCollectionCpfs || ManagingCollectionCpfs)
+            return;
+
+        ManagingCollectionCpfs = true;
+        try
+        {
+            var result = await GlobalAppStateViewModel.lfc.GetGraduatesByCPFByClassCode(professionalTask.classCode);
+            if (!result.success || result.Content == null)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Erro",
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+                return;
+            }
+
+            var cpfs = result.Content
+                .Select(g => (g?.CPF ?? string.Empty))
+                .Select(raw => new string(raw.Where(char.IsDigit).ToArray()))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            if (cpfs.Count == 0)
+            {
+                await MessageBoxManager.GetMessageBoxStandard(
+                    "Aviso",
+                    "Nenhum CPF encontrado nessa coleção.",
+                    MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                    MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
+                return;
+            }
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (MainWindowViewModel.Instance.SelectedTabIndex == 2)
+                {
+                    // Já na aba – injetar via ExecuteScriptAsync no WebView existente.
+                    SearchGraduateControl.InjectCpfsIfVisible(cpfs);
+                }
+                else
+                {
+                    // Gravar CPFs no estado; o construtor do controle os consome.
+                    SearchGraduateNavigationState.PendingCpfs = cpfs;
+                    MainWindowViewModel.Instance.SelectedTabIndex = 2;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await MessageBoxManager.GetMessageBoxStandard(
+                "Erro",
+                "Erro ao abrir gerenciamento de CPF para esta coleção.",
+                MsBox.Avalonia.Enums.ButtonEnum.Ok,
+                MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
+        }
+        finally
+        {
+            ManagingCollectionCpfs = false;
+        }
+    }
+
     /// <summary>Aba ativa na lista de coleções: normais, vencidas ou deletadas.</summary>
     public enum CollectionsTabKind
     {
@@ -174,6 +348,7 @@ public partial class CollectionsViewModel : ViewModelBase
         NewsView,
         MessagesView,
         NewCollection,
+        AddIds,
         NewCollectionPreConfigured,
         CollectionView,
         SelectProfessional,
@@ -210,6 +385,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
+        OnPropertyChanged(nameof(ComponentAddIdsIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
         OnPropertyChanged(nameof(ComponentSelectProfessionalIsIsVisible));
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
@@ -227,6 +403,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentNewsViewIsVisible => ActiveComponent == ActiveViews.NewsView;
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
     public bool ComponentNewCollectionIsVisible => ActiveComponent == ActiveViews.NewCollection;
+    public bool ComponentAddIdsIsVisible => ActiveComponent == ActiveViews.AddIds;
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
@@ -254,7 +431,12 @@ public partial class CollectionsViewModel : ViewModelBase
 
     /// <summary>Lista de coleções vencidas (prazo expirado). Carregada ao abrir a aba "Vencidas" pela primeira vez.</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsList = new();
-    partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+    partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value)
+    {
+        OnPropertyChanged(nameof(VisibleCollectionsList));
+        OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+    }
 
     [ObservableProperty] private bool expiredCollectionsListIsLoading;
     partial void OnExpiredCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
@@ -281,9 +463,17 @@ public partial class CollectionsViewModel : ViewModelBase
         SelectedCollectionsTab == CollectionsTabKind.Deleted && SelectedCollection != null &&
         DeletedCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
 
+    /// <summary>True quando a coleção selecionada está na lista de vencidas (aba "Vencidas").</summary>
+    public bool IsSelectedCollectionInExpiredList =>
+        SelectedCollectionsTab == CollectionsTabKind.Expired && SelectedCollection != null &&
+        ExpiredCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
+
     void NotifyDeletedCollectionViewState()
     {
         OnPropertyChanged(nameof(IsSelectedCollectionInDeletedList));
+        OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
+        OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
         OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
         OnPropertyChanged(nameof(BtExportIsEnabledForView));
         OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
@@ -315,6 +505,14 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool IsEnabledFiltersInList => IsEnabledFilters && SelectedCollectionsTab == CollectionsTabKind.Normal;
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
+    [ObservableProperty] private bool copyingCollectionCpfs;
+    [ObservableProperty] private bool managingCollectionCpfs;
+
+    public bool CollectionCpfsCommandsEnabled => !CopyingCollectionCpfs && !ManagingCollectionCpfs;
+
+    partial void OnCopyingCollectionCpfsChanged(bool value) => OnPropertyChanged(nameof(CollectionCpfsCommandsEnabled));
+
+    partial void OnManagingCollectionCpfsChanged(bool value) => OnPropertyChanged(nameof(CollectionCpfsCommandsEnabled));
     [ObservableProperty] public bool collectionsListIsLoading = true;
     partial void OnCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
     [ObservableProperty] public bool isEnabledFilters = false;
@@ -336,6 +534,11 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Indica se o combo selecionado é apenas para tratamento (sem reconhecimento facial)
     /// </summary>
     [ObservableProperty] public bool isTreatmentOnlyCombo = false;
+
+    /// <summary>
+    /// Modo "Adicionar IDs" (sem reupload): mostra apenas Graduates + nome da coleção.
+    /// </summary>
+    [ObservableProperty] private bool isAddIdsOnlyMode = false;
 
     //ProfessionalTask Props
     [ObservableProperty] public string tbCollectionName;
@@ -380,6 +583,60 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Mensagem de erro para exibir quando o HD não pode ser habilitado
     /// </summary>
     [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
+
+    /// <summary>
+    /// HD marcado e o toggle bloqueado porque há CPF/ID na lista (paridade com WPF CreateNewClassView.UpdateCbHdBackupIsEnabled).
+    /// </summary>
+    [ObservableProperty] public bool cbHDBackupLockedByCpfs = false;
+
+    /// <summary>
+    /// Habilita o checkbox HD quando não está travado por faturamento nem por CPFs na lista.
+    /// </summary>
+    public bool CbHDBackupToggleIsEnabled => !CbHDBackupIsDisabled && !CbHDBackupLockedByCpfs;
+
+    partial void OnCbHDBackupIsDisabledChanged(bool value) =>
+        OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
+
+    partial void OnCbHDBackupLockedByCpfsChanged(bool value) =>
+        OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
+
+    /// <summary>Toast: ao incluir CPF/ID em graduandos, a coleção passa a HD automaticamente.</summary>
+    [ObservableProperty] public bool isGraduateHdToastVisible;
+
+    [ObservableProperty] public string graduateHdToastMessage = string.Empty;
+
+    private bool _graduateHdToastShownUntilCleared;
+    private CancellationTokenSource? _graduateHdToastDismissCts;
+
+    private void ShowGraduateForcesHdToast()
+    {
+        GraduateHdToastMessage = Loc.Tr(
+            "When you add graduates with CPF/ID, the collection becomes HD automatically.",
+            "Ao incluir graduandos (CPF/ID), a coleção passa a ser em HD automaticamente.");
+        IsGraduateHdToastVisible = true;
+        _graduateHdToastDismissCts?.Cancel();
+        _graduateHdToastDismissCts = new CancellationTokenSource();
+        var ct = _graduateHdToastDismissCts.Token;
+        _ = DismissGraduateHdToastAfterDelayAsync(ct);
+    }
+
+    private async Task DismissGraduateHdToastAfterDelayAsync(CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(5000, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (!ct.IsCancellationRequested)
+                IsGraduateHdToastVisible = false;
+        });
+    }
     
     /// <summary>
     /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
@@ -753,10 +1010,16 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     [ObservableProperty] public bool? cbEnableAutoExclusion = true;
     [ObservableProperty] public bool? cbEnablePhotoSales;
+    [ObservableProperty] public bool? cbPhotosCannotHaveWatermarks;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
     [ObservableProperty] public double? tbTotalPhotosForFreePerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
-    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value) => OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+    partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value)
+    {
+        OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+        if (value != true)
+            CbPhotosCannotHaveWatermarks = false;
+    }
     [ObservableProperty] public bool? cbUploadedPhotosAreAlreadySorted;
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
@@ -771,6 +1034,37 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnSelectedSeparationFileChanged(ClassSeparationFile value)
     {
         UpdateSeparationProgress();
+        OpenSeparationFileDirectoryCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanOpenSeparationFileDirectory =>
+        SelectedSeparationFile != null
+        && SelectedSeparationFile.FileLocationType == ClassSeparationFile.FileLocationTypes.LOCAL
+        && !string.IsNullOrWhiteSpace(SelectedSeparationFile.FilePathInLocalDisk);
+
+    [RelayCommand(CanExecute = nameof(CanOpenSeparationFileDirectory))]
+    private void OpenSeparationFileDirectory()
+    {
+        if (SelectedSeparationFile?.FilePathInLocalDisk == null) return;
+        try
+        {
+            var path = SelectedSeparationFile.FilePathInLocalDisk.Trim();
+            // Abrir a pasta Save (onde está o separacao.hermes)
+            var saveDir = Path.GetDirectoryName(path);
+            if (!string.IsNullOrWhiteSpace(saveDir) && Directory.Exists(saveDir))
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{saveDir}\"") { UseShellExecute = true });
+                return;
+            }
+            // Fallback: pasta pai (ex.: .../17_03_2026__13_04_TesteEmbaralhamento)
+            var parentDir = Path.GetDirectoryName(saveDir);
+            if (!string.IsNullOrWhiteSpace(parentDir) && Directory.Exists(parentDir))
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{parentDir}\"") { UseShellExecute = true });
+        }
+        catch
+        {
+            // best-effort: não interromper se o Explorer falhar
+        }
     }
 
     [ObservableProperty] public bool classSeparationFilesIsVisible;
@@ -796,6 +1090,11 @@ public partial class CollectionsViewModel : ViewModelBase
     /// Exibe o campo "Total de fotos grátis por formando" quando há pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" está marcado.
     /// </summary>
     public bool IsTotalPhotosForFreePerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
+
+    /// <summary>Visibilidade do campo de pasta de reconhecimentos (não aparece em combo apenas tratamento).</summary>
+    public bool RecFolderFieldIsVisible => !IsTreatmentOnlyCombo;
+
+    partial void OnIsTreatmentOnlyComboChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
@@ -864,6 +1163,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadComplete = SelectedCollection.UploadComplete,
                 Description = SelectedCollection.Description,
                 EnablePhotosSales = SelectedCollection.EnablePhotosSales,
+                PhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
                 TotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate,
                 OCR = SelectedCollection.OCR,
@@ -939,6 +1239,8 @@ public partial class CollectionsViewModel : ViewModelBase
 
     public ObservableCollection<string> BlockTypeOptions { get; } =
     new ObservableCollection<string> { "WATERMARK", "ACCESS_DENIED" };
+
+    [ObservableProperty] private AddIdsViewModel? addIdsVm;
 
     [ObservableProperty] public ProfessionalTask selectedCollectionForCancelBilling;
     [ObservableProperty] public bool cancelBillingIsRunning;
@@ -1025,6 +1327,7 @@ public partial class CollectionsViewModel : ViewModelBase
             foreach (var inpc in _graduatePropertyChangedSubscriptions)
                 inpc.PropertyChanged -= GraduateByCPF_PropertyChanged;
             _graduatePropertyChangedSubscriptions.Clear();
+            UpdateHdBackupStateFromGraduatesData();
             return;
         }
         if (e.NewItems != null)
@@ -1049,12 +1352,36 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
         }
+        UpdateHdBackupStateFromGraduatesData();
     }
 
     private void GraduateByCPF_PropertyChanged(object sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(GraduateByCPF.CPF))
+        {
             OnPropertyChanged(nameof(IsTotalPhotosForFreePerGraduateVisible));
+            UpdateHdBackupStateFromGraduatesData();
+        }
+    }
+
+    /// <summary>
+    /// Com CPF/ID na lista, o backup HD fica obrigatório e o toggle é desabilitado (igual ao dashboard WPF).
+    /// </summary>
+    private void UpdateHdBackupStateFromGraduatesData()
+    {
+        var hasCpfs = GraduatesData != null &&
+                      GraduatesData.Any(static g => g != null && !string.IsNullOrWhiteSpace(g.CPF));
+        CbHDBackupLockedByCpfs = hasCpfs;
+        if (hasCpfs && CbHDBackup != true)
+            CbHDBackup = true;
+
+        if (hasCpfs && !_graduateHdToastShownUntilCleared)
+        {
+            _graduateHdToastShownUntilCleared = true;
+            ShowGraduateForcesHdToast();
+        }
+        else if (!hasCpfs)
+            _graduateHdToastShownUntilCleared = false;
     }
 
     private bool _hasCheckedInitialMessages = false;
@@ -1713,7 +2040,9 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(g);
         }
         SortGraduatesDataAlphabetically();
+        UpdateHdBackupStateFromGraduatesData();
     }
+
     public async Task UpdateClassSeparationFile(string classCode)
     {
         List<ClassSeparationFile> sepFiles = new List<ClassSeparationFile>();
@@ -2021,6 +2350,29 @@ public partial class CollectionsViewModel : ViewModelBase
                 TbRecFolder = "";
             }
         }
+        catch (UnauthorizedAccessException uex)
+        {
+            TbEventFolderError = true;
+            var denied = FileHelper.GetDeniedPathFromUnauthorizedAccess(uex) ?? TbEventFolder ?? "";
+            _ = Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(
+                    TbEventFolder ?? "",
+                    denied,
+                    uex,
+                    "Não foi possível ler o conteúdo da pasta de eventos. O Windows negou permissão ao listar as subpastas — a pasta pode estar bloqueada, ser de outro usuário ou exigir permissões de administrador.");
+            });
+        }
+        catch (IOException ioex)
+        {
+            TbEventFolderError = true;
+            _ = Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(
+                    "Não foi possível acessar a pasta de eventos ao listar subpastas.\n\n" + ioex.Message,
+                    "Acesso à pasta");
+            });
+        }
         finally
         {
         }
@@ -2115,68 +2467,226 @@ public partial class CollectionsViewModel : ViewModelBase
         RefreshSeparationProgressPollingState();
     }
 
-    public void UpdateGraduateDataFromFile(FileInfo f)
+    /// <summary>
+    /// Retorna null em caso de sucesso, ou a mensagem de erro para o caller exibir com await.
+    /// </summary>
+    public string? UpdateGraduateDataFromFile(FileInfo f)
     {
         // Se for apenas tratamento, não processar dados de reconhecimento
         if (IsTreatmentOnlyCombo)
         {
-            return;
+            return null;
         }
 
         // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
         if (!CanAddCPFs)
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
-            return;
+            return CPFsErrorMessage;
         }
         
         GraduatesData.Clear();
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-        var package = new ExcelPackage(f);
+        using var package = new ExcelPackage(f);
 
         ExcelWorksheet workSheet = package.Workbook.Worksheets[0];
+        if (workSheet?.Dimension == null)
+            return null;
 
-        for (int i = 1;
-                 i <= 1000000;
-                 i++)
+        // Mapear colunas por cabeçalho (inclui Nome / Name)
+        static string NormalizeHeader(string? h)
         {
-            GraduateByCPF gradByCPF = new GraduateByCPF();
+            return (h ?? "")
+                .Trim()
+                .ToLowerInvariant()
+                .Replace("á", "a").Replace("à", "a").Replace("ã", "a").Replace("â", "a")
+                .Replace("é", "e").Replace("ê", "e")
+                .Replace("í", "i")
+                .Replace("ó", "o").Replace("ô", "o").Replace("õ", "o")
+                .Replace("ú", "u")
+                .Replace("ç", "c");
+        }
 
-            var photoPathCell = workSheet.Cells[i, 1].Value;
+        var colCount = workSheet.Dimension.End.Column;
+        var rowCount = workSheet.Dimension.End.Row;
+        var headerToCol = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int c = 1; c <= colCount; c++)
+        {
+            var headerText = workSheet.Cells[1, c].Text;
+            var norm = NormalizeHeader(headerText);
+            if (!string.IsNullOrWhiteSpace(norm) && !headerToCol.ContainsKey(norm))
+                headerToCol[norm] = c;
+        }
+
+        bool LooksLikeHeaderRow()
+        {
+            // Se a primeira célula parece um nome de arquivo de imagem, é dado (não cabeçalho).
+            var firstCell = (workSheet.Cells[1, 1].Text ?? "").Trim().ToLowerInvariant();
+            if (firstCell.EndsWith(".jpg") || firstCell.EndsWith(".jpeg") || firstCell.EndsWith(".png")
+                || firstCell.EndsWith(".nef") || firstCell.EndsWith(".cr2") || firstCell.EndsWith(".cr3")
+                || firstCell.EndsWith(".raw") || firstCell.EndsWith(".crw") || firstCell.EndsWith(".arw")
+                || firstCell.EndsWith(".dng") || firstCell.EndsWith(".heic") || firstCell.EndsWith(".raf"))
+                return false;
+
+            // Evitar falsos positivos quando uma tradução vier vazia (Contains("") seria sempre true).
+            var photoKey = NormalizeHeader(TranslationHelper.Default.PHOTO_NAME);
+            var idKey = NormalizeHeader(TranslationHelper.Default.ID);
+            var maxKey = NormalizeHeader(TranslationHelper.Default.MAX_PHOTOS);
+            var maxTreatKey = NormalizeHeader(TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT);
+
+            int hits = 0;
+            for (int c = 1; c <= colCount; c++)
+            {
+                var norm = NormalizeHeader(workSheet.Cells[1, c].Text);
+                if (string.IsNullOrWhiteSpace(norm))
+                    continue;
+
+                // Só contar "contains" quando o token tem conteúdo suficiente.
+                if ((!string.IsNullOrWhiteSpace(photoKey) && photoKey.Length >= 3 && norm.Contains(photoKey))
+                    || norm == "photo" || norm == "foto" || norm.Contains("shortpath") || norm.Contains("short path"))
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(idKey) && idKey.Length >= 2 && norm == idKey) || norm == "cpf" || norm == "id")
+                    hits++;
+                else if (norm == "email" || norm == "e-mail" || norm.Replace(" ", "") == "email")
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(maxKey) && maxKey.Length >= 3 && norm.Contains(maxKey)) || norm.Contains("max fotos") || norm.Contains("max photos"))
+                    hits++;
+                else if ((!string.IsNullOrWhiteSpace(maxTreatKey) && maxTreatKey.Length >= 3 && norm.Contains(maxTreatKey)) || norm.Contains("trat") || norm.Contains("treatment"))
+                    hits++;
+
+                if (hits >= 2)
+                    return true;
+            }
+            return false;
+        }
+
+        int getCol(params string[] keys)
+        {
+            foreach (var k in keys)
+            {
+                var nk = NormalizeHeader(k);
+                if (headerToCol.TryGetValue(nk, out var col))
+                    return col;
+            }
+            return -1;
+        }
+
+        var colPhoto = getCol(TranslationHelper.Default.PHOTO_NAME, "photo", "foto", "nome da foto", "shortpath", "short path");
+        var colCpf = getCol(TranslationHelper.Default.ID, "cpf", "id");
+        var colName = getCol("nome", "name");
+        var colEmail = getCol("email", "e-mail", "e mail");
+        var colMaxPhotos = getCol(TranslationHelper.Default.MAX_PHOTOS, "max photos", "max fotos");
+        var colMaxTreatment = getCol(TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, "max photos for treatment", "max fotos p/ tratar", "max fotos para tratamento");
+        var colBlocked = getCol(TranslationHelper.Default.BLOCKED, "blocked", "bloqueado");
+        var colBlockMode = getCol(TranslationHelper.Default.BLOCK_MODE, "block mode", "block type", "tipo de bloqueio");
+
+        static string ExcelColumnName(int colNumber)
+        {
+            if (colNumber <= 0) return "?";
+            var name = "";
+            while (colNumber > 0)
+            {
+                colNumber--;
+                name = (char)('A' + (colNumber % 26)) + name;
+                colNumber /= 26;
+            }
+            return name;
+        }
+
+        // Fallback compatível com layout antigo (sem a coluna Nome)
+        if (colPhoto == -1) colPhoto = 1;
+        if (colCpf == -1) colCpf = 2;
+        if (colName == -1) colName = 3;
+        if (colEmail == -1) colEmail = headerToCol.ContainsKey(NormalizeHeader("nome")) || headerToCol.ContainsKey(NormalizeHeader("name")) ? 4 : 3;
+        if (colMaxPhotos == -1) colMaxPhotos = colEmail + 1;
+        if (colMaxTreatment == -1) colMaxTreatment = colMaxPhotos + 1;
+        if (colBlocked == -1) colBlocked = colMaxTreatment + 1;
+        if (colBlockMode == -1) colBlockMode = colBlocked + 1;
+
+        var hasHeader = LooksLikeHeaderRow();
+        var startRow = hasHeader ? 2 : 1;
+
+        for (int i = startRow; i <= rowCount && i <= 1_000_000; i++)
+        {
+            GraduateByCPF gradByCPF = new GraduateByCPF { Name = "" };
+
+            var photoPathCell = workSheet.Cells[i, colPhoto].Value;
             if (photoPathCell == null)
                 break;
-
-            if (photoPathCell.ToString() == TranslationHelper.Default.PHOTO_NAME)
-                continue;
 
             var recFolder = TbRecFolder.Replace("\\", "/");
             var photoPath = photoPathCell.ToString().Replace("\\", "/");
             if (photoPath.StartsWith(recFolder))
-                photoPath.Replace(recFolder, "");
+                photoPath = photoPath.Replace(recFolder, "").TrimStart('/');
+
             if (!File.Exists(recFolder + "/" + photoPath))
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("O arquivo " + recFolder + "/" + photoPath + " não existe.");
-                break;
+                return "O arquivo " + recFolder + "/" + photoPath + " não existe.";
             }
             gradByCPF.ShortPath = photoPath;
 
-            var CPFCell = workSheet.Cells[i, 2].Value;
+            var CPFCell = workSheet.Cells[i, colCpf].Value;
             if (CPFCell != null)
                 gradByCPF.CPF = CPFCell.ToString();
 
-            var emailCell = workSheet.Cells[i, 3].Value;
+            var nameCell = workSheet.Cells[i, colName].Value;
+            if (nameCell != null)
+                gradByCPF.Name = nameCell.ToString();
+
+            var emailCell = workSheet.Cells[i, colEmail].Value;
             if (emailCell != null)
                 gradByCPF.Email = emailCell.ToString();
 
-            var maxPhotosCell = workSheet.Cells[i, 4].Value;
-            if (maxPhotosCell != null && (maxPhotosCell as string) != "")
-                gradByCPF.MaxPhotos = int.Parse(StringHelper.RemoveAllCharactersButNumbers(maxPhotosCell.ToString()));
+            var maxPhotosCell = workSheet.Cells[i, colMaxPhotos].Value;
+            if (maxPhotosCell == null || string.IsNullOrWhiteSpace(maxPhotosCell.ToString()))
+            {
+                gradByCPF.MaxPhotos = null;
+            }
+            else
+            {
+                var raw = maxPhotosCell.ToString();
+                var onlyDigits = StringHelper.RemoveAllCharactersButNumbers(raw);
+                if (string.IsNullOrWhiteSpace(onlyDigits) || !int.TryParse(onlyDigits, out var parsed))
+                {
+                    var header = hasHeader ? workSheet.Cells[1, colMaxPhotos].Text : "(sem cabeçalho)";
+                    var colExcel = ExcelColumnName(colMaxPhotos);
+                    return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                           $"Linha: {i}\n" +
+                           $"Campo: {TranslationHelper.Default.MAX_PHOTOS}\n" +
+                           $"Coluna (Excel): {colExcel} (#{colMaxPhotos})\n" +
+                           $"Cabeçalho: \"{header}\"\n" +
+                           $"Valor encontrado: \"{raw}\"\n\n" +
+                           "Esperado: um número inteiro (ex.: 10) ou célula vazia.\n" +
+                           "Corrija o Excel e tente novamente.";
+                }
+                gradByCPF.MaxPhotos = parsed;
+            }
 
-            var maxPhotosForTreatmentCell = workSheet.Cells[i, 5].Value;
-            if (maxPhotosForTreatmentCell != null && (maxPhotosForTreatmentCell as string) != "")
-                gradByCPF.MaxPhotosForTreatmentRequest = int.Parse(StringHelper.RemoveAllCharactersButNumbers(maxPhotosForTreatmentCell.ToString()));
+            var maxPhotosForTreatmentCell = workSheet.Cells[i, colMaxTreatment].Value;
+            if (maxPhotosForTreatmentCell == null || string.IsNullOrWhiteSpace(maxPhotosForTreatmentCell.ToString()))
+            {
+                gradByCPF.MaxPhotosForTreatmentRequest = null;
+            }
+            else
+            {
+                var raw = maxPhotosForTreatmentCell.ToString();
+                var onlyDigits = StringHelper.RemoveAllCharactersButNumbers(raw);
+                if (string.IsNullOrWhiteSpace(onlyDigits) || !int.TryParse(onlyDigits, out var parsed))
+                {
+                    var header = hasHeader ? workSheet.Cells[1, colMaxTreatment].Text : "(sem cabeçalho)";
+                    var colExcel = ExcelColumnName(colMaxTreatment);
+                    return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                           $"Linha: {i}\n" +
+                           $"Campo: {TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT}\n" +
+                           $"Coluna (Excel): {colExcel} (#{colMaxTreatment})\n" +
+                           $"Cabeçalho: \"{header}\"\n" +
+                           $"Valor encontrado: \"{raw}\"\n\n" +
+                           "Esperado: um número inteiro (ex.: 10) ou célula vazia.\n" +
+                           "Corrija o Excel e tente novamente.";
+                }
+                gradByCPF.MaxPhotosForTreatmentRequest = parsed;
+            }
 
-            var blockedCellValue = workSheet.Cells[i, 6].Value ?? false;
+            var blockedCellValue = workSheet.Cells[i, colBlocked].Value ?? false;
             if (blockedCellValue == null || string.IsNullOrWhiteSpace(blockedCellValue.ToString()))
             {
                 gradByCPF.Blocked = false;
@@ -2204,7 +2714,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                 }
             }
-            var blockTypeCellValue = workSheet.Cells[i, 7].Value;
+            var blockTypeCellValue = workSheet.Cells[i, colBlockMode].Value;
             if (blockTypeCellValue == null || string.IsNullOrWhiteSpace(blockTypeCellValue.ToString()))
             {
                 gradByCPF.BlockType = "watermark";
@@ -2235,6 +2745,7 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(gradByCPF);
         }
         SortGraduatesDataAlphabetically();
+        return null;
     }
     /// <summary>
     /// Ordena a lista GraduatesData alfabeticamente crescente pelo nome da foto (ShortPath)
@@ -2315,7 +2826,9 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova cole��o personalizada
+        _preConfiguredComboAuthority = null;
 
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2324,6 +2837,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2358,7 +2872,9 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
+        _preConfiguredComboAuthority = null;
 
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2367,6 +2883,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2403,6 +2920,8 @@ public partial class CollectionsViewModel : ViewModelBase
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
+        _preConfiguredComboAuthority = options;
+        GraduatesData.Clear();
         TbCollectionName = GenerateDynamicClassCode();
         TbEventFolder = string.Empty;
         TbRecFolder = string.Empty;
@@ -2411,6 +2930,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = options.BackupHd;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = options.EnablePhotoSales;
+        CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessioanlTaskDescription = string.Empty;
@@ -2431,13 +2951,87 @@ public partial class CollectionsViewModel : ViewModelBase
         
         // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
-        CbHDStorageThreeMonths = false;
-        CbHDStorageTwoYears = false;
-        CbHDStorageFiveYears = options.BackupHd == true ? true : false;
+        ApplyHdStoragePeriodFromComboOptions(options);
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
     }
+
+    /// <summary>
+    /// Aplica o prazo de armazenamento definido no combo (meses no backend) aos toggles 3 meses / 2 anos / 5 anos da criação da turma.
+    /// </summary>
+    private void ApplyHdStoragePeriodFromComboOptions(CollectionComboOptions options)
+    {
+        CbHDStorageThreeMonths = false;
+        CbHDStorageTwoYears = false;
+        CbHDStorageFiveYears = false;
+        if (options.BackupHd != true)
+            return;
+
+        if (options.StorageTimeMonths.HasValue)
+        {
+            int m = options.StorageTimeMonths.Value;
+            int best = new[] { 3, 24, 60 }.OrderBy(b => Math.Abs(b - m)).First();
+            if (best == 3)
+                CbHDStorageThreeMonths = true;
+            else if (best == 24)
+                CbHDStorageTwoYears = true;
+            else
+                CbHDStorageFiveYears = true;
+            return;
+        }
+
+        // Sem meses explícitos no backend: manter o padrão já usado no app (5 anos quando HD está no combo)
+        CbHDStorageFiveYears = true;
+    }
+
+    [RelayCommand]
+    public async Task OpenAddIdsViewCommand()
+    {
+        if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
+            return;
+
+        IsReupload = false;
+
+        CurrentProfessionalName = SelectedCollection.professionalLogin;
+        ScrollComponentNewCollection = 0;
+        ActiveComponent = ActiveViews.AddIds;
+        _preConfiguredComboAuthority = null;
+
+        TbCollectionName = SelectedCollection.classCode;
+
+        // Tentar popular a pasta de reconhecimentos local para o seletor de arquivos.
+        TbEventFolder = SelectedCollection.originalEventsFolder;
+        TbRecFolder = SelectedCollection.originalRecFolder;
+        if (string.IsNullOrWhiteSpace(TbRecFolder) || !Directory.Exists(TbRecFolder))
+        {
+            // Se vier apenas a pasta de eventos, tenta inferir a pasta de reconhecimentos pelo layout da turma.
+            CheckPathEventFolder();
+        }
+
+        // Regras de CPF/ID: mantém o mesmo bloqueio usado no reupload (outro período + não-HD).
+        var canAddCpfs = true;
+        var cpfsErrorMessage = string.Empty;
+        if (IsCollectionFromDifferentBillingPeriod(SelectedCollection) && (SelectedCollection.UploadHD != true))
+        {
+            canAddCpfs = false;
+            cpfsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+        }
+
+        AddIdsVm = new AddIdsViewModel(
+            GlobalAppStateViewModel.lfc,
+            SelectedCollection,
+            CurrentProfessionalName,
+            TbRecFolder,
+            canAddCpfs,
+            cpfsErrorMessage);
+
+        // Abrir rápido: navega já com título/ID/separador preenchidos e carrega a lista em background.
+        _ = AddIdsVm.InitializeAsync();
+    }
+
+    public void SortGraduatesDataAlphabeticallyForUi() => SortGraduatesDataAlphabetically();
+
     [RelayCommand]
     public void OpenReuploadViewCommand()
     {
@@ -2453,6 +3047,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             ScrollComponentNewCollection = 0;
             ActiveComponent = ActiveViews.NewCollection;
+            _preConfiguredComboAuthority = null;
 
             ExpanderAdvancedOptions = true;
             ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
@@ -2467,6 +3062,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
+            CbPhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
             TbTotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
             TbProfessioanlTaskDescription = SelectedCollection.Description;
@@ -2599,6 +3195,7 @@ public partial class CollectionsViewModel : ViewModelBase
             collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
             collectionInList.OCR = updatedCollection.OCR;
             collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+            collectionInList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
             collectionInList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
             collectionInList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
             collectionInList.Status = updatedCollection.Status;
@@ -2623,6 +3220,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
                 collectionInFilteredList.OCR = updatedCollection.OCR;
                 collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
+                collectionInFilteredList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
                 collectionInFilteredList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
                 collectionInFilteredList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
                 collectionInFilteredList.Status = updatedCollection.Status;
@@ -2731,18 +3329,6 @@ public partial class CollectionsViewModel : ViewModelBase
     public async Task DeleteClassCommand()
     {
         if (SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
-            return;
-        var viewModel = new DeleteCollectionChoiceViewModel(
-            GlobalAppStateViewModel.lfc,
-            SelectedCollection.classCode,
-            SelectedCollection.classCode);
-        var dialog = new DeleteCollectionChoiceWindow
-        {
-            DataContext = viewModel
-        };
-        viewModel.SetWindow(dialog);
-        await dialog.ShowDialog(MainWindow.instance);
-        if (viewModel.Result != DeleteCollectionChoiceResult.FullDeletion)
             return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
             Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusão desta coleção? Esta ação pode ser cancelada depois na lista de coleções deletadas."),
@@ -3026,6 +3612,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadComplete = false,
                 Description = TbProfessionalTaskDescription,
                 EnablePhotosSales = CbEnablePhotoSales,
+                PhotosCannotHaveWatermarks = CbPhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 TotalPhotosForFreePerGraduate = (int)(TbTotalPhotosForFreePerGraduate ?? 0.0),
                 OCR = CbOcr,
@@ -3045,8 +3632,30 @@ public partial class CollectionsViewModel : ViewModelBase
                 pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             }
 
-            var eventFiles = FileHelper.GetFilesWithExtensionsAndFilters(pt.originalEventsFolder);
-            var recFiles = IsTreatmentOnlyCombo ? new List<FileInfo>() : FileHelper.GetFilesWithExtensionsAndFilters(pt.originalRecFolder);
+            if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out var eventFiles, out var deniedEventsPath, out var eventsErr))
+            {
+                if (eventsErr is UnauthorizedAccessException)
+                    await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
+                else
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                return;
+            }
+
+            List<FileInfo> recFiles;
+            string deniedRecPath = null;
+            Exception recErr = null;
+            if (IsTreatmentOnlyCombo)
+            {
+                recFiles = new List<FileInfo>();
+            }
+            else if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalRecFolder, out recFiles, out deniedRecPath, out recErr))
+            {
+                if (recErr is UnauthorizedAccessException)
+                    await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
+                else
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                return;
+            }
             var checkIfClassCanBeCreated = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
             if (checkIfClassCanBeCreated.response == false)
             {
@@ -3070,6 +3679,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 //pt.UploadHD = false; -> this line was removed when implementing the change to let users make backups without CPFs.
             }
 
+            if (_preConfiguredComboAuthority != null)
+                PreConfiguredComboProfessionalTaskAuthority.Apply(_preConfiguredComboAuthority, pt);
 
             // CORREÇÃO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
             // O Beta não tem barra final no originalEventsFolder, então os shortPaths ficam com \ no início
@@ -3082,12 +3693,63 @@ public partial class CollectionsViewModel : ViewModelBase
                 ? new List<string>() 
                 : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
-            // Desambigua nomes: fotos de eventos com mesmo nome que em reconhecimentos são renomeadas (_ev) para evitar conflito no backend
-            var (eventPathsToSend, recPathsToSend, disambiguateError) = DisambiguateEventAndRecPhotoPaths(eventsBase, eventFiles, eventFilesShortPaths, recFilesShortPaths);
-            if (disambiguateError != null)
+            // Impedir criar coleção se existirem fotos com o mesmo nome em Eventos e Reconhecimentos
+            // Se o usuário corrigir os nomes, ao clicar em "Já corrigi, continuar" recarregamos os arquivos e repetimos a verificação.
+            while (true)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(disambiguateError);
-                return;
+                var duplicates = GetDuplicatePhotoNamesBetweenEventsAndRec(eventsBase, recBase, eventFilesShortPaths, recFilesShortPaths);
+                if (duplicates.Count == 0)
+                    break;
+
+                const int maxShow = 15;
+                var intro = "Existem fotos com o mesmo nome na pasta de Eventos e na pasta de Reconhecimentos. " +
+                    "Para evitar conflitos, renomeie as fotos duplicadas (em uma das pastas) e tente novamente." +
+                    "\n\n— Fotos com o mesmo nome —";
+                var moreCount = duplicates.Count > maxShow ? duplicates.Count - maxShow : 0;
+
+                var dialog = new DuplicatePhotosWarningWindow();
+                dialog.SetContent(intro, duplicates, maxShow, moreCount);
+
+                var owner = MainWindow.instance;
+                await (owner != null ? dialog.ShowDialog(owner) : dialog.ShowDialog(null!));
+
+                if (!dialog.ContinueRequested)
+                    return;
+
+                // Recarrega as pastas para refletir os renomeios feitos durante o diálogo
+                if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out eventFiles, out deniedEventsPath, out eventsErr))
+                {
+                    if (eventsErr is UnauthorizedAccessException)
+                        await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
+                    else
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                    return;
+                }
+
+                if (IsTreatmentOnlyCombo)
+                {
+                    recFiles = new List<FileInfo>();
+                }
+                else if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalRecFolder, out recFiles, out deniedRecPath, out recErr))
+                {
+                    if (recErr is UnauthorizedAccessException)
+                        await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
+                    else
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                    return;
+                }
+
+                var checkIfClassCanBeCreatedAgain = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
+                if (checkIfClassCanBeCreatedAgain.response == false)
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(checkIfClassCanBeCreatedAgain.message);
+                    return;
+                }
+
+                eventFilesShortPaths = eventFiles.Select(x => x.FullName.Substring(eventsBase.Length)).ToList();
+                recFilesShortPaths = string.IsNullOrEmpty(recBase)
+                    ? new List<string>()
+                    : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
             }
 
             bool shouldNotifyPipedriveAboutFirstUse = false;
@@ -3099,31 +3761,43 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
-                int totalCollectionPhotos = recPathsToSend!.Count + eventPathsToSend!.Count;
+                int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
+                // Em reupload, a cota do teste deve considerar apenas as fotos NOVAS (diferença vs. o que já existe na coleção).
+                int existingCollectionPhotos = 0;
+                if (IsReupload && SelectedCollection != null)
+                    existingCollectionPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
+                int photosToConsumeFromFreeTrial = IsReupload
+                    ? Math.Max(0, totalCollectionPhotos - existingCollectionPhotos)
+                    : totalCollectionPhotos;
+
                 //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
-                if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
+                if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
 
                 //VERIFICA SE A QUOTA DE TESTE EST� SENDO EXCEDIDA
-                if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0 && totalCollectionPhotos > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
+                if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0
+                    && photosToConsumeFromFreeTrial > 0
+                    && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Você esgotou sua cota gratuita de fotos para teste. A partir de agora, todas as fotos adicionais desta turma e de turmas futuras estarão sujeitas a cobrança.", "Limite máximo de fotos gratuitas atingido.");
-                    if (dialog != true)
-                        return;
+                    var msg = $"**Você atingiu o limite de fotos grátis do teste.**\n\n" +
+                              $"Neste envio, **{photosToConsumeFromFreeTrial}** foto(s) serão contabilizadas na cota grátis.\n" +
+                              $"Saldo grátis disponível: **{RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}** foto(s).\n\n" +
+                              $"A partir de agora, as fotos adicionais desta turma (e de turmas futuras) poderão estar sujeitas a cobrança.";
+                    await GlobalAppStateViewModel.Instance.ShowDialogEntendi(msg, "Limite de fotos grátis do teste atingido");
                 }
             }
 
-            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recPathsToSend!, eventPathsToSend!);
+            var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, recFilesShortPaths, eventFilesShortPaths);
             if (r != null && r.success)
             {
                 foreach (var g in graduatesDataToUpload)
+                {
                     g.ClassCode = pt.classCode;
+                    g.Company = pt.companyUsername;
+                }
                 if (graduatesDataToUpload.Count > 0)
                     await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
-
-
-
 
                 Action<int> callback = MainWindowViewModel.Instance != null
                     ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
@@ -3142,7 +3816,7 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(r.message);
+                await GlobalAppStateViewModel.Instance.ShowCollectionCreationSupportDialogAsync(r?.message);
             }
 
             // PipeDrive notifications are now handled server-side
@@ -3168,105 +3842,37 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Evita conflito de nomes entre pastas de eventos e reconhecimentos: fotos de eventos
-    /// com o mesmo nome que em reconhecimentos são renomeadas no disco (sufixo _ev) e
-    /// retorna as listas de short paths já desambiguadas para envio ao backend.
+    /// Devolve as fotos que têm o mesmo nome na pasta de Eventos e na de Reconhecimentos (comparação case-insensitive).
+    /// Cada entrada contém o nome do ficheiro e os caminhos completos em cada pasta para exibir ao utilizador.
     /// </summary>
-    /// <returns>(eventShortPaths, recShortPaths) em caso de sucesso; (null, null, mensagemErro) em caso de falha na renomeação.</returns>
-    private (List<string>? eventShortPaths, List<string>? recShortPaths, string? errorMessage) DisambiguateEventAndRecPhotoPaths(
+    private static List<(string fileName, string eventFullPath, string recFullPath)> GetDuplicatePhotoNamesBetweenEventsAndRec(
         string eventsBase,
-        List<FileInfo> eventFiles,
+        string recBase,
         List<string> eventFilesShortPaths,
         List<string> recFilesShortPaths)
     {
-        if (recFilesShortPaths.Count == 0)
-            return (eventFilesShortPaths, recFilesShortPaths, null);
+        if (string.IsNullOrEmpty(recBase) || recFilesShortPaths.Count == 0)
+            return new List<(string, string, string)>();
 
-        var recFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var recByFileName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var p in recFilesShortPaths)
-            recFileNames.Add(Path.GetFileName(p));
-
-        var usedNames = new HashSet<string>(recFileNames, StringComparer.OrdinalIgnoreCase);
-        var updatedEventShortPaths = new List<string>(eventFilesShortPaths.Count);
-        var renamesToRollback = new List<(string fullPathOld, string fullPathNew)>();
-
-        try
         {
-            for (int i = 0; i < eventFilesShortPaths.Count; i++)
-            {
-                var path = eventFilesShortPaths[i];
-                var fn = Path.GetFileName(path);
-                var dirPart = GetDirectoryPartOfShortPath(path);
-                var fullPathOld = Path.Combine(eventsBase, path.TrimStart('\\', '/'));
-
-                if (usedNames.Contains(fn))
-                {
-                    var newFn = GetUniqueFileNameWithSuffix(fn, usedNames, "_ev");
-                    usedNames.Add(newFn);
-                    var newPath = dirPart + newFn;
-                    var fullPathNew = Path.Combine(eventsBase, newPath.TrimStart('\\', '/'));
-
-                    if (!File.Exists(fullPathOld))
-                    {
-                        return (null, null, $"Ficheiro não encontrado: {fullPathOld}");
-                    }
-                    File.Move(fullPathOld, fullPathNew);
-                    renamesToRollback.Add((fullPathOld, fullPathNew));
-                    updatedEventShortPaths.Add(NormalizeShortPathSeparator(newPath));
-                }
-                else
-                {
-                    usedNames.Add(fn);
-                    updatedEventShortPaths.Add(eventFilesShortPaths[i]);
-                }
-            }
-
-            return (updatedEventShortPaths, recFilesShortPaths, null);
+            var fn = Path.GetFileName(p);
+            if (!string.IsNullOrEmpty(fn))
+                recByFileName[fn] = Path.Combine(recBase, p.TrimStart('\\', '/'));
         }
-        catch (Exception ex)
+
+        var duplicates = new List<(string fileName, string eventFullPath, string recFullPath)>();
+        foreach (var eventShort in eventFilesShortPaths)
         {
-            foreach (var (oldPath, newPath) in renamesToRollback.AsEnumerable().Reverse())
-            {
-                try
-                {
-                    if (File.Exists(newPath))
-                        File.Move(newPath, oldPath);
-                }
-                catch { /* best effort rollback */ }
-            }
-            return (null, null, ex.Message);
+            var fn = Path.GetFileName(eventShort);
+            if (string.IsNullOrEmpty(fn) || !recByFileName.TryGetValue(fn, out var recFullPath))
+                continue;
+            var eventFullPath = Path.Combine(eventsBase, eventShort.TrimStart('\\', '/'));
+            duplicates.Add((fn, eventFullPath, recFullPath));
         }
-    }
 
-    private static string GetDirectoryPartOfShortPath(string shortPath)
-    {
-        var lastSep = shortPath.LastIndexOfAny(new[] { '\\', '/' });
-        if (lastSep < 0)
-            return "";
-        return shortPath.Substring(0, lastSep + 1);
-    }
-
-    private static string GetUniqueFileNameWithSuffix(string fileName, HashSet<string> usedNames, string suffix)
-    {
-        var baseName = Path.GetFileNameWithoutExtension(fileName);
-        var ext = Path.GetExtension(fileName);
-        var candidate = baseName + suffix + ext;
-        if (!usedNames.Contains(candidate))
-            return candidate;
-        for (int n = 2; n < 10000; n++)
-        {
-            candidate = baseName + suffix + "_" + n + ext;
-            if (!usedNames.Contains(candidate))
-                return candidate;
-        }
-        return baseName + suffix + "_" + Guid.NewGuid().ToString("N").Substring(0, 8) + ext;
-    }
-
-    private static string NormalizeShortPathSeparator(string shortPath)
-    {
-        if (string.IsNullOrEmpty(shortPath))
-            return shortPath;
-        return shortPath.Replace('/', '\\');
+        return duplicates;
     }
 
     /// <summary>
@@ -3582,7 +4188,19 @@ public partial class CollectionsViewModel : ViewModelBase
             //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
             return;
         }
-        var gradPhotos = FileHelper.GetFilesWithExtensionsAndFilters(TbRecFolder);
+        if (!FileHelper.TryGetFilesWithExtensionsAndFilters(TbRecFolder, out var gradPhotos, out var deniedPath, out var err))
+        {
+            if (err is UnauthorizedAccessException)
+            {
+                // Este comando não é async; mostrar diálogo sem bloquear.
+                _ = GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(TbRecFolder, deniedPath ?? TbRecFolder, err);
+            }
+            else
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{err?.Message}");
+            }
+            return;
+        }
 
         string getShortpathFromImagePath(string fullPath)
         {
@@ -3599,6 +4217,7 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(new GraduateByCPF()
             {
                 ShortPath = shortPath,
+                Name = ""
             });
 
         }
@@ -3646,7 +4265,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 List<string[]> cellsData = new List<string[]>()
                     {
-                      new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
+                      new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
                     };
                 string headerRange = "A1:" + Char.ConvertFromUtf32(cellsData[0].Length + 64) + "1";
                 excelWorksheet.Cells[headerRange].Style.Font.Bold = true;
@@ -3657,6 +4276,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 //New Columns
                 excelWorksheet.Column(5).Width = 30;
                 excelWorksheet.Column(6).Width = 30;
+                excelWorksheet.Column(7).Width = 18;
+                excelWorksheet.Column(8).Width = 18;
 
                 foreach (var g in GraduatesData)
                 {
@@ -3664,7 +4285,17 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         g.BlockType = "WATERMARK";
                     }
-                    cellsData.Add(new string[] { g.ShortPath, g.CPF, g.Email, g.MaxPhotos.ToString(), g.MaxPhotosForTreatmentRequest.ToString(), g.Blocked.ToString(), g.BlockType.ToString() });
+                    cellsData.Add(new string[]
+                    {
+                        g.ShortPath,
+                        g.CPF,
+                        g.Name ?? "",
+                        g.Email,
+                        g.MaxPhotos.ToString(),
+                        g.MaxPhotosForTreatmentRequest.ToString(),
+                        g.Blocked.ToString(),
+                        g.BlockType.ToString()
+                    });
                 }
                 excelWorksheet.Cells[1, 1].LoadFromArrays(cellsData);
 
@@ -3683,7 +4314,12 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
                 excel.SaveAs(excelFile);
 
-                UpdateGraduateDataFromFile(excelFile);
+                var importError1 = UpdateGraduateDataFromFile(excelFile);
+                if (importError1 != null)
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError1, "Erro");
+                    return;
+                }
 
                 var p = new System.Diagnostics.Process();
                 p.StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -3695,7 +4331,9 @@ public partial class CollectionsViewModel : ViewModelBase
 
                 await Task.Run(() => WaitForProcess(p));
 
-                UpdateGraduateDataFromFile(excelFile);
+                var importError2 = UpdateGraduateDataFromFile(excelFile);
+                if (importError2 != null)
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError2, "Erro");
             }
         }
         catch (Exception e) 

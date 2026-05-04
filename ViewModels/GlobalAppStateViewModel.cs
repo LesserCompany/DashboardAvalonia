@@ -11,9 +11,11 @@ using MsBox.Avalonia.Models;
 using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LesserDashboardClient.Views.Collections;
 
 namespace LesserDashboardClient.ViewModels;
 
@@ -252,31 +254,176 @@ public partial class GlobalAppStateViewModel : ObservableObject
         Console.WriteLine($"ResetLesserFunctionClient: Nova instância criada: {_lfc != null}");
     }
 
-    public void ShowDialogOk(string msg = "", string title = "")
+    /// <summary>Diálogo amigável quando o servidor não processa a coleção — destaca WhatsApp de suporte (evita aparência de MessageBox de erro).</summary>
+    public async Task ShowCollectionCreationSupportDialogAsync(string? serverMessage)
     {
-        var msgParams = new MessageBoxStandardParams
-        {
-            MaxWidth = 500,
-            MaxHeight = 800,
-            ShowInCenter = true,
-            WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            SizeToContent = SizeToContent.WidthAndHeight,
-            ContentMessage = msg,
-            ContentTitle = title
-        };
+        var dlg = new CollectionCreationSupportDialog();
+        dlg.SetMessage(serverMessage ?? "");
         if (MainWindow.instance != null)
-        {
-            var bbox = MessageBoxManager
-                .GetMessageBoxStandard(msgParams);
-            var result = bbox.ShowWindowDialogAsync(MainWindow.instance);
-        }
+            await dlg.ShowDialog(MainWindow.instance);
         else
+            await dlg.ShowDialog(null!);
+    }
+
+    /// <param name="messageIntroOverride">Se informado, substitui o primeiro parágrafo (ex.: listar subpastas vs. ler fotos).</param>
+    public async Task ShowFolderAccessDeniedDialogAsync(string rootFolder, string deniedPath, Exception ex, string? messageIntroOverride = null)
+    {
+        try
         {
-            var bbox = MessageBoxManager
-                .GetMessageBoxStandard(msgParams);
-            var result = bbox.ShowAsync();
+            var safeRoot = rootFolder ?? string.Empty;
+            var safeDenied = string.IsNullOrWhiteSpace(deniedPath) ? safeRoot : deniedPath;
+
+            var lead = string.IsNullOrWhiteSpace(messageIntroOverride)
+                ? "Não foi possível acessar uma pasta durante a leitura das fotos.\n\n"
+                : messageIntroOverride.TrimEnd() + "\n\n";
+
+            var msg =
+                lead +
+                $"Pasta sem acesso:\n{safeDenied}\n\n" +
+                "Como resolver:\n" +
+                "- Escolha uma pasta diferente (fora de pastas do Windows, como Recovery/System)\n" +
+                "- Verifique permissões / execute como Administrador\n" +
+                "- Se a pasta estiver em HD externo/rede, reconecte e tente novamente";
+
+            var p = new MessageBoxCustomParams
+            {
+                MaxWidth = 650,
+                MaxHeight = 900,
+                ContentTitle = "Sem permissão para acessar pasta",
+                ContentMessage = msg,
+                ShowInCenter = true,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                Markdown = false,
+                ButtonDefinitions = new List<ButtonDefinition>
+                {
+                    new ButtonDefinition { Name = "Abrir pasta" },
+                    new ButtonDefinition { Name = "Copiar caminho" },
+                    new ButtonDefinition { Name = "OK", IsDefault = true },
+                }
+            };
+
+            var bbox = MessageBoxManager.GetMessageBoxCustom(p);
+            var result = MainWindow.instance != null
+                ? await bbox.ShowWindowDialogAsync(MainWindow.instance)
+                : await bbox.ShowAsync();
+
+            if (result == "Abrir pasta")
+            {
+                TryOpenFolderInExplorer(safeDenied);
+            }
+            else if (result == "Copiar caminho")
+            {
+                await TryCopyToClipboardAsync(safeDenied);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Erro ao mostrar dialog de acesso negado: {e.Message}. Original: {ex.Message}");
         }
     }
+
+    private static void TryOpenFolderInExplorer(string path)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(path))
+                return;
+
+            // Se for um arquivo, tenta selecionar; se for pasta, abre a pasta.
+            var isFile = File.Exists(path);
+            var args = isFile ? $"/select,\"{path}\"" : $"\"{path}\"";
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = args,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao abrir Explorer: {ex.Message}");
+        }
+    }
+
+    private static async Task TryCopyToClipboardAsync(string text)
+    {
+        try
+        {
+            if (MainWindow.instance == null)
+                return;
+
+            var topLevel = TopLevel.GetTopLevel(MainWindow.instance);
+            if (topLevel == null)
+                return;
+
+            await topLevel.Clipboard!.SetTextAsync(text ?? string.Empty);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao copiar para área de transferência: {ex.Message}");
+        }
+    }
+
+    public void ShowDialogOk(string msg = "", string title = "")
+    {
+        _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var msgParams = new MessageBoxStandardParams
+            {
+                MaxWidth = 500,
+                MaxHeight = 800,
+                ShowInCenter = true,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                ContentMessage = msg,
+                ContentTitle = title
+            };
+            if (MainWindow.instance != null)
+            {
+                var bbox = MessageBoxManager.GetMessageBoxStandard(msgParams);
+                await bbox.ShowWindowDialogAsync(MainWindow.instance);
+            }
+            else
+            {
+                var bbox = MessageBoxManager.GetMessageBoxStandard(msgParams);
+                await bbox.ShowAsync();
+            }
+        });
+    }
+
+    /// <summary>Mostra um diálogo OK; conteúdo em texto plano (ver nota em <see cref="ShowDialogYesNoMarkdown"/> sobre Markdown).</summary>
+    public void ShowDialogOkMarkdown(string msg, string title = "")
+    {
+        _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            var plain = string.IsNullOrEmpty(msg) ? msg : msg.Replace("**", string.Empty);
+            var customParams = new MessageBoxCustomParams
+            {
+                MaxWidth = 500,
+                MaxHeight = 800,
+                ShowInCenter = true,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                ContentTitle = title,
+                ContentMessage = plain,
+                Markdown = false,
+                ButtonDefinitions = new List<ButtonDefinition> { new ButtonDefinition { Name = "OK", IsDefault = true } }
+            };
+            if (MainWindow.instance != null)
+            {
+                var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
+                await bbox.ShowWindowDialogAsync(MainWindow.instance);
+            }
+            else
+            {
+                var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
+                await bbox.ShowAsync();
+            }
+        });
+    }
+
     public async Task<bool> ShowDialogYesNo(string msg, string title = "")
     {
         if (MainWindow.instance != null)
@@ -308,6 +455,72 @@ public partial class GlobalAppStateViewModel : ObservableObject
             return false;
         }
     }
+
+    /// <summary>
+    /// Mostra um diálogo SIM/NÃO com mensagem “rica” em texto plano.
+    /// Não usa <see cref="MessageBoxCustomParams.Markdown"/> aqui: sem referência a <c>Markdown.Avalonia</c> no projeto,
+    /// o MsBox costuma exibir o corpo da mensagem vazio quando <c>Markdown = true</c>.
+    /// </summary>
+    public async Task<bool> ShowDialogYesNoMarkdown(string msg, string title = "")
+    {
+        if (MainWindow.instance != null)
+        {
+            // Mensagens vindas do fluxo de cota usam ** como destaque estilo Markdown; sem renderizador, removemos.
+            var plain = string.IsNullOrEmpty(msg) ? msg : msg.Replace("**", string.Empty);
+            MessageBoxCustomParams bbCustomParamsYesNo = new MessageBoxCustomParams
+            {
+                MaxWidth = 650,
+                MaxHeight = 900,
+                ContentMessage = plain,
+                ShowInCenter = true,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                ContentTitle = title,
+                Markdown = false,
+                ButtonDefinitions = new List<ButtonDefinition>
+                {
+                    new ButtonDefinition { Name = Loc.Tr("Yes", "Yes"), IsDefault = true },
+                    new ButtonDefinition { Name = Loc.Tr("No", "No"), IsCancel = true },
+                },
+            };
+            var bbox = MessageBoxManager.GetMessageBoxCustom(bbCustomParamsYesNo);
+            var result = await bbox.ShowWindowDialogAsync(MainWindow.instance);
+            return result == Loc.Tr("Yes", "Yes");
+        }
+
+        ShowDialogOk("Fail to create msgBox");
+        return false;
+    }
+
+    /// <summary>Diálogo de aviso com um único botão “Entendi” (texto plano; remove <c>**</c> como em <see cref="ShowDialogYesNoMarkdown"/>).</summary>
+    public async Task ShowDialogEntendi(string msg, string title = "")
+    {
+        var plain = string.IsNullOrEmpty(msg) ? msg : msg.Replace("**", string.Empty);
+        if (MainWindow.instance != null)
+        {
+            var p = new MessageBoxCustomParams
+            {
+                MaxWidth = 650,
+                MaxHeight = 900,
+                ContentMessage = plain,
+                ShowInCenter = true,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                SizeToContent = SizeToContent.WidthAndHeight,
+                ContentTitle = title,
+                Markdown = false,
+                ButtonDefinitions = new List<ButtonDefinition>
+                {
+                    new ButtonDefinition { Name = "Entendi", IsDefault = true },
+                },
+            };
+            var bbox = MessageBoxManager.GetMessageBoxCustom(p);
+            await bbox.ShowWindowDialogAsync(MainWindow.instance);
+            return;
+        }
+
+        ShowDialogOk(plain ?? string.Empty, title);
+    }
+
     private void SaveOptions()
     {
         options.Save();
