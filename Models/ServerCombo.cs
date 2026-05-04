@@ -36,6 +36,14 @@ namespace LesserDashboardClient.Models
         
         [JsonProperty("backupFiveYears")]
         public bool BackupFiveYears { get; set; }
+
+        /// <summary>Distribuição/separação por pessoa (vem do backend no combo).</summary>
+        /// <remarks>API envia <c>photosDistribution</c>; mantém fallback <c>photoDistribution</c> por compatibilidade.</remarks>
+        [JsonProperty("photosDistribution")]
+        public bool PhotoDistribution { get; set; }
+
+        [JsonProperty("photoDistribution")]
+        public bool PhotoDistributionLegacyAlias { get; set; }
     }
 
     /// <summary>
@@ -60,8 +68,19 @@ namespace LesserDashboardClient.Models
         
         [JsonProperty("features")]
         public ServerComboFeatures Features { get; set; }
-        
+
+        // Campo legado (backend antigo). Mantido por compatibilidade.
         [JsonProperty("discountPercentage")]
-        public double DiscountPercentage { get; set; }
+        public double? DiscountPercentage { get; set; }
+
+        // Campos novos do endpoint GetCompanyComboPrices
+        [JsonProperty("comboDiscount")]
+        public double? ComboDiscount { get; set; }
+
+        [JsonProperty("comboOrder")]
+        public int? ComboOrder { get; set; }
+
+        [JsonProperty("storageTimeMonths")]
+        public int? StorageTimeMonths { get; set; }
     }
 }

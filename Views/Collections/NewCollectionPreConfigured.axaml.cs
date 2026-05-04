@@ -29,6 +29,11 @@ public partial class NewCollectionPreConfigured : UserControl
     {
         _tbCollectionNamePreConfigured = this.FindControl<TextBox>("tbCollectionNamePreConfigured");
         
+        // Sempre que a view de criação de coleção (combo) ficar visível, levar o scroll ao topo
+        this.GetObservable(IsVisibleProperty).Subscribe(visible => { if (visible) ScrollToTop(); });
+        if (IsVisible)
+            ScrollToTop();
+        
         // Bloqueia espaços: KeyDown para tecla, TextChanged para colar
         if (_tbCollectionNamePreConfigured != null)
         {
@@ -74,6 +79,12 @@ public partial class NewCollectionPreConfigured : UserControl
         {
             UpdateTextBoxErrorState();
         }
+    }
+
+    private void ScrollToTop()
+    {
+        var sv = this.FindControl<ScrollViewer>("ScrollViewerNewCollectionPreConfigured");
+        sv?.ScrollToHome();
     }
 
     private void UpdateTextBoxErrorState()
@@ -162,7 +173,12 @@ public partial class NewCollectionPreConfigured : UserControl
                 }
 
                 var fileInfo = new FileInfo(firstFile);
-                vm.UpdateGraduateDataFromFile(fileInfo);
+                var importError = vm.UpdateGraduateDataFromFile(fileInfo);
+                if (importError != null)
+                {
+                    var bbox = MessageBoxManager.GetMessageBoxStandard("Erro", importError);
+                    await bbox.ShowWindowDialogAsync(MainWindow.instance);
+                }
             }
         }
     }
@@ -184,8 +200,12 @@ public partial class NewCollectionPreConfigured : UserControl
         {
             string selectedPath = folder.Path.LocalPath;
             
-            // Validar se a pasta é de eventos
-            if (IsValidEventFolder(selectedPath))
+            // Combo apenas tratamento: exceção robusta — aceitar qualquer pasta existente (sem exigir nome 1.eventos/eventos/event)
+            bool acceptFolder = vm.IsTreatmentOnlyCombo
+                ? !string.IsNullOrWhiteSpace(selectedPath) && Directory.Exists(selectedPath)
+                : IsValidEventFolder(selectedPath);
+
+            if (acceptFolder)
             {
                 vm.TbEventFolder = selectedPath;
             }

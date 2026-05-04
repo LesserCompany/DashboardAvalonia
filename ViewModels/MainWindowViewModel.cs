@@ -10,6 +10,7 @@ using LesserDashboardClient.Models;
 using SharedClientSide.ServerInteraction.Users.Results;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.ViewModels.Options;
+using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction;
@@ -71,6 +72,15 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private int selectedTabIndex = 0;
 
+    private int _previousSelectedTabIndex;
+
+    partial void OnSelectedTabIndexChanged(int value)
+    {
+        if (_previousSelectedTabIndex == 2 && value != 2)
+            SearchGraduateNavigationState.Clear();
+        _previousSelectedTabIndex = value;
+    }
+
     public bool HasUnreadMessages => UnreadMessagesCount > 0;
 
     /// <summary>
@@ -91,6 +101,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Define o título da janela com o modo de build
         TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
         
+        _previousSelectedTabIndex = SelectedTabIndex;
+
         // Carrega mensagens do usuário ao inicializar
         _ = LoadUserMessagesAsync();
         
@@ -614,53 +626,6 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Console.WriteLine($"Erro ao abrir mensagens: {ex.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Verifica se há novas mensagens não lidas após criar uma turma.
-    /// Se houver MAIS mensagens não lidas do que antes, abre o componente de mensagens.
-    /// Se o número for o mesmo ou menor, não abre.
-    /// </summary>
-    public async Task CheckForNewMessagesAfterCollectionCreationAsync()
-    {
-        try
-        {
-            // Guarda o número atual de mensagens não lidas antes de recarregar
-            int previousCount = UnreadMessagesCount;
-            
-            // Recarrega as mensagens do servidor
-            await LoadUserMessagesAsync();
-            
-            // Após carregar, verifica se há MAIS mensagens não lidas do que antes
-            int newCount = UnreadMessagesCount;
-            
-            if (newCount > previousCount)
-            {
-                // Há novas mensagens! Abre o componente de mensagens
-                Console.WriteLine($"Novas mensagens detectadas: {previousCount} -> {newCount}. Abrindo componente de mensagens.");
-                
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    // Navega para a aba de Collections (índice 0)
-                    SelectedTabIndex = 0;
-                    
-                    // Abre a view de mensagens
-                    var collectionsViewModel = CollectionsViewModel.Instance;
-                    if (collectionsViewModel != null)
-                    {
-                        collectionsViewModel.ActiveComponent = CollectionsViewModel.ActiveViews.MessagesView;
-                    }
-                });
-            }
-            else
-            {
-                Console.WriteLine($"Nenhuma mensagem nova: {previousCount} -> {newCount}. Mantendo na view atual.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Erro ao verificar novas mensagens após criação de coleção: {ex.Message}");
         }
     }
 

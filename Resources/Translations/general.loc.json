@@ -7,13 +7,53 @@
     "en-US": "Invoices",
     "pt-BR": "Faturas"
   },
+  "Personalize": {
+    "en-US": "Personalize",
+    "pt-BR": "Personalizar"
+  },
+  "UserSettings": {
+    "en-US": "User settings",
+    "pt-BR": "Configurações do usuário"
+  },
   "Options": {
     "en-US": "Options",
     "pt-BR": "Opções"
   },
   "User per CPF": {
-    "en-US": "User per CPF",
-    "pt-BR": "Usuário por CPF"
+    "en-US": "CPF management",
+    "pt-BR": "Gerenciamento de CPF"
+  },
+  "SG tab CPF for collection": {
+    "en-US": "CPF protection and access control",
+    "pt-BR": "Proteção e controle de CPFs"
+  },
+  "SG tab CPF for collection tooltip": {
+    "en-US": "Define which CPFs are protected or blocked and manage access rules in your collections (former “CPF management”).",
+    "pt-BR": "Define quais CPFs estão protegidos ou bloqueados e gerencia regras de acesso nas coleções (antigo Gerenciamento de CPF)."
+  },
+  "SG tab CPF by collection": {
+    "en-US": "CPF search by collection",
+    "pt-BR": "Busca de CPF por coleção"
+  },
+  "SG tab CPF by collection tooltip": {
+    "en-US": "Embedded web search for graduates by CPF (former “CPF search”).",
+    "pt-BR": "Busca web embutida de formandos por CPF (antiga Busca de CPF)."
+  },
+  "SG tab review photos chosen": {
+    "en-US": "Review photos chosen by CPFs",
+    "pt-BR": "Revisão de fotos escolhidas pelos CPFs"
+  },
+  "SG tab review photos chosen tooltip": {
+    "en-US": "Review which photos each CPF has already selected.",
+    "pt-BR": "Confira as fotos que cada CPF já escolheu."
+  },
+  "SG tab manual treatment photos": {
+    "en-US": "Photos for manual treatment",
+    "pt-BR": "Fotos para tratamento manual"
+  },
+  "SG tab manual treatment photos tooltip": {
+    "en-US": "Queue of photos that need manual editing or treatment.",
+    "pt-BR": "Fila de fotos que precisam de tratamento ou edição manual."
   },
   "Yes": {
     "en-US": "Yes",
@@ -113,7 +153,7 @@
   },
   "This collection is from another billing period, please create a new collection to enable automatic enhancement.": {
     "en-US": "This collection is from another billing period, please create a new collection to enable automatic enhancement.",
-    "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para habilitar a melhoria automática."
+    "pt-BR": "Esta coleção é de outro período de faturamento, por favor crie uma nova coleção para habilitar o tratamento automático."
   },
   "Messages": {
     "en-US": "Messages",

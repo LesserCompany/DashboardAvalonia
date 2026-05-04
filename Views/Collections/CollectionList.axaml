@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -12,33 +12,133 @@
     <Grid RowDefinitions="Auto, Auto, *, Auto" RowSpacing="6" >
         <Grid Grid.Row="0" ColumnDefinitions="Auto, *" ColumnSpacing="6" >
             <Image Width="64" Height="64" Source="{SvgImage /Assets/symbol.svg}" />
-            <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFilters}">
-                <TextBlock FontSize="12" Grid.Row="0" Grid.Column="0" Text="{Tr 'ID collection:'}" VerticalAlignment="Center"  />
+            <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFiltersInList}">
+                <TextBlock FontSize="12" Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
                 <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterClassCode" TextChanged="TextBox_TextChanged"/>
                 
                 <TextBlock FontSize="12" Grid.Row="1" Grid.Column="0" Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                 <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterProfessional" TextChanged="TextBox_TextChanged" />
             </Grid>
         </Grid>
-        <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" Grid.Row="1"  HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
-                <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
-            </StackPanel>
-        </Button>
-            <local:SkeletonList Grid.Row="2" IsVisible="{Binding CollectionsListIsLoading}" />
+        <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="6">
+            <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                    <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
+                    <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <!-- Abas: Coleções normais | Vencidas | Deletadas -->
+            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="4,4">
+                <!-- Grid em vez de WrapPanel: usa toda a largura (3 colunas iguais), evita quebra com espaço vazio à direita -->
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4">
+                    <Button Grid.Column="0"
+                            Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Normal"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Background="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="6,7" CornerRadius="6"
+                            ToolTip.Tip="{Tr 'Your active collections. Here you manage and access collections in use.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Normal collections'}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+                    </Button>
+                    <Button Grid.Column="1"
+                            Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Expired"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Background="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="6,7" CornerRadius="6"
+                            ToolTip.Tip="{Tr 'Collections whose storage period has expired. You can renew or request deletion.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Expired collections'}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+                    </Button>
+                    <Button Grid.Column="2"
+                            Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Deleted"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Background="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            Padding="6,7" CornerRadius="6"
+                            ToolTip.Tip="{Tr 'Collections with pending deletion request. You can restore them to the normal list.'}">
+                        <Button.Styles>
+                            <Style Selector="Button:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+                            </Style>
+                        </Button.Styles>
+                        <TextBlock Text="{Tr 'Deleted collections'}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
+        </StackPanel>
+            <local:SkeletonList Grid.Row="2" IsVisible="{Binding IsListAreaLoading}" />
             <!--
             <ui:ProgressRing Grid.Row="2" IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" IsVisible="{Binding CollectionsListIsLoading}" />
             -->      
             <ScrollViewer Grid.Row="2" 
-                         IsVisible="{Binding !CollectionsListIsLoading}"
+                         IsVisible="{Binding !IsListAreaLoading}"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Disabled">
               <StackPanel>
-                <ListBox FontSize="11" 
+                <!-- Loading enquanto busca no servidor -->
+                <StackPanel Orientation="Horizontal" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           Spacing="12"
+                           Margin="0,24,0,0"
+                           IsVisible="{Binding IsSearchingOnServer}">
+                  <ui:ProgressRing Width="24" Height="24" 
+                                   IsIndeterminate="True" 
+                                   BorderThickness="4"/>
+                  <TextBlock Text="{Tr 'Searching on server...'}" 
+                            VerticalAlignment="Center"
+                            FontSize="14"/>
+                </StackPanel>
+                
+                <!-- Mensagem quando não encontrou nada -->
+                <StackPanel Orientation="Vertical" 
+                           HorizontalAlignment="Center" 
+                           VerticalAlignment="Center"
+                           Spacing="8"
+                           Margin="0,24,0,0"
+                           IsVisible="{Binding ShowNoResultsMessage}">
+                  <TextBlock Text="{Tr 'No collection found'}" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            Foreground="{DynamicResource MetaFg}"/>
+                  <TextBlock Text="{Tr 'No collection was found matching your search criteria.'}" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            FontSize="12"
+                            Foreground="{DynamicResource MetaFg}"
+                            TextWrapping="Wrap"
+                            TextAlignment="Center"
+                            MaxWidth="400"/>
+                </StackPanel>
+                
+                <ListBox x:Name="ListBoxCollections"
+                         FontSize="11" 
                          Background="Transparent"
                          BorderThickness="0"
-                         ItemsSource="{Binding CollectionsListFiltered}" 
+                         ItemsSource="{Binding VisibleCollectionsList}" 
                          SelectedItem="{Binding SelectedCollection, Mode=TwoWay}">
 
                   <!-- Garante virtualização simples e barata -->
@@ -73,8 +173,8 @@
                   <!-- Template com árvore enxuta (nada de efeitos) -->
                   <ListBox.ItemTemplate>
                     <DataTemplate>
-                      <!-- 3 colunas: avatar | conteúdo | badges -->
-                      <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+                      <!-- 3 colunas: avatar | conteúdo | badges + ações -->
+                      <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
 
                         <!-- Avatar + label de ambiente -->
                         <StackPanel Grid.RowSpan="3" Margin="0,2,12,0" VerticalAlignment="Center">
@@ -97,7 +197,7 @@
                                    TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
                                    ToolTip.Tip="{Binding classCode}"/>
 
-                        <!-- Badges alinhados à direita -->
+                        <!-- Badges + botão três pontinhos alinhados à direita -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
                                     HorizontalAlignment="Right" VerticalAlignment="Center">
                           <!-- HD -->
@@ -111,6 +211,30 @@
                           <local:PhotoSalesIcon IsVisible="{Binding EnablePhotosSales, FallbackValue=False}"/>
                           <!-- OCR -->
                           <local:OcrIcon IsVisible="{Binding OCR, FallbackValue=False}"/>
+                          <!-- Opções ocultas nas coleções deletadas: a única ação (Restaurar) já está no conteúdo da coleção -->
+                          <Button x:Name="MoreActionsButton"
+                                  IsVisible="False"
+                                  Padding="6,4" MinWidth="28"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  CornerRadius="4"
+                                  ToolTip.Tip="{Tr 'Ações'}"
+                                  Click="MoreActionsButton_OnClick">
+                            <Button.Flyout>
+                              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                <MenuItem Padding="14,10"
+                                          Command="{Binding CancelDeleteCollectionFromPendingCommand, Source={x:Static vm:CollectionsViewModel.Instance}}">
+                                  <MenuItem.Header>
+                                    <TextBlock Text="{Tr 'Restaurar coleção'}" 
+                                               VerticalAlignment="Center" 
+                                               FontWeight="SemiBold"
+                                               FontSize="13"/>
+                                  </MenuItem.Header>
+                                </MenuItem>
+                              </MenuFlyout>
+                            </Button.Flyout>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE712;" FontSize="14" VerticalAlignment="Center"/>
+                          </Button>
                         </StackPanel>
 
                         <!-- Linha meta: total de fotos + data + separador -->
@@ -141,6 +265,21 @@
                                      IsVisible="{Binding UploadHD, FallbackValue=False}"/>
                         </StackPanel>
 
+                        <!-- Prazo para restaurar (aba Deletadas + FinalScheduledDeletionDate) -->
+                        <TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource MetaFg}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   Text="{Binding FinalScheduledDeletionDate, Converter={StaticResource RestorationDeadlineMessageConverter}}">
+                          <TextBlock.IsVisible>
+                            <MultiBinding Converter="{StaticResource DeletedTabAndDateToVisibleConverter}">
+                              <Binding Path="IsDeletedTabActive" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              <Binding Path="FinalScheduledDeletionDate"/>
+                            </MultiBinding>
+                          </TextBlock.IsVisible>
+                        </TextBlock>
+
                       </Grid>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
@@ -156,7 +295,7 @@
                         BorderBrush="{DynamicResource CardBorder}"
                         BorderThickness="1"
                         CornerRadius="8"
-                        IsVisible="{Binding ShowLoadMoreButton}"
+                        IsVisible="{Binding ShowLoadMoreButtonInList}"
                         IsEnabled="{Binding !IsLoadingMoreTasks}"
                         Command="{Binding LoadMoreTasksCommand}">
                   <StackPanel Orientation="Horizontal" Spacing="8">

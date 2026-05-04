@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LesserDashboardClient.ViewModels;
 using LesserDashboardClient.Views;
+using LesserDashboardClient.Views.Invoices;
+using LesserDashboardClient.ViewModels.Invoices;
 using Newtonsoft.Json;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Login;
@@ -138,6 +140,44 @@ namespace LesserDashboardClient.ViewModels.Auth
 
                 if (GlobalAppStateViewModel.lfc.loginResult == null || GlobalAppStateViewModel.lfc.loginResult.loginFailed == true || GlobalAppStateViewModel.lfc.loginResult.success == false)
                 {
+                    // Verifica se o usuário está bloqueado (admin_Blocked ou blocked_Pending_Invoice)
+                    var user = GlobalAppStateViewModel.lfc.loginResult?.User;
+                    bool isBlocked = (user?.Admin_Blocked == true) || (user?.Blocked_Pending_Invoice == true);
+                    
+                    if (isBlocked && !string.IsNullOrEmpty(user?.username))
+                    {
+                        // Redireciona para a janela de faturas
+                        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                        {
+                            var oldWindow = desktop.MainWindow;
+                            
+                            // Cria uma instância temporária do LesserFunctionClient para chamar GetInvoices
+                            var tempLfc = new LesserFunctionClient();
+                            bool isAdminBlocked = user.Admin_Blocked == true;
+                            var invoicesWindow = new Views.Invoices.InvoicesOnlyWindow
+                            {
+                                DataContext = new ViewModels.Invoices.InvoicesOnlyViewModel(tempLfc, user.username, isAdminBlocked)
+                            };
+                            
+                            desktop.MainWindow = invoicesWindow;
+                            invoicesWindow.Show();
+                            
+                            // Fecha a janela antiga
+                            await Task.Delay(150);
+                            (oldWindow?.DataContext as IDisposable)?.Dispose();
+                            oldWindow?.Close();
+                            
+                            // Fecha também a instância da AuthWindow se ela existir
+                            if (App.AuthWindowInstance != null)
+                            {
+                                App.AuthWindowInstance.Close();
+                                App.AuthWindowInstance = null;
+                            }
+                            
+                            return; // Sai do método sem mostrar erro
+                        }
+                    }
+                    
                     IsIncorrectCredentials = true;
                     ErroMessage = GlobalAppStateViewModel.lfc.loginResult.message != null ? GlobalAppStateViewModel.lfc.loginResult.message : Loc.Tr("Incorrect credentials. Please try again.");
                 }

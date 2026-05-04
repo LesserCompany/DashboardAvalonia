@@ -1,0 +1,392 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Invoices"
+        xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+        xmlns:local="clr-namespace:LesserDashboardClient.Views.Invoices"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:DataType="vm:InvoicesOnlyViewModel"
+        x:Class="LesserDashboardClient.Views.Invoices.InvoicesOnlyWindow"
+        Title="Faturas"
+        WindowStartupLocation="CenterScreen"
+        MinWidth="900"
+        MinHeight="600">
+  
+  <Grid RowDefinitions="Auto,*,Auto">
+    <!-- Header -->
+    <Border Grid.Row="0" 
+            Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+            Padding="20">
+      <StackPanel Spacing="12">
+        <TextBlock Text="Faturas"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   HorizontalAlignment="Center"/>
+        <!-- Bloqueio administrativo: aviso em destaque + WhatsApp suporte e financeiro -->
+        <StackPanel IsVisible="{Binding IsAdminBlocked}"
+                    Spacing="8"
+                    HorizontalAlignment="Center"
+                    Margin="0,8,0,0">
+          <TextBlock Text="Bloqueio administrativo"
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     Foreground="White"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="Sua conta foi bloqueada por nossa equipe. Entre em contato com o suporte para regularizar sua situação."
+                     FontSize="12"
+                     Foreground="White"
+                     TextWrapping="Wrap"
+                     TextAlignment="Center"
+                     MaxWidth="500"
+                     HorizontalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal"
+                      HorizontalAlignment="Center"
+                      Spacing="12">
+            <Button Command="{Binding OpenWhatsAppSupportCommand}"
+                    Background="White"
+                    Foreground="{DynamicResource Accent}"
+                    BorderThickness="0"
+                    Padding="16,8"
+                    CornerRadius="8"
+                    Cursor="Hand">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="📱" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="Suporte" FontSize="14" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            <Button Command="{Binding OpenWhatsAppFinanceCommand}"
+                    Background="Transparent"
+                    Foreground="White"
+                    BorderBrush="White"
+                    BorderThickness="1"
+                    Padding="12,8"
+                    CornerRadius="8"
+                    Cursor="Hand">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="📱" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="Financeiro" FontSize="13" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </StackPanel>
+        <!-- Apenas bloqueio por fatura: email ou WhatsApp financeiro -->
+        <StackPanel IsVisible="{Binding IsBlockedByInvoiceOnly}"
+                   Orientation="Horizontal"
+                   HorizontalAlignment="Center"
+                   Spacing="2"
+                   Margin="0,8,0,0">
+          <TextBlock Text="Seu usuário está bloqueado. Entre em contato com o setor financeiro pelo email "
+                     FontSize="12"
+                     Foreground="White"
+                     VerticalAlignment="Center"
+                     TextWrapping="Wrap"/>
+          <SelectableTextBlock Text="contato@lesser.biz"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="White"
+                               SelectionBrush="Black"
+                               VerticalAlignment="Center"/>
+          <Button Click="CopyEmail_Click"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Padding="2,0"
+                  Cursor="Hand"
+                  ToolTip.Tip="Copiar email">
+            <TextBlock Text="📋" FontSize="14" Foreground="White" VerticalAlignment="Center" Opacity="0.9"/>
+          </Button>
+          <TextBlock Text=" ou pelo WhatsApp "
+                     FontSize="12"
+                     Foreground="White"
+                     VerticalAlignment="Center"/>
+          <Button Command="{Binding OpenWhatsAppFinanceCommand}"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  Padding="2,0"
+                  Cursor="Hand"
+                  ToolTip.Tip="WhatsApp financeiro">
+            <TextBlock Text="📱" FontSize="16" Foreground="White" VerticalAlignment="Center"/>
+          </Button>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Content -->
+    <Grid Grid.Row="1" Margin="20">
+      <!-- Loading -->
+      <StackPanel IsVisible="{Binding IsLoading}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Spacing="10">
+        <ui:ProgressRing IsIndeterminate="True" 
+                        Width="40" 
+                        Height="40"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+        <TextBlock Text="Carregando faturas..." 
+                   HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- Error -->
+      <StackPanel IsVisible="{Binding HasError}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center">
+        <TextBlock Text="{Binding ErrorMessage}" 
+                   Foreground="Red"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"/>
+      </StackPanel>
+
+      <!-- DataGrid - Centralizado e com melhor estilo -->
+      <Border IsVisible="{Binding ShowDataGrid}"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              MaxWidth="1200"
+              Background="{DynamicResource CardBg}"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="0">
+        <DataGrid ItemsSource="{Binding Invoices}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="True"
+                  GridLinesVisibility="All"
+                  HeadersVisibility="Column"
+                  Background="Transparent"
+                  BorderThickness="0"
+                  RowBackground="{DynamicResource CardBg}">
+          <DataGrid.Styles>
+            <!-- Estilo para as linhas de grade - garantir que sejam visíveis -->
+            <Style Selector="DataGrid">
+              <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource SeparatorBrush}"/>
+              <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource SeparatorBrush}"/>
+            </Style>
+            <!-- Estilo para o header - cor laranja e linhas de separação visíveis -->
+            <Style Selector="DataGridColumnHeader">
+              <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+              <Setter Property="Foreground" Value="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              <Setter Property="FontWeight" Value="SemiBold"/>
+              <Setter Property="Padding" Value="12,8"/>
+              <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+              <Setter Property="BorderThickness" Value="0,0,1,1"/>
+              <Setter Property="Cursor" Value="Hand"/>
+            </Style>
+            <!-- Estilo para o header quando hover -->
+            <Style Selector="DataGridColumnHeader:pointerover">
+              <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+            </Style>
+            <!-- Estilo para células - garantir bordas visíveis -->
+            <Style Selector="DataGridCell">
+              <Setter Property="BorderBrush" Value="{DynamicResource SeparatorBrush}"/>
+              <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            </Style>
+          </DataGrid.Styles>
+        <DataGrid.Columns>
+          <DataGridTemplateColumn Header="Competência" MinWidth="100" Width="*" SortMemberPath="BillingPeriodStartDate" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Competência" 
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding BillingPeriodStartDate, Converter={x:Static local:BillingPeriodToCompetenciaConverter.Instance}}"
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Vencimento" MinWidth="120" Width="*" SortMemberPath="OriginalDueDate" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Vencimento" 
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding OriginalDueDate, Converter={x:Static local:DateToLocalConverter.Instance}}"
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Valor Original" MinWidth="130" Width="*" SortMemberPath="OriginalValue" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Valor Original" 
+                           HorizontalAlignment="Right"
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding OriginalValue, StringFormat='R$ {0:F2}'}"
+                           HorizontalAlignment="Right"
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Valor Pago" MinWidth="130" Width="*" SortMemberPath="AmountPaid" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Valor Pago" 
+                           HorizontalAlignment="Right"
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding AmountPaid, StringFormat='R$ {0:F2}'}"
+                           HorizontalAlignment="Right"
+                           Margin="0,0,12,0"
+                           VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Status" MinWidth="100" Width="*" SortMemberPath="PaymentStatus" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Status" 
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding PaymentStatus, Converter={x:Static local:PaymentStatusToTextConverter.Instance}}"
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Data Pagamento" MinWidth="140" Width="*" SortMemberPath="DueDate" CanUserSort="True">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Data Pagamento" 
+                           HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <TextBlock HorizontalAlignment="Left"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center">
+                  <TextBlock.Text>
+                    <MultiBinding Converter="{x:Static local:PaymentDateConverter.Instance}">
+                      <Binding Path="PaymentStatus"/>
+                      <Binding Path="DueDate"/>
+                    </MultiBinding>
+                  </TextBlock.Text>
+                </TextBlock>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="Boleto" MinWidth="120" Width="Auto" CanUserSort="False">
+            <DataGridTemplateColumn.HeaderTemplate>
+              <DataTemplate>
+                <TextBlock Text="Boleto" 
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.HeaderTemplate>
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Button Name="PayButton"
+                        Click="PayButton_Click"
+                        IsEnabled="{Binding PaymentStatus, Converter={x:Static local:PaymentStatusToCanPayConverter.Instance}}"
+                        Content="Pagar"
+                        HorizontalAlignment="Center"
+                        Padding="8,4"
+                        Margin="4"
+                        Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                        Foreground="White"/>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+        </DataGrid>
+      </Border>
+
+      <!-- Empty State -->
+      <TextBlock Text="Nenhuma fatura encontrada."
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="16"
+                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                 IsVisible="{Binding ShowEmptyState}"/>
+    </Grid>
+
+    <!-- Footer -->
+    <Border Grid.Row="2" 
+            Background="{DynamicResource LayerFillColorDefaultBrush}"
+            Padding="20">
+      <StackPanel Orientation="Horizontal" 
+                  HorizontalAlignment="Center"
+                  Spacing="8"
+                  VerticalAlignment="Center">
+        <TextBlock Text="Entre em contato:"
+                   VerticalAlignment="Center"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+        <SelectableTextBlock Text="contato@lesser.biz"
+                             FontSize="12"
+                             FontWeight="SemiBold"
+                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+                             SelectionBrush="White"
+                             VerticalAlignment="Center"/>
+        <Button Click="CopyEmail_Click"
+                Background="Transparent"
+                BorderThickness="0"
+                Padding="4,2"
+                Cursor="Hand"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Copiar email">
+          <TextBlock Text="📋" FontSize="14" VerticalAlignment="Center"/>
+        </Button>
+        <Button Command="{Binding OpenEmailCommand}"
+                Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                BorderThickness="0"
+                Cursor="Hand"
+                Padding="8,6"
+                CornerRadius="4"
+                VerticalAlignment="Center"
+                ToolTip.Tip="Abrir cliente de email">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="📧"
+                       FontSize="14"
+                       Foreground="White"
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="Enviar Email"
+                       FontSize="12"
+                       Foreground="White"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Border>
+  </Grid>
+</Window>

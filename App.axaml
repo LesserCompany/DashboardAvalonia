@@ -3,8 +3,8 @@
              x:Class="LesserDashboardClient.App"
              xmlns:local="clr-namespace:LesserDashboardClient"
              xmlns:converters="clr-namespace:LesserDashboardClient.Resources.Converters"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+             <!-- Padrão Dark (fallback visual). Quem quiser claro altera em Opções. ThemeManager aplica o tema salvo na inicialização. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>
@@ -21,7 +21,12 @@
             <converters:UploadCompleteToBackgroundConverter x:Key="UploadCompleteToBackgroundConverter" />
             <converters:PriceToStringConverter x:Key="PriceToStringConverter" />
             <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+            <converters:DiscountPercentVisibleConverter x:Key="DiscountPercentVisibleConverter" />
             <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
+            <converters:BoolToTabActiveBackgroundConverter x:Key="BoolToTabActiveBackgroundConverter" />
+            <converters:RestorationDeadlineMessageConverter x:Key="RestorationDeadlineMessageConverter" />
+            <converters:DeletedTabAndDateToVisibleConverter x:Key="DeletedTabAndDateToVisibleConverter" />
+            <converters:FinalDeletionDateToStringConverter x:Key="FinalDeletionDateToStringConverter" />
           </ResourceDictionary>
         </ResourceDictionary.MergedDictionaries>
         

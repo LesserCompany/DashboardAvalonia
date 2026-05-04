@@ -38,7 +38,8 @@
                    FontSize="13"
                    Margin="5,0,5,2"
                    Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
-        <TextBox Margin="5"
+        <TextBox x:Name="TbUserName"
+                 Margin="5"
                  Watermark="{Tr 'Enter your username'}"
                  Text="{Binding TbUserName}" />
 
