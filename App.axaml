@@ -24,6 +24,9 @@
             <converters:DiscountPercentVisibleConverter x:Key="DiscountPercentVisibleConverter" />
             <converters:BoolToLoadMoreTextConverter x:Key="BoolToLoadMoreTextConverter" />
             <converters:BoolToTabActiveBackgroundConverter x:Key="BoolToTabActiveBackgroundConverter" />
+            <converters:BoolToTabActiveBorderBrushConverter x:Key="BoolToTabActiveBorderBrushConverter" />
+            <converters:BoolToTabActiveFontWeightConverter x:Key="BoolToTabActiveFontWeightConverter" />
+            <converters:BoolToTabActiveForegroundConverter x:Key="BoolToTabActiveForegroundConverter" />
             <converters:RestorationDeadlineMessageConverter x:Key="RestorationDeadlineMessageConverter" />
             <converters:DeletedTabAndDateToVisibleConverter x:Key="DeletedTabAndDateToVisibleConverter" />
             <converters:FinalDeletionDateToStringConverter x:Key="FinalDeletionDateToStringConverter" />
@@ -62,6 +65,11 @@
             <SolidColorBrush x:Key="BadgeFg" Color="#333333"/>
             <SolidColorBrush x:Key="MetaFg" Color="#666666"/>
 
+            <!-- Sub-abas Coleções: sólidos (trilho / ativa / hover) — light -->
+            <SolidColorBrush x:Key="CollectionsTabWellBg" Color="#FFE8E8E8"/>
+            <SolidColorBrush x:Key="CollectionsTabActiveBg" Color="#FFFFFFFF"/>
+            <SolidColorBrush x:Key="CollectionsTabHoverBg" Color="#FFF2F2F2"/>
+
           </ResourceDictionary>
           
           <!-- Dark Theme Resources -->
@@ -83,6 +91,11 @@
             <SolidColorBrush x:Key="BadgeBg" Color="#2A2A2A"/>
             <SolidColorBrush x:Key="BadgeFg" Color="#ECECEC"/>
             <SolidColorBrush x:Key="MetaFg" Color="#B7B7B7"/>
+
+            <!-- Sub-abas Coleções: sólidos (trilho / ativa / hover) — dark -->
+            <SolidColorBrush x:Key="CollectionsTabWellBg" Color="#FF222222"/>
+            <SolidColorBrush x:Key="CollectionsTabActiveBg" Color="#FF363636"/>
+            <SolidColorBrush x:Key="CollectionsTabHoverBg" Color="#FF3E3E3E"/>
 
           </ResourceDictionary>
         </ResourceDictionary.ThemeDictionaries>
@@ -115,6 +128,11 @@
         
         <Style Selector="ContextMenu MenuItem:hover">
           <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+        </Style>
+
+        <!-- Sub-abas de coleções: hover neutro (mesma família da aba ativa sólida); só altera fundo para não apagar borda/foreground vindos do binding -->
+        <Style Selector="Button.collections-tab-btn:pointerover">
+          <Setter Property="Background" Value="{DynamicResource CollectionsTabHoverBg}"/>
         </Style>
         
         <!-- Tradução do menu de contexto -->

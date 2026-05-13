@@ -209,23 +209,9 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     [RelayCommand]
-    public void OpenWhatsAppSuportCommand()
+    public async Task OpenWhatsAppSuportCommand()
     {
-        string companyName = GlobalAppStateViewModel.lfc.loginResult.User.company;
-        var url = $"https://wa.me/5518996880201?text=Olá! Falo em nome da empresa {companyName} e preciso de ajuda.";
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = url,
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            // Aqui você pode logar ou mostrar uma mensagem de erro
-            Console.WriteLine($"Erro ao abrir link: {ex.Message}");
-        }
+        await GlobalAppStateViewModel.Instance.ShowSupportHelpDialogAsync();
     }
     [RelayCommand]
     public async Task LogoutAndExitCommand()

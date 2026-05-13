@@ -71,6 +71,23 @@ public partial class App : Application
         {
             var ex = e.Exception;
             string stack = ex?.StackTrace ?? "";
+
+            // WebView.Avalonia (Windows): CoreWebView2.DOMContentLoaded pode ser entregue após o WebView2Core
+            // já ter sido descartado (troca rápida de URL / fecho da vista). O pacote não protege o handler.
+            if (ex is ObjectDisposedException ode &&
+                (ode.ObjectName?.Contains("WebView2Core", StringComparison.OrdinalIgnoreCase) == true
+                 || stack.Contains("WebView2Core", StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    SaveLogError(ex.Message, stack, ex.InnerException?.ToString() ?? "Sem InnerException");
+                }
+                catch { /* não deixar falhar o handler */ }
+
+                e.Handled = true;
+                return;
+            }
+
             if (ex != null && stack.Contains("GetPropertyIsReadOnly", StringComparison.OrdinalIgnoreCase))
             {
                 try

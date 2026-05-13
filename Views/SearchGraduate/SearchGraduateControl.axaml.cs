@@ -21,6 +21,9 @@ public partial class SearchGraduateControl : UserControl
 
     private IReadOnlyList<string>? _pendingCpfsToInject;
 
+    /// <summary>Evita <see cref="InjectCpfsWhenReadyAsync"/> após o controlo sair da árvore visual.</summary>
+    private volatile bool _detachedFromVisualTree;
+
     public SearchGraduateControl()
     {
         InitializeComponent();
@@ -32,8 +35,11 @@ public partial class SearchGraduateControl : UserControl
         }
 
         this.Loaded += SearchGraduateControl_Loaded;
+        this.DetachedFromVisualTree += (_, _) => _detachedFromVisualTree = true;
+        this.AttachedToVisualTree += (_, _) => _detachedFromVisualTree = false;
         this.Unloaded += (_, _) =>
         {
+            _detachedFromVisualTree = true;
             if (ReferenceEquals(_lastInstance, this))
                 _lastInstance = null;
         };
@@ -130,7 +136,13 @@ public partial class SearchGraduateControl : UserControl
 
         for (int i = 0; i < maxRetries; i++)
         {
-            await Task.Delay(baseDelayMs + (i * 200));
+            if (_detachedFromVisualTree)
+                return;
+
+            await Task.Delay(baseDelayMs + (i * 200)).ConfigureAwait(true);
+
+            if (_detachedFromVisualTree)
+                return;
 
             try
             {
@@ -149,11 +161,16 @@ public partial class SearchGraduateControl : UserControl
 
         Debug.WriteLine("[SearchGraduateControl] Injection failed — fallback to URL query filter");
 
+        if (_detachedFromVisualTree)
+            return;
+
         var urlWithFilter = AppendFilterQuery(vm.UrlProtectedCpf, cpfs);
         var webWithFilter = AppendFilterQuery(vm.UrlProtectedCpfWeb, cpfs);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            if (_detachedFromVisualTree)
+                return;
             if (ToNavigateUri(urlWithFilter) is { } uri)
                 _webView.Url = uri;
 

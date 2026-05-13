@@ -1,0 +1,278 @@
+<Window xmlns="https://github.com/avaloniaui"
+
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+        mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="420"
+
+        x:Class="LesserDashboardClient.Views.SupportHelpDialog"
+
+        Title="{Tr 'Support help window title'}"
+
+        Width="440"
+
+        MinHeight="380"
+
+        Height="480"
+
+        MaxHeight="620"
+
+        WindowStartupLocation="CenterOwner"
+
+        CanResize="False">
+
+
+
+  <!-- Corpo com margem explícita (padrão de diálogo Avalonia: Grid Margin no conteúdo). -->
+
+  <Grid RowDefinitions="Auto,*">
+
+    <Border Grid.Row="0"
+
+            Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+
+            Padding="20,14">
+
+      <StackPanel Spacing="8">
+
+        <TextBlock Text="{Tr 'Support help window title'}"
+
+                   FontSize="18"
+
+                   FontWeight="SemiBold"
+
+                   Foreground="White"
+
+                   TextWrapping="Wrap"/>
+
+        <TextBlock Text="{Tr 'Support help lead'}"
+
+                   FontSize="13"
+
+                   Foreground="White"
+
+                   Opacity="0.95"
+
+                   TextWrapping="Wrap"
+
+                   LineHeight="20"/>
+
+      </StackPanel>
+
+    </Border>
+
+
+
+    <DockPanel Grid.Row="1"
+
+               Margin="20,16,20,20"
+
+               LastChildFill="True">
+
+      <Button x:Name="BtClose"
+
+              DockPanel.Dock="Bottom"
+
+              Click="BtClose_OnClick"
+
+              Margin="0,16,0,0"
+
+              HorizontalAlignment="Stretch"
+
+              HorizontalContentAlignment="Center"
+
+              Padding="14,10"
+
+              Content="{Tr 'Support close'}"/>
+
+
+
+      <ScrollViewer VerticalScrollBarVisibility="Auto"
+
+                    HorizontalScrollBarVisibility="Disabled">
+
+        <StackPanel Spacing="12">
+
+          <TextBlock Text="{Tr 'Support help choose'}"
+
+                     FontWeight="SemiBold"
+
+                     FontSize="12"
+
+                     Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+
+
+
+          <Border Background="{DynamicResource CardBackgroundInactiveBrush}"
+
+                  CornerRadius="8"
+
+                  Padding="0"
+
+                  BorderBrush="{DynamicResource SeparatorBrush}"
+
+                  BorderThickness="1">
+
+            <StackPanel Spacing="0">
+
+              <Button x:Name="BtOpenTutorials"
+
+                      Click="BtOpenTutorials_OnClick"
+
+                      HorizontalAlignment="Stretch"
+
+                      HorizontalContentAlignment="Stretch"
+
+                      Padding="16,14"
+
+                      Cursor="Hand"
+
+                      Background="Transparent"
+
+                      BorderThickness="0">
+
+                <Grid ColumnDefinitions="Auto,*">
+
+                  <TextBlock Grid.Column="0" Text="📖" FontSize="20" VerticalAlignment="Top" Margin="0,2,12,0"/>
+
+                  <StackPanel Grid.Column="1" Spacing="4">
+
+                    <TextBlock Text="{Tr 'Support open tutorials'}"
+
+                               FontWeight="SemiBold"
+
+                               FontSize="14"
+
+                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+
+                               TextWrapping="Wrap"/>
+
+                    <TextBlock Text="{Tr 'Support open tutorials hint'}"
+
+                               FontSize="12"
+
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+
+                               TextWrapping="Wrap"
+
+                               LineHeight="18"/>
+
+                  </StackPanel>
+
+                </Grid>
+
+              </Button>
+
+              <Border Background="{DynamicResource SeparatorBrush}" Height="1" Margin="16,0"/>
+
+              <StackPanel Margin="16,10,16,14" Spacing="6">
+
+                <TextBlock Text="{Tr 'Support tutorials url label'}"
+
+                           FontSize="11"
+
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+
+                <SelectableTextBlock x:Name="TutorialsUrlText"
+
+                                     FontSize="11"
+
+                                     Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+
+                                     TextWrapping="Wrap"
+
+                                     Cursor="IBeam"/>
+
+              </StackPanel>
+
+            </StackPanel>
+
+          </Border>
+
+
+
+          <Border Margin="0,0,0,4"
+
+                  Background="{DynamicResource CardBackgroundInactiveBrush}"
+
+                  CornerRadius="8"
+
+                  Padding="0"
+
+                  BorderBrush="{DynamicResource SeparatorBrush}"
+
+                  BorderThickness="1">
+
+            <Button x:Name="BtWhatsApp"
+
+                    Click="BtWhatsApp_OnClick"
+
+                    HorizontalAlignment="Stretch"
+
+                    HorizontalContentAlignment="Stretch"
+
+                    Padding="16,14"
+
+                    Cursor="Hand"
+
+                    Background="Transparent"
+
+                    BorderThickness="0">
+
+              <Grid ColumnDefinitions="Auto,*">
+
+                <TextBlock Grid.Column="0" Text="📱" FontSize="20" VerticalAlignment="Top" Margin="0,2,12,0"/>
+
+                <StackPanel Grid.Column="1" Spacing="4">
+
+                  <TextBlock Text="{Tr 'Support whatsapp button'}"
+
+                             FontWeight="SemiBold"
+
+                             FontSize="14"
+
+                             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+
+                             TextWrapping="Wrap"/>
+
+                  <TextBlock x:Name="SupportPhoneText"
+
+                             FontSize="13"
+
+                             FontWeight="SemiBold"
+
+                             Foreground="{DynamicResource SystemControlBackgroundAccentBrush}"
+
+                             TextWrapping="Wrap"/>
+
+                  <TextBlock Text="{Tr 'Support whatsapp hint'}"
+
+                             FontSize="12"
+
+                             Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+
+                             TextWrapping="Wrap"
+
+                             LineHeight="18"/>
+
+                </StackPanel>
+
+              </Grid>
+
+            </Button>
+
+          </Border>
+
+        </StackPanel>
+
+      </ScrollViewer>
+
+    </DockPanel>
+
+  </Grid>
+
+</Window>
+
