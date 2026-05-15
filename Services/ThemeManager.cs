@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using System;
 
 namespace LesserDashboardClient.Services
@@ -12,6 +13,9 @@ namespace LesserDashboardClient.Services
     {
         private static ThemeManager _instance;
         public static ThemeManager Instance => _instance ??= new ThemeManager();
+
+        /// <summary>Disparado no UI thread após o tema ser aplicado (útil para invalidar bindings que leem ThemeDictionaries em conversores).</summary>
+        public static event EventHandler? ThemeApplied;
 
         private ThemeManager() { }
 
@@ -32,6 +36,11 @@ namespace LesserDashboardClient.Services
                     app.RequestedThemeVariant = ThemeVariant.Default;
                     break;
             }
+
+            // ActualThemeVariant e ThemeDictionaries consolidam no próximo passo de layout
+            Dispatcher.UIThread.Post(
+                static () => ThemeApplied?.Invoke(null, EventArgs.Empty),
+                DispatcherPriority.Loaded);
         }
 
         public bool IsCurrentThemeDark()

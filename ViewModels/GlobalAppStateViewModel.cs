@@ -265,6 +265,16 @@ public partial class GlobalAppStateViewModel : ObservableObject
             await dlg.ShowDialog(null!);
     }
 
+    /// <summary>Diálogo principal do botão Suporte: tutoriais (web) ou WhatsApp.</summary>
+    public async Task ShowSupportHelpDialogAsync()
+    {
+        var dlg = new SupportHelpDialog();
+        if (MainWindow.instance != null)
+            await dlg.ShowDialog(MainWindow.instance);
+        else
+            await dlg.ShowDialog(null!);
+    }
+
     /// <param name="messageIntroOverride">Se informado, substitui o primeiro parágrafo (ex.: listar subpastas vs. ler fotos).</param>
     public async Task ShowFolderAccessDeniedDialogAsync(string rootFolder, string deniedPath, Exception ex, string? messageIntroOverride = null)
     {

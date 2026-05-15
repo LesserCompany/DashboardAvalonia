@@ -5,18 +5,25 @@ using CommunityToolkit.Mvvm.Input;
 using CodingSeb.Localization;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users;
+using SharedClientSide.ServerInteraction.Users.Companies.Results;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace LesserDashboardClient.ViewModels.Collections
 {
     public partial class ChangeDeletionDateViewModel : ViewModelBase
     {
+        /// <summary>Mínimo no campo <see cref="ExtendScheduledDeletionDateSimulationResult.TotalValue"/> (centavos de real) para cobrança (R$ 0,10).</summary>
+        private const double MinimumExtensionTotalApiCentavos = 10;
+
         private readonly LesserFunctionClient _lesserFunctionClient;
         private readonly ProfessionalTask _selectedCollection;
         private readonly Action _onSuccess;
         private Window? _window;
+
+        /// <summary>Último total simulado (API, centavos de real) para validar confirmação.</summary>
+        private double _lastSuccessfulTotalValueCents;
 
         [ObservableProperty]
         private DateTimeOffset? selectedDate;
@@ -34,6 +41,25 @@ namespace LesserDashboardClient.ViewModels.Collections
         private string? priceText;
 
         [ObservableProperty]
+        private bool showPriceBreakdown;
+
+        [ObservableProperty]
+        private string? breakdownDailyLine;
+
+        [ObservableProperty]
+        private string? breakdownDaysLine;
+
+        [ObservableProperty]
+        private string? breakdownPhotosLine;
+
+        [ObservableProperty]
+        private string? priceTotalLine;
+
+        /// <summary>Aviso quando o total está abaixo do mínimo faturável (não é erro de rede).</summary>
+        [ObservableProperty]
+        private string? minimumInvoiceNotice;
+
+        [ObservableProperty]
         private bool isUpdating = false;
 
         [ObservableProperty]
@@ -48,23 +74,29 @@ namespace LesserDashboardClient.ViewModels.Collections
             _selectedCollection = selectedCollection;
             _onSuccess = onSuccess;
             _window = window;
-            
+
             // Inicializa com 1 dia após a data de deleção agendada se existir
             var now = DateTimeOffset.Now;
             if (selectedCollection.ScheduledDeletionDate.HasValue && selectedCollection.ScheduledDeletionDate.Value > now)
             {
-                // Define a data inicial como 1 dia após a data de deleção agendada
                 SelectedDate = selectedCollection.ScheduledDeletionDate.Value.AddDays(1);
             }
             else
             {
-                // Se não houver data ou a data for inválida, usa uma data padrão (ex: 1 ano a partir de agora)
                 SelectedDate = new DateTimeOffset(DateTime.Now.AddYears(1));
             }
-            
-            // Inicializa o texto do preço
+
             PriceText = Loc.Tr("Loading price...");
         }
+
+        /// <summary>Mostra texto simples (carregando ou ---) quando não há detalhamento nem ring de carga.</summary>
+        public bool ShowPricePlaceholder => !IsLoadingPrice && !ShowPriceBreakdown && !string.IsNullOrEmpty(PriceText);
+
+        partial void OnIsLoadingPriceChanged(bool value) => OnPropertyChanged(nameof(ShowPricePlaceholder));
+
+        partial void OnShowPriceBreakdownChanged(bool value) => OnPropertyChanged(nameof(ShowPricePlaceholder));
+
+        partial void OnPriceTextChanged(string? value) => OnPropertyChanged(nameof(ShowPricePlaceholder));
 
         public void SetWindow(Window window)
         {
@@ -73,12 +105,8 @@ namespace LesserDashboardClient.ViewModels.Collections
 
         public async Task LoadInitialPriceAsync()
         {
-            // Carrega o preço inicial quando o modal estiver totalmente carregado
-            // Aguarda um pouco para garantir que o modal está totalmente renderizado
-            // e evitar chamadas muito rápidas que podem causar problemas de autenticação
             await Task.Delay(300);
-            
-            // Verifica novamente se ainda temos uma data válida antes de carregar
+
             if (SelectedDate.HasValue && _selectedCollection != null && !string.IsNullOrEmpty(_selectedCollection.classCode))
             {
                 await LoadPriceAsync();
@@ -89,20 +117,30 @@ namespace LesserDashboardClient.ViewModels.Collections
         {
             if (value.HasValue && !IsUpdating)
             {
-                // Valida se a data selecionada é maior que a data atual
                 var now = DateTimeOffset.Now;
                 if (value.Value <= now)
                 {
                     ErrorMessage = Loc.Tr("The selected date must be greater than the current date.");
                     PriceText = "---";
+                    ClearPriceBreakdown();
                     IsConfirmButtonEnabled = false;
                     return;
                 }
-                
-                // Limpa o erro se a data for válida
+
                 ErrorMessage = null;
                 _ = LoadPriceAsync();
             }
+        }
+
+        private void ClearPriceBreakdown()
+        {
+            ShowPriceBreakdown = false;
+            BreakdownDailyLine = null;
+            BreakdownDaysLine = null;
+            BreakdownPhotosLine = null;
+            PriceTotalLine = null;
+            MinimumInvoiceNotice = null;
+            _lastSuccessfulTotalValueCents = 0;
         }
 
         private async Task LoadPriceAsync()
@@ -112,16 +150,16 @@ namespace LesserDashboardClient.ViewModels.Collections
                 return;
             }
 
-            // Valida se a data selecionada é maior que a data atual
             var now = DateTimeOffset.Now;
             if (SelectedDate.Value <= now)
             {
                 ErrorMessage = Loc.Tr("The selected date must be greater than the current date.");
                 PriceText = "---";
+                ClearPriceBreakdown();
                 IsConfirmButtonEnabled = false;
                 return;
             }
-            
+
             try
             {
                 IsLoadingPrice = true;
@@ -129,77 +167,64 @@ namespace LesserDashboardClient.ViewModels.Collections
                 IsConfirmButtonEnabled = false;
                 ErrorMessage = null;
                 PriceText = Loc.Tr("Loading price...");
+                ClearPriceBreakdown();
 
-                // Verifica se o token está válido antes de chamar
                 if (_lesserFunctionClient?.loginResult?.User == null)
                 {
                     ErrorMessage = "Usuário não autenticado";
                     return;
                 }
 
-                // Para coleção existente: oldScheduledDeletionDate vem do ScheduledDeletionDate da coleção
-                // isCollectionCreation = false
                 var oldDateTimeOffset = _selectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
-                // Sempre enviar newScheduledDeletionDate com 5 horas a mais (05:00 UTC em vez de 00:00)
                 var newDateTimeOffset = SelectedDate.Value.ToUniversalTime().AddHours(5);
-                
+
                 var result = await _lesserFunctionClient.SimulateExtendScheduledDeletionDate(
                     _selectedCollection.classCode,
                     oldDateTimeOffset.ToUniversalTime(),
                     newDateTimeOffset,
-                    false // isCollectionCreation = false para coleção já existente
-                );
+                    false);
 
-                // Verifica se houve erro de autenticação REAL (não erro de cálculo de preço)
                 if (result != null && result.loginFailed == true)
                 {
-                    // Se a mensagem for sobre cálculo de preço, não é erro de autenticação
-                    bool isPriceCalculationError = result.message != null && 
-                        (result.message.Contains("calcular o preço") || 
+                    bool isPriceCalculationError = result.message != null &&
+                        (result.message.Contains("calcular o preço") ||
                          result.message.Contains("Não foi possível calcular") ||
                          result.message.Contains("calculate the price") ||
                          result.message.Contains("Unable to calculate"));
-                    
+
                     if (isPriceCalculationError)
                     {
                         ErrorMessage = result.message ?? Loc.Tr("Error loading price");
                         PriceText = "---";
+                        ClearPriceBreakdown();
                         IsConfirmButtonEnabled = false;
                         return;
                     }
-                    else
-                    {
-                        // Se o login falhou de verdade, não mostra erro - apenas desabilita
-                        // O sistema já vai redirecionar para login automaticamente
-                        ErrorMessage = null;
-                        PriceText = Loc.Tr("Loading price...");
-                        IsConfirmButtonEnabled = false;
-                        return; // Sai sem habilitar o DatePicker para evitar novas tentativas
-                    }
+
+                    ErrorMessage = null;
+                    PriceText = Loc.Tr("Loading price...");
+                    ClearPriceBreakdown();
+                    IsConfirmButtonEnabled = false;
+                    return;
                 }
 
                 if (result != null && result.success == true && result.Content != null)
                 {
-                    // Para coleção existente, usamos o valor total retornado pelo backend (em centavos),
-                    // então dividimos por 100 para converter para reais.
-                    double totalPrice = result.Content.TotalValue / 100.0;
-                    
-                    PriceText = $"R$ {totalPrice:F2}";
-                    IsConfirmButtonEnabled = true;
+                    ApplySuccessfulPriceQuote(result.Content);
                 }
                 else
                 {
                     ErrorMessage = result?.message ?? Loc.Tr("Error loading price");
                     PriceText = "---";
+                    ClearPriceBreakdown();
                     IsConfirmButtonEnabled = false;
                 }
             }
             catch (Exception ex)
             {
-                // Não mostra erro de autenticação como erro fatal - apenas desabilita o botão
                 if (ex.Message.Contains("session") || ex.Message.Contains("token") || ex.Message.Contains("login"))
                 {
-                    ErrorMessage = null; // Não mostra erro para não assustar o usuário
+                    ErrorMessage = null;
                     PriceText = Loc.Tr("Loading price...");
                 }
                 else
@@ -207,13 +232,93 @@ namespace LesserDashboardClient.ViewModels.Collections
                     ErrorMessage = ex.Message;
                     PriceText = Loc.Tr("Loading price...");
                 }
+
                 IsConfirmButtonEnabled = false;
+                ClearPriceBreakdown();
             }
             finally
             {
                 IsLoadingPrice = false;
                 IsDatePickerEnabled = true;
             }
+        }
+
+        private void ApplySuccessfulPriceQuote(ExtendScheduledDeletionDateSimulationResult content)
+        {
+            double totalPriceReais = content.TotalValue / 100.0;
+            double dailyReais = content.DailyPricePerPhoto / 100.0;
+            int days = content.AddedDays;
+
+            BreakdownDailyLine = $"{Loc.Tr("Daily cost per photo:")} {FormatDailyReais(dailyReais)}";
+            BreakdownDaysLine = $"{Loc.Tr("Added days:")} {days}";
+
+            int? photos = ResolvePhotoCountForDisplay(content);
+            BreakdownPhotosLine = photos.HasValue
+                ? $"{Loc.Tr("Photos in collection:")} {photos.Value}"
+                : Loc.Tr("Photos in collection (unknown).");
+
+            PriceTotalLine = $"{Loc.Tr("Total:")} {FormatReais(totalPriceReais, 2)}";
+
+            ShowPriceBreakdown = true;
+            PriceText = null;
+
+            _lastSuccessfulTotalValueCents = content.TotalValue;
+
+            if (content.TotalValue < MinimumExtensionTotalApiCentavos)
+            {
+                MinimumInvoiceNotice = Loc.Tr(
+                    "The extension must be at least R$ 0.10. Choose a longer storage period.",
+                    "O valor da extensão precisa ser de no mínimo R$ 0,10. Aumente o período de armazenamento.");
+                IsConfirmButtonEnabled = false;
+            }
+            else
+            {
+                MinimumInvoiceNotice = null;
+                IsConfirmButtonEnabled = true;
+            }
+        }
+
+        private int? ResolvePhotoCountForDisplay(ExtendScheduledDeletionDateSimulationResult content)
+        {
+            if (TryInferPhotoCount(content.TotalValue, content.PricePerPhoto, out int inferred))
+                return inferred;
+
+            int fromCollection = (_selectedCollection.recognitionPhotos ?? 0) + (_selectedCollection.eventPhotos ?? 0);
+            return fromCollection > 0 ? fromCollection : null;
+        }
+
+        private static string FormatReais(double valueInReais, int decimalPlaces)
+        {
+            var fmt = decimalPlaces <= 0 ? "F0" : $"F{decimalPlaces}";
+            var n = valueInReais.ToString(fmt, CultureInfo.InvariantCulture).Replace('.', ',');
+            return $"R$ {n}";
+        }
+
+        private static string FormatDailyReais(double dailyInReais)
+        {
+            int decimals = dailyInReais is > 0 and < 0.01 ? 6 : 4;
+            return FormatReais(dailyInReais, decimals);
+        }
+
+        private static bool TryInferPhotoCount(
+            double totalValueCents,
+            double pricePerPhotoCents,
+            out int photoCount)
+        {
+            photoCount = 0;
+            if (pricePerPhotoCents <= 0)
+                return false;
+
+            double ratio = totalValueCents / pricePerPhotoCents;
+            int rounded = (int)Math.Round(ratio, MidpointRounding.AwayFromZero);
+            if (rounded <= 0)
+                return false;
+
+            if (Math.Abs(ratio - rounded) > 0.02)
+                return false;
+
+            photoCount = rounded;
+            return true;
         }
 
         [RelayCommand]
@@ -224,11 +329,24 @@ namespace LesserDashboardClient.ViewModels.Collections
                 return;
             }
 
-            // Valida se a data selecionada é maior que a data atual
+            if (_lastSuccessfulTotalValueCents < MinimumExtensionTotalApiCentavos)
+            {
+                ErrorMessage = Loc.Tr(
+                    "The extension must be at least R$ 0.10. Choose a longer storage period.",
+                    "O valor da extensão precisa ser de no mínimo R$ 0,10. Aumente o período de armazenamento.");
+                return;
+            }
+
             var now = DateTimeOffset.Now;
             if (SelectedDate.Value <= now)
             {
                 ErrorMessage = Loc.Tr("The selected date must be greater than the current date.");
+                return;
+            }
+
+            if (_lesserFunctionClient?.loginResult?.User == null)
+            {
+                ErrorMessage = "Usuário não autenticado";
                 return;
             }
 
@@ -239,31 +357,20 @@ namespace LesserDashboardClient.ViewModels.Collections
                 IsConfirmButtonEnabled = false;
                 ErrorMessage = null;
 
-                // Verifica se o token está válido antes de chamar
-                if (_lesserFunctionClient?.loginResult?.User == null)
-                {
-                    ErrorMessage = "Usuário não autenticado";
-                    return;
-                }
-
-                // Converte para DateTimeOffset UTC e adiciona 5 horas (para manter 05:00 em vez de 00:00)
                 var dateTimeOffset = SelectedDate.Value.ToUniversalTime().AddHours(5);
-                
+
                 var result = await _lesserFunctionClient.UpdateDeletionDeadlineExtensionCollection(
                     _selectedCollection.classCode,
-                    dateTimeOffset
-                );
+                    dateTimeOffset);
 
                 if (result != null && result.success == true)
                 {
                     ShowSuccessMessage = true;
-                    
-                    // Aguarda um pouco antes de fechar e chamar o callback
+
                     await Task.Delay(1500);
-                    
+
                     _onSuccess?.Invoke();
-                    
-                    // Fecha a janela
+
                     if (_window != null)
                     {
                         await Dispatcher.UIThread.InvokeAsync(() => _window.Close());
@@ -273,12 +380,14 @@ namespace LesserDashboardClient.ViewModels.Collections
                 {
                     ErrorMessage = result?.message ?? Loc.Tr("Error updating deletion date");
                     IsDatePickerEnabled = true;
+                    IsConfirmButtonEnabled = _lastSuccessfulTotalValueCents >= MinimumExtensionTotalApiCentavos && ShowPriceBreakdown;
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message;
                 IsDatePickerEnabled = true;
+                IsConfirmButtonEnabled = _lastSuccessfulTotalValueCents >= MinimumExtensionTotalApiCentavos && ShowPriceBreakdown;
             }
             finally
             {
@@ -296,4 +405,3 @@ namespace LesserDashboardClient.ViewModels.Collections
         }
     }
 }
-
