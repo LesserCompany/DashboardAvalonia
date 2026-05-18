@@ -11,14 +11,6 @@ public partial class CollectionList : UserControl
         InitializeComponent();
     }
 
-    private void TextBox_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
-    {
-        if(DataContext is CollectionsViewModel vm)
-        {
-            vm.FilterProfessionalTasks(tbFilterClassCode.Text, tbFilterProfessional.Text);
-        }
-    }
-
     private void MoreActionsButton_OnClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (sender is Button button && button.DataContext is ProfessionalTask item && DataContext is CollectionsViewModel vm)
