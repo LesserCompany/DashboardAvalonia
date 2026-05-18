@@ -182,5 +182,41 @@
   "WelcomeMessage": {
     "en-US": "Welcome to the Lesser Dashboard. here you can create, download, separate and detail the data of your photo collections in an efficient way. Use the panel on the left to create a new collection or select an existing one to use the other features.",
     "pt-BR": "Bem-vindo ao Lesser Dashboard. Aqui você pode criar, baixar, separar e detalhar os dados das suas coleções de fotos de forma eficiente. Use o painel à esquerda para criar uma nova coleção ou selecionar uma existente para usar as demais funcionalidades."
+  },
+  "Support help window title": {
+    "en-US": "Help and support",
+    "pt-BR": "Ajuda e suporte"
+  },
+  "Support help lead": {
+    "en-US": "Choose how you want to continue: self-service tutorials in your browser, or talk to our team on WhatsApp.",
+    "pt-BR": "Escolha como prefere seguir: tutoriais no site (no seu navegador) ou conversar com nosso time no WhatsApp."
+  },
+  "Support help choose": {
+    "en-US": "Pick an option",
+    "pt-BR": "Escolha uma opção"
+  },
+  "Support open tutorials": {
+    "en-US": "Open tutorials in the browser",
+    "pt-BR": "Abrir tutoriais no navegador"
+  },
+  "Support open tutorials hint": {
+    "en-US": "Step-by-step guides. Opens your default browser.",
+    "pt-BR": "Guias e orientações. Abre no seu navegador padrão."
+  },
+  "Support tutorials url label": {
+    "en-US": "Link (you can select and copy):",
+    "pt-BR": "Link (pode selecionar e copiar):"
+  },
+  "Support whatsapp button": {
+    "en-US": "Chat with support on WhatsApp",
+    "pt-BR": "Falar com o suporte no WhatsApp"
+  },
+  "Support whatsapp hint": {
+    "en-US": "Human support. A ready-made message with your company name will open.",
+    "pt-BR": "Atendimento humano. Abre o WhatsApp com uma mensagem já preenchida com o nome da sua empresa."
+  },
+  "Support close": {
+    "en-US": "Close",
+    "pt-BR": "Fechar"
   }
 }

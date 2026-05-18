@@ -256,8 +256,8 @@
     "pt-BR": "OCR no servidor:"
   },
   "The class code can only contain letters and numbers": {
-    "en-US": "The class code can only contain letters and numbers",
-    "pt-BR": "O código da turma só pode conter letras e números"
+    "en-US": "The class code may only contain letters, numbers, and these characters: _ / ' . -",
+    "pt-BR": "O código da turma só pode conter letras, números e os caracteres: _ / ' . -"
   },
   "Events folder not found": {
     "en-US": "Events folder not found",
@@ -591,6 +591,30 @@
     "en-US": "Additional investment:",
     "pt-BR": "Investimento adicional:"
   },
+  "Daily cost per photo:": {
+    "en-US": "Daily cost per photo:",
+    "pt-BR": "Custo diário por foto:"
+  },
+  "Added days:": {
+    "en-US": "Added days:",
+    "pt-BR": "Total de dias adicionados:"
+  },
+  "Photos in collection:": {
+    "en-US": "Photos in collection:",
+    "pt-BR": "Total de fotos na coleção:"
+  },
+  "Photos in collection (unknown).": {
+    "en-US": "Photos in collection: —",
+    "pt-BR": "Total de fotos na coleção: —"
+  },
+  "Total:": {
+    "en-US": "Total:",
+    "pt-BR": "Total:"
+  },
+  "The extension must be at least R$ 0.10. Choose a longer storage period.": {
+    "en-US": "The extension must be at least R$ 0.10. Choose a longer storage period.",
+    "pt-BR": "O valor da extensão precisa ser de no mínimo R$ 0,10. Aumente o período de armazenamento."
+  },
   "Additional dates of 5 years receive a 50% discount.": {
     "en-US": "Extending the storage period by 5 additional years grants a 50% discount on the additional investment.",
     "pt-BR": ""
@@ -672,8 +696,8 @@
     "pt-BR": "Nenhuma coleção foi encontrada correspondendo aos critérios de pesquisa."
   },
   "Normal collections": {
-    "en-US": "Normal collections",
-    "pt-BR": "Coleções normais"
+    "en-US": "Recent collections",
+    "pt-BR": "Coleções recentes"
   },
   "Expired collections": {
     "en-US": "Expired collections",
@@ -684,16 +708,16 @@
     "pt-BR": "Lixeira"
   },
   "Your active collections. Here you manage and access collections in use.": {
-    "en-US": "Your active collections. Here you manage and access collections in use.",
-    "pt-BR": "Suas coleções ativas. Aqui você gerencia e acessa as coleções em uso."
+    "en-US": "Your recent collections. Here you manage and access collections in use.",
+    "pt-BR": "Suas coleções recentes. Aqui você gerencia e acessa as coleções em uso."
   },
   "Collections whose storage period has expired. You can renew or request deletion.": {
     "en-US": "Collections whose storage period has expired. You can renew or request deletion.",
     "pt-BR": "Coleções cujo prazo de armazenamento já expirou. Você pode renovar ou solicitar exclusão."
   },
   "Collections with pending deletion request. You can restore them to the normal list.": {
-    "en-US": "Collections with pending deletion request. You can restore them to the normal list.",
-    "pt-BR": "Coleções com solicitação de exclusão pendente. Você pode restaurá-las para a lista normal."
+    "en-US": "Collections with pending deletion request. You can restore them to your recent collections list.",
+    "pt-BR": "Coleções com solicitação de exclusão pendente. Você pode restaurá-las para a lista de coleções recentes."
   },
   "How do you want to delete this collection?": {
     "en-US": "How do you want to delete this collection?",

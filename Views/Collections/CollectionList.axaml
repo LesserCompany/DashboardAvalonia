@@ -14,10 +14,12 @@
             <Image Width="64" Height="64" Source="{SvgImage /Assets/symbol.svg}" />
             <Grid Grid.Column="1" RowSpacing="6" ColumnSpacing="6" RowDefinitions="Auto, Auto" ColumnDefinitions="Auto, *" VerticalAlignment="Center" IsEnabled="{Binding IsEnabledFiltersInList}">
                 <TextBlock FontSize="12" Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
-                <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterClassCode" TextChanged="TextBox_TextChanged"/>
+                <TextBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                         Text="{Binding FilterClassCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                 
                 <TextBlock FontSize="12" Grid.Row="1" Grid.Column="0" Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
-                <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Name="tbFilterProfessional" TextChanged="TextBox_TextChanged" />
+                <TextBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                         Text="{Binding FilterProfessionalText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </Grid>
         </Grid>
         <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="6">
@@ -27,22 +29,29 @@
                     <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
-            <!-- Abas: Coleções normais | Vencidas | Deletadas -->
-            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="4,4">
+            <!-- Abas: trilho sólido + aba ativa sólida + hover (CollectionsTab* no App.axaml, light/dark) -->
+            <Border Background="{DynamicResource CollectionsTabWellBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="4,4">
                 <!-- Grid em vez de WrapPanel: usa toda a largura (3 colunas iguais), evita quebra com espaço vazio à direita -->
                 <Grid ColumnDefinitions="*,*,*" ColumnSpacing="4">
                     <Button Grid.Column="0"
+                            Classes="collections-tab-btn"
+                            Cursor="Hand"
                             Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Normal"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Background="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            BorderBrush="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveBorderBrushConverter}}"
+                            BorderThickness="1"
+                            Foreground="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveForegroundConverter}}"
+                            FontWeight="{Binding IsNormalTabActive, Converter={StaticResource BoolToTabActiveFontWeightConverter}}"
                             Padding="6,7" CornerRadius="6"
                             ToolTip.Tip="{Tr 'Your active collections. Here you manage and access collections in use.'}">
-                        <Button.Styles>
-                            <Style Selector="Button:pointerover">
-                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
-                            </Style>
-                        </Button.Styles>
+                        <Button.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                            </Transitions>
+                        </Button.Transitions>
                         <TextBlock Text="{Tr 'Normal collections'}"
                                    FontSize="12"
                                    TextWrapping="Wrap"
@@ -50,17 +59,24 @@
                                    HorizontalAlignment="Center"/>
                     </Button>
                     <Button Grid.Column="1"
+                            Classes="collections-tab-btn"
+                            Cursor="Hand"
                             Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Expired"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Background="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            BorderBrush="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveBorderBrushConverter}}"
+                            BorderThickness="1"
+                            Foreground="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveForegroundConverter}}"
+                            FontWeight="{Binding IsExpiredTabActive, Converter={StaticResource BoolToTabActiveFontWeightConverter}}"
                             Padding="6,7" CornerRadius="6"
                             ToolTip.Tip="{Tr 'Collections whose storage period has expired. You can renew or request deletion.'}">
-                        <Button.Styles>
-                            <Style Selector="Button:pointerover">
-                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
-                            </Style>
-                        </Button.Styles>
+                        <Button.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                            </Transitions>
+                        </Button.Transitions>
                         <TextBlock Text="{Tr 'Expired collections'}"
                                    FontSize="12"
                                    TextWrapping="Wrap"
@@ -68,17 +84,24 @@
                                    HorizontalAlignment="Center"/>
                     </Button>
                     <Button Grid.Column="2"
+                            Classes="collections-tab-btn"
+                            Cursor="Hand"
                             Command="{Binding SelectCollectionsTabCommand}" CommandParameter="Deleted"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Background="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveBackgroundConverter}}"
+                            BorderBrush="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveBorderBrushConverter}}"
+                            BorderThickness="1"
+                            Foreground="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveForegroundConverter}}"
+                            FontWeight="{Binding IsDeletedTabActive, Converter={StaticResource BoolToTabActiveFontWeightConverter}}"
                             Padding="6,7" CornerRadius="6"
                             ToolTip.Tip="{Tr 'Collections with pending deletion request. You can restore them to the normal list.'}">
-                        <Button.Styles>
-                            <Style Selector="Button:pointerover">
-                                <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
-                            </Style>
-                        </Button.Styles>
+                        <Button.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+                            </Transitions>
+                        </Button.Transitions>
                         <TextBlock Text="{Tr 'Deleted collections'}"
                                    FontSize="12"
                                    TextWrapping="Wrap"

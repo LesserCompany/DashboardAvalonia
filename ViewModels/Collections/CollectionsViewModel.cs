@@ -21,6 +21,7 @@ using SharedClientSide.ServerInteraction.Users.Companies.Requests;
 using SharedClientSide.ServerInteraction.Users.Graduate;
 using SharedClientSide.ServerInteraction.Users.Professionals;
 using SharedClientSide.ServerInteraction.Users.Requests;
+using SharedClientSide.ServerInteraction.Users.Results;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -414,10 +415,54 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ProfessionalTask> collectionsListFiltered = new();
     partial void OnCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
+    [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsListFiltered = new();
+    partial void OnExpiredCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+
+    [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsListFiltered = new();
+    partial void OnDeletedCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+
+    /// <summary>Filtro: ID da coleção (sincronizado com a view).</summary>
+    [ObservableProperty] private string filterClassCode = "";
+
+    /// <summary>Filtro: separador (sincronizado com a view).</summary>
+    [ObservableProperty] private string filterProfessionalText = "";
+
+    private bool _isClearingFiltersForTabChange;
+
+    partial void OnFilterClassCodeChanged(string value)
+    {
+        if (_isClearingFiltersForTabChange) return;
+        FilterProfessionalTasks(FilterClassCode, FilterProfessionalText);
+    }
+
+    partial void OnFilterProfessionalTextChanged(string value)
+    {
+        if (_isClearingFiltersForTabChange) return;
+        FilterProfessionalTasks(FilterClassCode, FilterProfessionalText);
+    }
+
     /// <summary>Aba ativa na lista de coleções (normais, vencidas ou deletadas).</summary>
     [ObservableProperty] private CollectionsTabKind selectedCollectionsTab = CollectionsTabKind.Normal;
     partial void OnSelectedCollectionsTabChanged(CollectionsTabKind value)
     {
+        _filterDebounceCts?.Cancel();
+        IsSearchingOnServer = false;
+        ShowNoResultsMessage = false;
+
+        _isClearingFiltersForTabChange = true;
+        try
+        {
+            filterClassCode = string.Empty;
+            filterProfessionalText = string.Empty;
+            OnPropertyChanged(nameof(FilterClassCode));
+            OnPropertyChanged(nameof(FilterProfessionalText));
+            ApplyLocalFilterAllSources(string.Empty, string.Empty);
+        }
+        finally
+        {
+            _isClearingFiltersForTabChange = false;
+        }
+
         OnPropertyChanged(nameof(VisibleCollectionsList));
         NotifyDeletedCollectionViewState();
         OnPropertyChanged(nameof(ShowLoadMoreButtonInList));
@@ -426,6 +471,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsExpiredTabActive));
         OnPropertyChanged(nameof(IsDeletedTabActive));
         OnPropertyChanged(nameof(IsNormalTabActive));
+        ClearSelectedIfNotInCurrentFilteredVisible();
         EnsureTabDataLoadedAsync(value);
     }
 
@@ -445,10 +491,10 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsList = new();
     partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
-    /// <summary>Lista que a view deve exibir conforme a aba ativa: Normal → CollectionsListFiltered, Expired → ExpiredCollectionsList, Deleted → DeletedCollectionsList.</summary>
+    /// <summary>Lista que a view deve exibir conforme a aba ativa (sempre a variante filtrada da sub-aba).</summary>
     public IEnumerable<ProfessionalTask> VisibleCollectionsList =>
-        SelectedCollectionsTab == CollectionsTabKind.Deleted ? DeletedCollectionsList
-        : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsList
+        SelectedCollectionsTab == CollectionsTabKind.Deleted ? DeletedCollectionsListFiltered
+        : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsListFiltered
         : CollectionsListFiltered;
 
     /// <summary>True quando a aba "Deletadas" está ativa (para mostrar menu Restaurar nos itens).</summary>
@@ -501,8 +547,8 @@ public partial class CollectionsViewModel : ViewModelBase
     /// <summary>Mostrar botão "Carregar mais" apenas na aba de coleções normais.</summary>
     public bool ShowLoadMoreButtonInList => ShowLoadMoreButton && SelectedCollectionsTab == CollectionsTabKind.Normal;
 
-    /// <summary>Filtros de busca habilitados apenas na aba de coleções normais.</summary>
-    public bool IsEnabledFiltersInList => IsEnabledFilters && SelectedCollectionsTab == CollectionsTabKind.Normal;
+    /// <summary>Filtros de ID / separador habilitados em todas as sub-abas (Normais, Vencidas, Lixeira).</summary>
+    public bool IsEnabledFiltersInList => IsEnabledFilters;
     [ObservableProperty] private ObservableCollection<GraduateByCPF> graduatesData = new();
     [ObservableProperty] private bool updatingGraduatesData;
     [ObservableProperty] private bool copyingCollectionCpfs;
@@ -1281,6 +1327,9 @@ public partial class CollectionsViewModel : ViewModelBase
         // CORREÇÃO: Inicializa o texto do botão e escuta mudanças de idioma
         UpdateLoadOldButtonText();
         App.LanguageChanged += OnLanguageChanged;
+        ThemeManager.ThemeApplied += OnApplicationThemeApplied;
+        // Tema já pode ter sido aplicado antes do VM existir — alinha conversores das abas ao tema atual
+        Dispatcher.UIThread.Post(() => OnApplicationThemeApplied(this, EventArgs.Empty), DispatcherPriority.Loaded);
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
@@ -1680,6 +1729,15 @@ public partial class CollectionsViewModel : ViewModelBase
     ~CollectionsViewModel()
     {
         App.LanguageChanged -= OnLanguageChanged;
+        ThemeManager.ThemeApplied -= OnApplicationThemeApplied;
+    }
+
+    /// <summary>Conversores das sub-abas de coleções leem ThemeDictionaries via ActualThemeVariant; força rebind ao mudar dark/light.</summary>
+    private void OnApplicationThemeApplied(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsNormalTabActive));
+        OnPropertyChanged(nameof(IsExpiredTabActive));
+        OnPropertyChanged(nameof(IsDeletedTabActive));
     }
 
     public async Task LoadProfessionalTasks()
@@ -1694,7 +1752,7 @@ public partial class CollectionsViewModel : ViewModelBase
             if (r != null)
             {
                 CollectionsList = new ObservableCollection<ProfessionalTask>(r);
-                CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
+                ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
             }
         }
         catch (Exception ex)
@@ -1722,8 +1780,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if(pt != null)
                 {
                     CollectionsList.Insert(0, pt);
-                    CollectionsListFiltered.Clear();
-                    CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
+                    ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
                 }
                 else
                 {
@@ -1731,8 +1788,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     if (r != null)
                     {
                         CollectionsList = new ObservableCollection<ProfessionalTask>(r);
-                        CollectionsListFiltered.Clear();
-                        CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(CollectionsList);
+                        ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
                     }
                 }
             }
@@ -1816,177 +1872,233 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
+    private enum CollectionSearchCategory
+    {
+        Normal,
+        StorageExpired,
+        PendingDeletion
+    }
+
+    private static CollectionSearchCategory GetCollectionSearchCategory(ProfessionalTask pt)
+    {
+        if (pt == null) return CollectionSearchCategory.Normal;
+        if (pt.DeletionRequested == true || pt.EnqueuedForDeletion == true)
+            return CollectionSearchCategory.PendingDeletion;
+        if (pt.ScheduledDeletionDate.HasValue && pt.ScheduledDeletionDate.Value <= DateTimeOffset.Now)
+            return CollectionSearchCategory.StorageExpired;
+        return CollectionSearchCategory.Normal;
+    }
+
+    private static CollectionsTabKind TabForSearchCategory(CollectionSearchCategory category) =>
+        category switch
+        {
+            CollectionSearchCategory.PendingDeletion => CollectionsTabKind.Deleted,
+            CollectionSearchCategory.StorageExpired => CollectionsTabKind.Expired,
+            _ => CollectionsTabKind.Normal
+        };
+
+    private bool FilterTextsMatch(string classCode, string professional) =>
+        string.Equals(FilterClassCode ?? string.Empty, classCode, StringComparison.Ordinal) &&
+        string.Equals(FilterProfessionalText ?? string.Empty, professional, StringComparison.Ordinal);
+
     /// <summary>
-    /// Filtra as coleções na lista local e, se não encontrar resultados, busca no servidor.
-    /// Segue o padrão do Dashboard WPF: busca automaticamente quando não encontra na lista inicial.
+    /// Aplica o filtro de ID / separador sobre as três fontes e atualiza as listas filtradas de cada sub-aba.
+    /// </summary>
+    private void ApplyLocalFilterAllSources(string classCode, string professional)
+    {
+        static bool Match(ProfessionalTask task, string cc, string sep)
+        {
+            var login = task.professionalLogin ?? string.Empty;
+            var taskClass = task.classCode ?? string.Empty;
+            bool matchClass = string.IsNullOrEmpty(cc) ||
+                              taskClass.Contains(cc, StringComparison.OrdinalIgnoreCase);
+            bool matchProfessional = string.IsNullOrEmpty(sep) ||
+                                     login.Contains(sep, StringComparison.OrdinalIgnoreCase);
+            return matchClass && matchProfessional;
+        }
+
+        if (CollectionsList != null)
+        {
+            var filtered = CollectionsList.Where(t => Match(t, classCode, professional)).ToList();
+            CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filtered);
+        }
+        else
+            CollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
+
+        var filteredEx = ExpiredCollectionsList.Where(t => Match(t, classCode, professional)).ToList();
+        ExpiredCollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filteredEx);
+
+        var filteredDel = DeletedCollectionsList.Where(t => Match(t, classCode, professional)).ToList();
+        DeletedCollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filteredDel);
+    }
+
+    private void MergeServerFetchedTaskForCategory(ProfessionalTask pt, CollectionSearchCategory category)
+    {
+        if (pt == null || string.IsNullOrEmpty(pt.classCode)) return;
+        switch (category)
+        {
+            case CollectionSearchCategory.PendingDeletion:
+                if (!DeletedCollectionsList.Any(c => c.classCode == pt.classCode))
+                    DeletedCollectionsList.Insert(0, pt);
+                break;
+            case CollectionSearchCategory.StorageExpired:
+                if (!ExpiredCollectionsList.Any(c => c.classCode == pt.classCode))
+                    ExpiredCollectionsList.Insert(0, pt);
+                break;
+            default:
+                if (CollectionsList == null) return;
+                if (!CollectionsList.Any(c => c.classCode == pt.classCode))
+                    CollectionsList.Add(pt);
+                break;
+        }
+    }
+
+    private void ClearSelectedIfNotInCurrentFilteredVisible()
+    {
+        if (SelectedCollection == null) return;
+        var ok = SelectedCollectionsTab switch
+        {
+            CollectionsTabKind.Normal => CollectionsListFiltered.Contains(SelectedCollection),
+            CollectionsTabKind.Expired => ExpiredCollectionsListFiltered.Contains(SelectedCollection),
+            CollectionsTabKind.Deleted => DeletedCollectionsListFiltered.Contains(SelectedCollection),
+            _ => false
+        };
+        if (!ok)
+            SelectedCollection = null;
+    }
+
+    /// <summary>
+    /// Filtra as coleções na lista local e, se não encontrar resultados na sub-aba ativa, busca no servidor.
     /// </summary>
     public void FilterProfessionalTasks(string? classCode, string? professional)
     {
-        // Cancelar busca anterior se ainda estiver em andamento
         _filterDebounceCts?.Cancel();
         _filterDebounceCts = new CancellationTokenSource();
         var token = _filterDebounceCts.Token;
 
-        // Capturar valores para evitar problemas de closure
         var searchClassCode = classCode ?? string.Empty;
         var searchProfessional = professional ?? string.Empty;
 
-        // Resetar mensagem de "não encontrado" ao iniciar nova busca
+        if (!FilterTextsMatch(searchClassCode, searchProfessional))
+        {
+            _isClearingFiltersForTabChange = true;
+            try
+            {
+                filterClassCode = searchClassCode;
+                filterProfessionalText = searchProfessional;
+                OnPropertyChanged(nameof(FilterClassCode));
+                OnPropertyChanged(nameof(FilterProfessionalText));
+            }
+            finally
+            {
+                _isClearingFiltersForTabChange = false;
+            }
+        }
+
         ShowNoResultsMessage = false;
 
-        try
+        if (CollectionsList == null && SelectedCollectionsTab == CollectionsTabKind.Normal)
         {
-            CollectionsListIsLoading = true;
-            if (CollectionsList == null)
-            {
-                CollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
-                // CORREÇÃO: Se não há lista, limpar a seleção
-                if (SelectedCollection != null)
-                {
-                    SelectedCollection = null;
-                }
-                return;
-            }
-
-            // Aplicar filtro local (síncrono para resposta imediata na UI)
-            ApplyLocalFilter(searchClassCode, searchProfessional);
-
-            // CORREÇÃO: Se não encontrou resultados e há um classCode digitado, buscar no servidor
-            // (comportamento similar ao Dashboard WPF)
-            if (CollectionsListFiltered.Count == 0 && !string.IsNullOrWhiteSpace(searchClassCode) && GlobalAppStateViewModel.lfc != null)
-            {
-                // Mostrar loading enquanto busca no servidor
-                IsSearchingOnServer = true;
-                
-                // Buscar no servidor de forma assíncrona (com debounce)
-                // Fire-and-forget com tratamento de exceções não capturadas
-                _ = SearchCollectionOnServerAsync(searchClassCode, searchProfessional, token)
-                    .ContinueWith(task =>
-                    {
-                        if (task.IsFaulted && task.Exception != null)
-                        {
-                            // Log de exceções não tratadas (não deve acontecer, mas por segurança)
-                            System.Diagnostics.Debug.WriteLine($"Erro não tratado na busca de coleção: {task.Exception.GetBaseException().Message}");
-                        }
-                    }, TaskContinuationOptions.OnlyOnFaulted);
-            }
-            else
-            {
-                // Se encontrou resultados localmente ou não há texto, não está buscando no servidor
-                IsSearchingOnServer = false;
-            }
-
-            // CORREÇÃO: Se a coleção selecionada não está mais na lista filtrada, limpar a seleção
-            // Isso vai disparar OnSelectedCollectionChanged que vai voltar para a home se necessário
-            if (SelectedCollection != null && !CollectionsListFiltered.Contains(SelectedCollection))
-            {
+            CollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
+            ExpiredCollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
+            DeletedCollectionsListFiltered = new ObservableCollection<ProfessionalTask>();
+            if (SelectedCollection != null)
                 SelectedCollection = null;
-            }
+            return;
         }
-        finally
+
+        ApplyLocalFilterAllSources(searchClassCode, searchProfessional);
+
+        var activeCount = SelectedCollectionsTab switch
         {
-            CollectionsListIsLoading = false;
+            CollectionsTabKind.Normal => CollectionsListFiltered.Count,
+            CollectionsTabKind.Expired => ExpiredCollectionsListFiltered.Count,
+            CollectionsTabKind.Deleted => DeletedCollectionsListFiltered.Count,
+            _ => 0
+        };
+
+        if (activeCount == 0 && !string.IsNullOrWhiteSpace(searchClassCode) && GlobalAppStateViewModel.lfc != null)
+        {
+            IsSearchingOnServer = true;
+            var tabSnapshot = SelectedCollectionsTab;
+            _ = SearchCollectionOnServerAsync(searchClassCode, searchProfessional, tabSnapshot, token)
+                .ContinueWith(task =>
+                {
+                    if (task.IsFaulted && task.Exception != null)
+                        System.Diagnostics.Debug.WriteLine($"Erro não tratado na busca de coleção: {task.Exception.GetBaseException().Message}");
+                }, TaskContinuationOptions.OnlyOnFaulted);
         }
+        else
+            IsSearchingOnServer = false;
+
+        ClearSelectedIfNotInCurrentFilteredVisible();
     }
 
     /// <summary>
-    /// Aplica o filtro local nas coleções já carregadas.
+    /// Busca uma coleção no servidor quando não encontrada na lista local da sub-aba ativa.
+    /// Só exibe o resultado se a categoria (normal / vencida / exclusão pendente) corresponder à sub-aba.
     /// </summary>
-    private void ApplyLocalFilter(string classCode, string professional)
-    {
-        var filtered = CollectionsList.Where(task =>
-        {
-            var login = task.professionalLogin ?? string.Empty;
-            var taskClass = task.classCode ?? string.Empty;
-
-            bool matchClass = string.IsNullOrEmpty(classCode) ||
-                              taskClass.Contains(classCode, StringComparison.OrdinalIgnoreCase);
-
-            bool matchProfessional = string.IsNullOrEmpty(professional) ||
-                                     login.Contains(professional, StringComparison.OrdinalIgnoreCase);
-
-            return matchClass && matchProfessional;
-        });
-
-        CollectionsListFiltered = new ObservableCollection<ProfessionalTask>(filtered);
-    }
-
-    /// <summary>
-    /// Busca uma coleção específica no servidor quando não encontrada na lista local.
-    /// Usa debounce para evitar múltiplas chamadas enquanto o usuário digita.
-    /// </summary>
-    private async Task SearchCollectionOnServerAsync(string classCode, string professional, CancellationToken cancellationToken)
+    private async Task SearchCollectionOnServerAsync(string classCode, string professional, CollectionsTabKind tabWhenRequested, CancellationToken cancellationToken)
     {
         try
         {
-            // Debounce: aguardar 500ms antes de buscar no servidor
             await Task.Delay(500, cancellationToken);
             if (cancellationToken.IsCancellationRequested)
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    IsSearchingOnServer = false;
-                });
+                await Dispatcher.UIThread.InvokeAsync(() => { IsSearchingOnServer = false; });
                 return;
             }
 
-            // Buscar no servidor
             var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(classCode);
-            
-            // Atualizar UI na thread principal (padrão Avalonia)
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsSearchingOnServer = false;
-                
-                if (pt == null || cancellationToken.IsCancellationRequested)
+
+                if (cancellationToken.IsCancellationRequested)
+                    return;
+
+                if (SelectedCollectionsTab != tabWhenRequested)
+                    return;
+
+                if (pt == null)
                 {
-                    // Não encontrou nada no servidor - mostrar mensagem
-                    if (!cancellationToken.IsCancellationRequested)
-                    {
-                        ShowNoResultsMessage = true;
-                    }
+                    ShowNoResultsMessage = true;
                     return;
                 }
 
-                // Verificar se a coleção já não está na lista (evitar duplicatas)
-                if (!CollectionsList.Any(c => c.classCode == pt.classCode))
+                var category = GetCollectionSearchCategory(pt);
+                var expectedTab = TabForSearchCategory(category);
+                if (tabWhenRequested != expectedTab)
                 {
-                    // Adicionar à lista principal no final (última posição)
-                    CollectionsList.Add(pt);
+                    MergeServerFetchedTaskForCategory(pt, category);
+                    ApplyLocalFilterAllSources(classCode, professional);
+                    ShowNoResultsMessage = true;
+                    ClearSelectedIfNotInCurrentFilteredVisible();
+                    return;
                 }
-                else
-                {
-                    // Se já existe, usar a referência existente
-                    pt = CollectionsList.First(c => c.classCode == pt.classCode);
-                }
-                
-                // Reaplicar o filtro com a nova coleção
-                ApplyLocalFilter(classCode, professional);
-                
-                // Se encontrou, esconder mensagem de "não encontrado"
+
+                MergeServerFetchedTaskForCategory(pt, category);
+                ApplyLocalFilterAllSources(classCode, professional);
                 ShowNoResultsMessage = false;
+                ClearSelectedIfNotInCurrentFilteredVisible();
             });
         }
         catch (OperationCanceledException)
         {
-            // Operação cancelada (usuário continuou digitando) - ignorar silenciosamente
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                IsSearchingOnServer = false;
-            });
+            await Dispatcher.UIThread.InvokeAsync(() => { IsSearchingOnServer = false; });
         }
         catch (Exception ex)
         {
-            // Log do erro sem interromper o fluxo (coleção pode não existir)
             System.Diagnostics.Debug.WriteLine($"Erro ao buscar coleção no servidor: {ex.Message}");
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsSearchingOnServer = false;
-                // Se houve erro, mostrar mensagem de não encontrado
                 ShowNoResultsMessage = true;
             });
         }
     }
+
     public async Task UpdateProgressBars()
     {
             try
@@ -2080,7 +2192,7 @@ public partial class CollectionsViewModel : ViewModelBase
         var userFiles = await LesserFunctionClient.DefaultClient.GetUserFilesInClass(classCode);
         if (userFiles != null && userFiles.success)
         {
-            foreach (var f in userFiles.Content)
+            foreach (var f in userFiles.Content ?? new List<UserFileRecord>())
             {
                 if (f.blobName == "")
                     continue;
@@ -2149,7 +2261,8 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (cents is null)
             return 0;
-        return cents.Value / 100;
+        // Divisão em ponto flutuante: int/int truncaria (ex.: 5/100 == 0).
+        return cents.Value / 100.0;
     }
     public int ConvertDecimalToCents(double? decimalValue)
     {
@@ -2157,9 +2270,23 @@ public partial class CollectionsViewModel : ViewModelBase
             return 0;
         return (int)(decimalValue.Value * 100);
     }
+    /// <summary>ID da coleção: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, números, _ / ' . -).</summary>
     public bool IsTextAllowed(string text)
     {
+        if (string.IsNullOrEmpty(text))
+            return true;
         return RegexHelper.RegexToClassCode.IsMatch(text);
+    }
+
+    public static bool IsClassCodeCharAllowed(char c) =>
+        RegexHelper.RegexToClassCode.IsMatch(c.ToString());
+
+    /// <summary>Remove caracteres inválidos (ex.: colar texto) quando o TextInput não bloqueia.</summary>
+    public static string SanitizeClassCodeInput(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text ?? string.Empty;
+        return new string(text.Where(IsClassCodeCharAllowed).ToArray());
     }
     
     private void ValidateCollectionName()
@@ -3233,6 +3360,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 collectionInFilteredList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
             }
         }
+
+        ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
     }
 
     public async Task OpenChangeDeletionDateDialogCommand()
@@ -3405,6 +3534,7 @@ public partial class CollectionsViewModel : ViewModelBase
                             ExpiredCollectionsList.Add(pt);
                     }
                 }
+                ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
                 OnPropertyChanged(nameof(VisibleCollectionsList));
             });
         }
@@ -3438,6 +3568,7 @@ public partial class CollectionsViewModel : ViewModelBase
                             DeletedCollectionsList.Add(pt);
                     }
                 }
+                ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
                 OnPropertyChanged(nameof(VisibleCollectionsList));
             });
         }
@@ -3468,7 +3599,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (item == null || string.IsNullOrEmpty(item.classCode)) return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
-            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your normal list or expired list, depending on its expiration date.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para a lista normal ou para a lista de vencidas, conforme a data de vencimento."),
+            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your recent collections list or expired list, depending on its expiration date.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para a lista de coleções recentes ou para a lista de vencidas, conforme a data de vencimento."),
             Loc.Tr("Cancel deletion", "Cancelar deleção"));
         if (!confirmed) return;
         try
@@ -3503,12 +3634,11 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         if (!CollectionsList.Any(c => c.classCode == pt.classCode))
                             CollectionsList.Insert(0, pt);
-                        if (!CollectionsListFiltered.Any(c => c.classCode == pt.classCode))
-                            CollectionsListFiltered.Insert(0, pt);
                         SelectedCollectionsTab = CollectionsTabKind.Normal;
                         SelectedCollection = CollectionsList.First(c => c.classCode == pt.classCode);
                     }
                 }
+                ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
                 OnPropertyChanged(nameof(VisibleCollectionsList));
                 NotifyDeletedCollectionViewState();
             });
