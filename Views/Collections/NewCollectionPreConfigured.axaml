@@ -36,7 +36,9 @@
               </Style>
             </TextBox.Styles>
           </TextBox>
-          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasError}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameIsEmpty}" FontSize="10" Text="{Tr 'Collection ID is required'}" Foreground="Red" />
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameIsTooShort}" FontSize="10" Text="{Tr 'Collection ID must have at least 3 characters'}" Foreground="Red" />
+          <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasInvalidChars}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
         </StackPanel>
 
         <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center"  />
@@ -331,6 +333,12 @@
             <StackPanel Margin="10 2 0 0" IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
               <CheckBox IsChecked="{Binding CbPhotosCannotHaveWatermarks}"
                         Content="{Tr 'Photos cannot have watermarks'}" />
+            </StackPanel>
+            <StackPanel Margin="0 2 0 10" Spacing="4">
+              <TextBlock Text="{Tr 'Collection description (e.g. Med USP 2024):'}" />
+              <TextBox Text="{Binding TbProfessionalTaskDescription, Mode=TwoWay}"
+                       Width="250"
+                       HorizontalAlignment="Left" />
             </StackPanel>
             <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
             <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />

@@ -310,6 +310,12 @@
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Add IDs without reupload'}" />
                           </StackPanel>
                       </Button>
+                      <Button Width="325" Command="{Binding OpenEditIdsViewCommand}" IsVisible="False">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Edit IDs'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Edit IDs without reupload'}" />
+                          </StackPanel>
+                      </Button>
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Reupload'}" VerticalAlignment="Center" />

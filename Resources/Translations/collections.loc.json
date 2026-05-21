@@ -135,6 +135,10 @@
     "en-US": "Allow photos to be found by anyone",
     "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
   },
+  "Collection description (e.g. Med USP 2024):": {
+    "en-US": "Collection description (e.g. Mary's marriage 2024):",
+    "pt-BR": "Descrição da coleção (exemplo Med USP 2024):"
+  },
   "Photos cannot have watermarks": {
     "en-US": "Photos cannot have watermarks",
     "pt-BR": "As fotos virão sem marca d'água"
@@ -255,6 +259,14 @@
     "en-US": "OCR on the server:",
     "pt-BR": "OCR no servidor:"
   },
+  "Collection ID is required": {
+    "en-US": "Collection ID is required",
+    "pt-BR": "O ID da coleção é obrigatório"
+  },
+  "Collection ID must have at least 3 characters": {
+    "en-US": "Collection ID must have at least 3 characters",
+    "pt-BR": "O ID da coleção deve ter no mínimo 3 caracteres"
+  },
   "The class code can only contain letters and numbers": {
     "en-US": "The class code may only contain letters, numbers, and these characters: _ / ' . -",
     "pt-BR": "O código da turma só pode conter letras, números e os caracteres: _ / ' . -"
@@ -326,6 +338,22 @@
   "Add ID": {
     "en-US": "Add ID",
     "pt-BR": "Adicionar ID"
+  },
+  "Edit IDs": {
+    "en-US": "Edit IDs",
+    "pt-BR": "Editar IDs"
+  },
+  "Edit IDs without reupload": {
+    "en-US": "Edit IDs without reupload",
+    "pt-BR": "Editar IDs sem reupload"
+  },
+  "Edit ID": {
+    "en-US": "Edit ID",
+    "pt-BR": "Editar ID"
+  },
+  "Loading graduates...": {
+    "en-US": "Loading graduates...",
+    "pt-BR": "Carregando formandos..."
   },
   "New ID": {
     "en-US": "New ID",
@@ -702,6 +730,10 @@
   "Expired collections": {
     "en-US": "Expired collections",
     "pt-BR": "Coleções vencidas"
+  },
+  "Total expired collections:": {
+    "en-US": "Total expired collections:",
+    "pt-BR": "Total de coleções vencidas:"
   },
   "Deleted collections": {
     "en-US": "Trash",

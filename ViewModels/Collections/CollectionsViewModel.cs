@@ -1,4 +1,4 @@
-using Avalonia.Interactivity;
+﻿using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -67,19 +67,19 @@ public partial class CollectionsViewModel : ViewModelBase
     private CancellationTokenSource _filterDebounceCts;
     private bool _isUpdatingSelectedCollection = false;
     private bool _isLoadingReuploadData = false; // Flag para prevenir eventos durante carregamento de reupload
-    private bool _isOpeningSelectProfessionalView = false; // Evita fechar a lista no 1º clique (quando LoadProfessionals define SelectedProfessional)
-    /// <summary>Combo da coleção pré-configurada; ao criar turma, a PT deve espelhar estes valores (autoridade máxima).</summary>
+    private bool _isOpeningSelectProfessionalView = false; // Evita fechar a lista no 1Âº clique (quando LoadProfessionals define SelectedProfessional)
+    /// <summary>Combo da coleÃ§Ã£o prÃ©-configurada; ao criar turma, a PT deve espelhar estes valores (autoridade mÃ¡xima).</summary>
     private CollectionComboOptions _preConfiguredComboAuthority;
     [ObservableProperty] public ProfessionalTask selectedCollection;
     
     /// <summary>
-    /// Verifica se faltam 30 dias ou menos para a deleção
+    /// Verifica se faltam 30 dias ou menos para a deleÃ§Ã£o
     /// </summary>
     public bool IsDeletionDateNear => SelectedCollection?.ScheduledDeletionDate != null && 
         (SelectedCollection.ScheduledDeletionDate.Value - DateTimeOffset.Now).TotalDays <= 30;
     
     /// <summary>
-    /// Retorna a cor do texto da data de deleção (vermelho vibrante se <= 30 dias)
+    /// Retorna a cor do texto da data de deleÃ§Ã£o (vermelho vibrante se <= 30 dias)
     /// </summary>
     public Avalonia.Media.IBrush DeletionDateForeground
     {
@@ -90,36 +90,36 @@ public partial class CollectionsViewModel : ViewModelBase
                 // Vermelho vibrante para alerta
                 return new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.FromRgb(255, 50, 50));
             }
-            // Cor padrão (WarningTextBrush)
+            // Cor padrÃ£o (WarningTextBrush)
             return Avalonia.Application.Current?.Resources["WarningTextBrush"] as Avalonia.Media.IBrush 
                 ?? Avalonia.Media.Brushes.Orange;
         }
     }
     
     /// <summary>
-    /// Indica se deve mostrar o ícone de alerta
+    /// Indica se deve mostrar o Ã­cone de alerta
     /// </summary>
     public bool ShowDeletionDateAlertIcon => IsDeletionDateNear;
     
     /// <summary>
-    /// Retorna o peso da fonte para a data de deleção (Bold se <= 30 dias)
+    /// Retorna o peso da fonte para a data de deleÃ§Ã£o (Bold se <= 30 dias)
     /// </summary>
     public Avalonia.Media.FontWeight DeletionDateFontWeight => IsDeletionDateNear 
         ? Avalonia.Media.FontWeight.Bold 
         : Avalonia.Media.FontWeight.Normal;
     
     /// <summary>
-    /// Verifica se a data de vencimento já passou (para habilitar botão de deletar turma)
+    /// Verifica se a data de vencimento jÃ¡ passou (para habilitar botÃ£o de deletar turma)
     /// </summary>
     public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
         SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
 
-    /// <summary>Exibe "Deletar coleção" para coleções HD (exceto na lista de deletadas).</summary>
+    /// <summary>Exibe "Deletar coleÃ§Ã£o" para coleÃ§Ãµes HD (exceto na lista de deletadas).</summary>
     public bool IsDeleteCollectionButtonVisible =>
         !IsSelectedCollectionInDeletedList &&
         SelectedCollection?.UploadHD == true;
 
-    /// <summary>Habilita "Deletar coleção" apenas quando estiver na aba Vencidas e a data de deleção já passou.</summary>
+    /// <summary>Habilita "Deletar coleÃ§Ã£o" apenas quando estiver na aba Vencidas e a data de deleÃ§Ã£o jÃ¡ passou.</summary>
     public bool IsDeleteCollectionButtonEnabled =>
         IsSelectedCollectionInExpiredList && IsDeletionDatePassed;
 
@@ -128,7 +128,7 @@ public partial class CollectionsViewModel : ViewModelBase
         if (_isUpdatingSelectedCollection)
             return;
 
-        // Seleção ficou null na CollectionView: troca estado primeiro (NewsView), depois a UI atualiza sem frame vazio
+        // SeleÃ§Ã£o ficou null na CollectionView: troca estado primeiro (NewsView), depois a UI atualiza sem frame vazio
         if (value == null && ActiveComponent == ActiveViews.CollectionView)
         {
             _isUpdatingSelectedCollection = true;
@@ -159,7 +159,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     UpdateCollectionViewSelected();
-                    // Notificar mudanças nas propriedades calculadas da data de deleção
+                    // Notificar mudanÃ§as nas propriedades calculadas da data de deleÃ§Ã£o
                     OnPropertyChanged(nameof(IsDeletionDateNear));
                     OnPropertyChanged(nameof(DeletionDateForeground));
                     OnPropertyChanged(nameof(ShowDeletionDateAlertIcon));
@@ -184,7 +184,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             await MessageBoxManager.GetMessageBoxStandard(
                 "Erro",
-                "Coleção inválida: classCode ausente.",
+                "ColeÃ§Ã£o invÃ¡lida: classCode ausente.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
             return;
@@ -201,7 +201,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 await MessageBoxManager.GetMessageBoxStandard(
                     "Erro",
-                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleÃ§Ã£o." : result.message,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok,
                     MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
                 return;
@@ -217,7 +217,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 await MessageBoxManager.GetMessageBoxStandard(
                     "Aviso",
-                    "Nenhum CPF encontrado nessa coleção.",
+                    "Nenhum CPF encontrado nessa coleÃ§Ã£o.",
                     MsBox.Avalonia.Enums.ButtonEnum.Ok,
                     MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
                 return;
@@ -240,7 +240,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             await MessageBoxManager.GetMessageBoxStandard(
                 "Sucesso",
-                $"{cpfs.Count} CPF(s) copiado(s) para a área de transferência.",
+                $"{cpfs.Count} CPF(s) copiado(s) para a Ã¡rea de transferÃªncia.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Success).ShowAsync();
         }
@@ -249,7 +249,7 @@ public partial class CollectionsViewModel : ViewModelBase
             Debug.WriteLine(ex);
             await MessageBoxManager.GetMessageBoxStandard(
                 "Erro",
-                "Erro ao copiar CPFs da coleção.",
+                "Erro ao copiar CPFs da coleÃ§Ã£o.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
         }
@@ -266,7 +266,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             await MessageBoxManager.GetMessageBoxStandard(
                 "Erro",
-                "Coleção inválida: classCode ausente.",
+                "ColeÃ§Ã£o invÃ¡lida: classCode ausente.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
             return;
@@ -283,7 +283,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 await MessageBoxManager.GetMessageBoxStandard(
                     "Erro",
-                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleÃ§Ã£o." : result.message,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok,
                     MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
                 return;
@@ -299,7 +299,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 await MessageBoxManager.GetMessageBoxStandard(
                     "Aviso",
-                    "Nenhum CPF encontrado nessa coleção.",
+                    "Nenhum CPF encontrado nessa coleÃ§Ã£o.",
                     MsBox.Avalonia.Enums.ButtonEnum.Ok,
                     MsBox.Avalonia.Enums.Icon.Info).ShowAsync();
                 return;
@@ -309,7 +309,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 if (MainWindowViewModel.Instance.SelectedTabIndex == 2)
                 {
-                    // Já na aba – injetar via ExecuteScriptAsync no WebView existente.
+                    // JÃ¡ na aba â€“ injetar via ExecuteScriptAsync no WebView existente.
                     SearchGraduateControl.InjectCpfsIfVisible(cpfs);
                 }
                 else
@@ -325,7 +325,7 @@ public partial class CollectionsViewModel : ViewModelBase
             Debug.WriteLine(ex);
             await MessageBoxManager.GetMessageBoxStandard(
                 "Erro",
-                "Erro ao abrir gerenciamento de CPF para esta coleção.",
+                "Erro ao abrir gerenciamento de CPF para esta coleÃ§Ã£o.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
         }
@@ -335,7 +335,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Aba ativa na lista de coleções: normais, vencidas ou deletadas.</summary>
+    /// <summary>Aba ativa na lista de coleÃ§Ãµes: normais, vencidas ou deletadas.</summary>
     public enum CollectionsTabKind
     {
         Normal,
@@ -350,6 +350,7 @@ public partial class CollectionsViewModel : ViewModelBase
         MessagesView,
         NewCollection,
         AddIds,
+        EditIds,
         NewCollectionPreConfigured,
         CollectionView,
         SelectProfessional,
@@ -358,12 +359,12 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty]
     private ActiveViews activeComponent = ActiveViews.NewsView;
     private ActiveViews lastActiveComponent;
-    private ProfessionalTask? _lastSelectedCollection; // Guarda a coleção selecionada ao navegar para outras views
+    private ProfessionalTask? _lastSelectedCollection; // Guarda a coleÃ§Ã£o selecionada ao navegar para outras views
     partial void OnActiveComponentChanged(ActiveViews oldValue, ActiveViews newValue)
     {
         lastActiveComponent = oldValue;
 
-        // Detectar navegação manual para MessagesView
+        // Detectar navegaÃ§Ã£o manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
         {
             // Guardar a turma selecionada antes de limpar, para restaurar ao voltar
@@ -372,13 +373,13 @@ public partial class CollectionsViewModel : ViewModelBase
             // Limpar a turma selecionada quando abrir o componente de mensagens
             SelectedCollection = null;
             
-            // Se não foi a primeira verificação inicial, é navegação manual
+            // Se nÃ£o foi a primeira verificaÃ§Ã£o inicial, Ã© navegaÃ§Ã£o manual
             if (_hasCheckedInitialMessages)
             {
                 _userManuallyNavigatedToMessages = true;
             }
         }
-        // Se sair de MessagesView, resetar flag de navegação manual
+        // Se sair de MessagesView, resetar flag de navegaÃ§Ã£o manual
         else if (oldValue == ActiveViews.MessagesView && newValue != ActiveViews.MessagesView)
         {
             _userManuallyNavigatedToMessages = false;
@@ -387,6 +388,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentNewsViewIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionIsVisible));
         OnPropertyChanged(nameof(ComponentAddIdsIsVisible));
+        OnPropertyChanged(nameof(ComponentEditIdsIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisible));
         OnPropertyChanged(nameof(ComponentSelectProfessionalIsIsVisible));
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
@@ -396,7 +398,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisibleAndSafe));
     }
 
-    /// <summary>CollectionView só aparece quando há coleção selecionada (evita view quebrada se SelectedCollection virar null).</summary>
+    /// <summary>CollectionView sÃ³ aparece quando hÃ¡ coleÃ§Ã£o selecionada (evita view quebrada se SelectedCollection virar null).</summary>
     public bool ComponentCollectionViewIsVisibleAndSafe =>
         ActiveComponent == ActiveViews.CollectionView && SelectedCollection != null;
 
@@ -405,6 +407,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentSelectProfessionalIsIsVisible => ActiveComponent == ActiveViews.SelectProfessional;
     public bool ComponentNewCollectionIsVisible => ActiveComponent == ActiveViews.NewCollection;
     public bool ComponentAddIdsIsVisible => ActiveComponent == ActiveViews.AddIds;
+    public bool ComponentEditIdsIsVisible => ActiveComponent == ActiveViews.EditIds;
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
@@ -416,12 +419,16 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
     [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsListFiltered = new();
-    partial void OnExpiredCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+    partial void OnExpiredCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value)
+    {
+        OnPropertyChanged(nameof(VisibleCollectionsList));
+        NotifyExpiredCollectionsCount();
+    }
 
     [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsListFiltered = new();
     partial void OnDeletedCollectionsListFilteredChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
-    /// <summary>Filtro: ID da coleção (sincronizado com a view).</summary>
+    /// <summary>Filtro: ID da coleÃ§Ã£o (sincronizado com a view).</summary>
     [ObservableProperty] private string filterClassCode = "";
 
     /// <summary>Filtro: separador (sincronizado com a view).</summary>
@@ -441,7 +448,7 @@ public partial class CollectionsViewModel : ViewModelBase
         FilterProfessionalTasks(FilterClassCode, FilterProfessionalText);
     }
 
-    /// <summary>Aba ativa na lista de coleções (normais, vencidas ou deletadas).</summary>
+    /// <summary>Aba ativa na lista de coleÃ§Ãµes (normais, vencidas ou deletadas).</summary>
     [ObservableProperty] private CollectionsTabKind selectedCollectionsTab = CollectionsTabKind.Normal;
     partial void OnSelectedCollectionsTabChanged(CollectionsTabKind value)
     {
@@ -471,11 +478,12 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsExpiredTabActive));
         OnPropertyChanged(nameof(IsDeletedTabActive));
         OnPropertyChanged(nameof(IsNormalTabActive));
+        NotifyExpiredCollectionsCount();
         ClearSelectedIfNotInCurrentFilteredVisible();
         EnsureTabDataLoadedAsync(value);
     }
 
-    /// <summary>Lista de coleções vencidas (prazo expirado). Carregada ao abrir a aba "Vencidas" pela primeira vez.</summary>
+    /// <summary>Lista de coleÃ§Ãµes vencidas (prazo expirado). Carregada ao abrir a aba "Vencidas" pela primeira vez.</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsList = new();
     partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value)
     {
@@ -485,9 +493,13 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     [ObservableProperty] private bool expiredCollectionsListIsLoading;
-    partial void OnExpiredCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
+    partial void OnExpiredCollectionsListIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsListAreaLoading));
+        NotifyExpiredCollectionsCount();
+    }
 
-    /// <summary>Lista de coleções com solicitação de exclusão pendente (exibida na aba Deletadas).</summary>
+    /// <summary>Lista de coleÃ§Ãµes com solicitaÃ§Ã£o de exclusÃ£o pendente (exibida na aba Deletadas).</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsList = new();
     partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
 
@@ -497,19 +509,31 @@ public partial class CollectionsViewModel : ViewModelBase
         : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsListFiltered
         : CollectionsListFiltered;
 
-    /// <summary>True quando a aba "Deletadas" está ativa (para mostrar menu Restaurar nos itens).</summary>
+    /// <summary>True quando a aba "Deletadas" estÃ¡ ativa (para mostrar menu Restaurar nos itens).</summary>
     public bool IsDeletedTabActive => SelectedCollectionsTab == CollectionsTabKind.Deleted;
-    /// <summary>True quando a aba "Vencidas" está ativa.</summary>
+    /// <summary>True quando a aba "Vencidas" estÃ¡ ativa.</summary>
     public bool IsExpiredTabActive => SelectedCollectionsTab == CollectionsTabKind.Expired;
-    /// <summary>True quando a aba "Normais" está ativa.</summary>
+
+    /// <summary>Quantidade de coleÃ§Ãµes exibidas na aba Vencidas (lista filtrada).</summary>
+    public int ExpiredCollectionsCount => ExpiredCollectionsListFiltered?.Count ?? 0;
+
+    /// <summary>RodapÃ© com total de coleÃ§Ãµes vencidas (canto inferior esquerdo da lista).</summary>
+    public bool ShowExpiredCollectionsCountFooter => IsExpiredTabActive && !IsListAreaLoading;
+
+    void NotifyExpiredCollectionsCount()
+    {
+        OnPropertyChanged(nameof(ExpiredCollectionsCount));
+        OnPropertyChanged(nameof(ShowExpiredCollectionsCountFooter));
+    }
+    /// <summary>True quando a aba "Normais" estÃ¡ ativa.</summary>
     public bool IsNormalTabActive => SelectedCollectionsTab == CollectionsTabKind.Normal;
 
-    /// <summary>True quando a coleção selecionada pertence à lista de deletadas (para mostrar botão "Cancelar deleção" no detalhe).</summary>
+    /// <summary>True quando a coleÃ§Ã£o selecionada pertence Ã  lista de deletadas (para mostrar botÃ£o "Cancelar deleÃ§Ã£o" no detalhe).</summary>
     public bool IsSelectedCollectionInDeletedList =>
         SelectedCollectionsTab == CollectionsTabKind.Deleted && SelectedCollection != null &&
         DeletedCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
 
-    /// <summary>True quando a coleção selecionada está na lista de vencidas (aba "Vencidas").</summary>
+    /// <summary>True quando a coleÃ§Ã£o selecionada estÃ¡ na lista de vencidas (aba "Vencidas").</summary>
     public bool IsSelectedCollectionInExpiredList =>
         SelectedCollectionsTab == CollectionsTabKind.Expired && SelectedCollection != null &&
         ExpiredCollectionsList.Any(c => c?.classCode == SelectedCollection.classCode);
@@ -526,25 +550,25 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ExpanderAdvancedIsEnabled));
     }
 
-    /// <summary>Tag/Sort habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    /// <summary>Tag/Sort habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtTagSortIsEnabledForView => BtTagSortIsEnabled && !IsSelectedCollectionInDeletedList;
-    /// <summary>Export habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    /// <summary>Export habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtExportIsEnabledForView => BtExportIsEnabled && !IsSelectedCollectionInDeletedList;
-    /// <summary>Download HD habilitado apenas quando a coleção selecionada não é da lista de deletadas.</summary>
+    /// <summary>Download HD habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtDownloadHdIsEnabledForView => BtDownloadHdIsEnabled && !IsSelectedCollectionInDeletedList;
-    /// <summary>Avançado expansível apenas quando a coleção não está cancelada e não é da lista de deletadas.</summary>
+    /// <summary>AvanÃ§ado expansÃ­vel apenas quando a coleÃ§Ã£o nÃ£o estÃ¡ cancelada e nÃ£o Ã© da lista de deletadas.</summary>
     public bool ExpanderAdvancedIsEnabled => SelectedCollection?.BillingCancelled != true && !IsSelectedCollectionInDeletedList;
 
     [ObservableProperty] private bool deletedCollectionsListIsLoading;
     partial void OnDeletedCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));
 
-    /// <summary>True quando a área da lista está em loading (conforme a aba ativa).</summary>
+    /// <summary>True quando a Ã¡rea da lista estÃ¡ em loading (conforme a aba ativa).</summary>
     public bool IsListAreaLoading =>
         SelectedCollectionsTab == CollectionsTabKind.Normal ? CollectionsListIsLoading
         : SelectedCollectionsTab == CollectionsTabKind.Expired ? ExpiredCollectionsListIsLoading
         : DeletedCollectionsListIsLoading;
 
-    /// <summary>Mostrar botão "Carregar mais" apenas na aba de coleções normais.</summary>
+    /// <summary>Mostrar botÃ£o "Carregar mais" apenas na aba de coleÃ§Ãµes normais.</summary>
     public bool ShowLoadMoreButtonInList => ShowLoadMoreButton && SelectedCollectionsTab == CollectionsTabKind.Normal;
 
     /// <summary>Filtros de ID / separador habilitados em todas as sub-abas (Normais, Vencidas, Lixeira).</summary>
@@ -577,12 +601,12 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbAllowDeletedProductionToBeFoundAnyone;
     
     /// <summary>
-    /// Indica se o combo selecionado é apenas para tratamento (sem reconhecimento facial)
+    /// Indica se o combo selecionado Ã© apenas para tratamento (sem reconhecimento facial)
     /// </summary>
     [ObservableProperty] public bool isTreatmentOnlyCombo = false;
 
     /// <summary>
-    /// Modo "Adicionar IDs" (sem reupload): mostra apenas Graduates + nome da coleção.
+    /// Modo "Adicionar IDs" (sem reupload): mostra apenas Graduates + nome da coleÃ§Ã£o.
     /// </summary>
     [ObservableProperty] private bool isAddIdsOnlyMode = false;
 
@@ -592,7 +616,11 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         ValidateCollectionName();
     }
+    public const int MinCollectionIdLength = 3;
     [ObservableProperty] public bool tbCollectionNameHasError = false;
+    [ObservableProperty] public bool tbCollectionNameIsEmpty = false;
+    [ObservableProperty] public bool tbCollectionNameIsTooShort = false;
+    [ObservableProperty] public bool tbCollectionNameHasInvalidChars = false;
     [ObservableProperty] public string tbEventFolder;
     partial void OnTbEventFolderChanged(string value)
     {
@@ -601,7 +629,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string tbRecFolder;
     partial void OnTbRecFolderChanged(string value)
     {
-        // Se for apenas tratamento, não processar pasta de reconhecimentos
+        // Se for apenas tratamento, nÃ£o processar pasta de reconhecimentos
         if (IsTreatmentOnlyCombo)
         {
             TbRecFolderError = false;
@@ -621,22 +649,22 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbHDBackup;
     
     /// <summary>
-    /// Indica se o checkbox HD está desabilitado devido ao período de faturamento
+    /// Indica se o checkbox HD estÃ¡ desabilitado devido ao perÃ­odo de faturamento
     /// </summary>
     [ObservableProperty] public bool cbHDBackupIsDisabled = false;
     
     /// <summary>
-    /// Mensagem de erro para exibir quando o HD não pode ser habilitado
+    /// Mensagem de erro para exibir quando o HD nÃ£o pode ser habilitado
     /// </summary>
     [ObservableProperty] public string cbHDBackupErrorMessage = string.Empty;
 
     /// <summary>
-    /// HD marcado e o toggle bloqueado porque há CPF/ID na lista (paridade com WPF CreateNewClassView.UpdateCbHdBackupIsEnabled).
+    /// HD marcado e o toggle bloqueado porque hÃ¡ CPF/ID na lista (paridade com WPF CreateNewClassView.UpdateCbHdBackupIsEnabled).
     /// </summary>
     [ObservableProperty] public bool cbHDBackupLockedByCpfs = false;
 
     /// <summary>
-    /// Habilita o checkbox HD quando não está travado por faturamento nem por CPFs na lista.
+    /// Habilita o checkbox HD quando nÃ£o estÃ¡ travado por faturamento nem por CPFs na lista.
     /// </summary>
     public bool CbHDBackupToggleIsEnabled => !CbHDBackupIsDisabled && !CbHDBackupLockedByCpfs;
 
@@ -646,7 +674,7 @@ public partial class CollectionsViewModel : ViewModelBase
     partial void OnCbHDBackupLockedByCpfsChanged(bool value) =>
         OnPropertyChanged(nameof(CbHDBackupToggleIsEnabled));
 
-    /// <summary>Toast: ao incluir CPF/ID em graduandos, a coleção passa a HD automaticamente.</summary>
+    /// <summary>Toast: ao incluir CPF/ID em graduandos, a coleÃ§Ã£o passa a HD automaticamente.</summary>
     [ObservableProperty] public bool isGraduateHdToastVisible;
 
     [ObservableProperty] public string graduateHdToastMessage = string.Empty;
@@ -658,7 +686,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         GraduateHdToastMessage = Loc.Tr(
             "When you add graduates with CPF/ID, the collection becomes HD automatically.",
-            "Ao incluir graduandos (CPF/ID), a coleção passa a ser em HD automaticamente.");
+            "Ao incluir graduandos (CPF/ID), a coleÃ§Ã£o passa a ser em HD automaticamente.");
         IsGraduateHdToastVisible = true;
         _graduateHdToastDismissCts?.Cancel();
         _graduateHdToastDismissCts = new CancellationTokenSource();
@@ -685,22 +713,22 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Indica se as opções de armazenamento HD estão visíveis (quando HD está marcado)
+    /// Indica se as opÃ§Ãµes de armazenamento HD estÃ£o visÃ­veis (quando HD estÃ¡ marcado)
     /// </summary>
     [ObservableProperty] public bool isHDStorageOptionsVisible = false;
     
     /// <summary>
-    /// Opção de armazenamento HD por 3 meses
+    /// OpÃ§Ã£o de armazenamento HD por 3 meses
     /// </summary>
     [ObservableProperty] public bool? cbHDStorageThreeMonths = false;
     
     /// <summary>
-    /// Opção de armazenamento HD por 2 anos
+    /// OpÃ§Ã£o de armazenamento HD por 2 anos
     /// </summary>
     [ObservableProperty] public bool? cbHDStorageTwoYears = false;
     
     /// <summary>
-    /// Opção de armazenamento HD por 5 anos
+    /// OpÃ§Ã£o de armazenamento HD por 5 anos
     /// </summary>
     [ObservableProperty] public bool? cbHDStorageFiveYears = false;
     
@@ -720,7 +748,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public DateTimeOffset? HdStorageFiveYearsDate => DateTimeOffset.Now.AddYears(5);
     
     /// <summary>
-    /// Data selecionada para armazenamento HD (baseada na opção escolhida)
+    /// Data selecionada para armazenamento HD (baseada na opÃ§Ã£o escolhida)
     /// </summary>
     public DateTimeOffset? SelectedHdStorageDate
     {
@@ -752,12 +780,12 @@ public partial class CollectionsViewModel : ViewModelBase
     public string HdStorageFiveYearsDateText => HdStorageFiveYearsDate?.ToString("dd/MM/yyyy") ?? "";
     
     /// <summary>
-    /// Texto do preço para armazenamento HD selecionado
+    /// Texto do preÃ§o para armazenamento HD selecionado
     /// </summary>
     [ObservableProperty] public string hdStoragePriceText = string.Empty;
     
     /// <summary>
-    /// Indica se o texto do preço está visível
+    /// Indica se o texto do preÃ§o estÃ¡ visÃ­vel
     /// </summary>
     public bool IsHdStoragePriceTextVisible => !string.IsNullOrEmpty(HdStoragePriceText);
     
@@ -767,34 +795,34 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Indica se está carregando o preço
+    /// Indica se estÃ¡ carregando o preÃ§o
     /// </summary>
     [ObservableProperty] public bool isLoadingHDStoragePrice = false;
     
     /// <summary>
-    /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro período)
+    /// Indica se pode adicionar/editar CPFs (usado para bloquear em reuploads de turmas de outro perÃ­odo)
     /// </summary>
     [ObservableProperty] public bool canAddCPFs = true;
     
     /// <summary>
-    /// Mensagem de erro para exibir quando CPFs não podem ser adicionados
+    /// Mensagem de erro para exibir quando CPFs nÃ£o podem ser adicionados
     /// </summary>
     [ObservableProperty] public string cPFsErrorMessage = string.Empty;
     
     /// <summary>
-    /// Indica se o checkbox AutoTreatment está desabilitado devido ao período de faturamento
+    /// Indica se o checkbox AutoTreatment estÃ¡ desabilitado devido ao perÃ­odo de faturamento
     /// </summary>
     [ObservableProperty]
     public bool cbEnableAutoTreatmentIsDisabled = false;
     
     /// <summary>
-    /// Indica se o checkbox "já estão separados" está desabilitado durante reupload
+    /// Indica se o checkbox "jÃ¡ estÃ£o separados" estÃ¡ desabilitado durante reupload
     /// </summary>
     [ObservableProperty]
     public bool cbUploadedPhotosAreAlreadySortedIsDisabled = false;
     
     /// <summary>
-    /// Mensagem de erro para exibir quando AutoTreatment não pode ser habilitado
+    /// Mensagem de erro para exibir quando AutoTreatment nÃ£o pode ser habilitado
     /// </summary>
     [ObservableProperty]
     public string cbEnableAutoTreatmentErrorMessage = string.Empty;
@@ -820,14 +848,14 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool expanderAdvancedOptionsIsEnabled;
     partial void OnCbHDBackupChanged(bool? oldValue, bool? newValue)
     {
-        // Não processar eventos enquanto estamos carregando dados de reupload
+        // NÃ£o processar eventos enquanto estamos carregando dados de reupload
         if (_isLoadingReuploadData)
             return;
             
-        // Mostrar/esconder opções de armazenamento quando HD é marcado/desmarcado
+        // Mostrar/esconder opÃ§Ãµes de armazenamento quando HD Ã© marcado/desmarcado
         IsHDStorageOptionsVisible = newValue == true;
         
-        // Se desmarcar HD, resetar opções de armazenamento
+        // Se desmarcar HD, resetar opÃ§Ãµes de armazenamento
         if (newValue == false)
         {
             CbEnableAutoTreatment = false;
@@ -837,13 +865,13 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         else if (newValue == true)
         {
-            // Por padrão, marcar 5 anos quando HD é habilitado
+            // Por padrÃ£o, marcar 5 anos quando HD Ã© habilitado
             CbHDStorageFiveYears = true;
             CbHDStorageThreeMonths = false;
             CbHDStorageTwoYears = false;
         }
             
-        // Validar período de faturamento quando tentando habilitar HD
+        // Validar perÃ­odo de faturamento quando tentando habilitar HD
         if (newValue == true && IsReupload && SelectedCollection != null)
         {
             if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
@@ -856,7 +884,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbHDBackup = false;
                 IsHDStorageOptionsVisible = false;
                 
-                // Bloquear adição de CPFs quando não é HD
+                // Bloquear adiÃ§Ã£o de CPFs quando nÃ£o Ã© HD
                 CanAddCPFs = false;
                 CPFsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
                 return;
@@ -868,17 +896,17 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (newValue == true)
         {
-            // Se marcar 3 meses, desmarcar outras opções
+            // Se marcar 3 meses, desmarcar outras opÃ§Ãµes
             CbHDStorageTwoYears = false;
             CbHDStorageFiveYears = false;
-            // Carregar preço
+            // Carregar preÃ§o
             LoadHDStoragePriceAsync();
         }
         else
         {
             HdStoragePriceText = string.Empty;
         }
-        // Notificar mudanças nas propriedades calculadas
+        // Notificar mudanÃ§as nas propriedades calculadas
         OnPropertyChanged(nameof(SelectedHdStorageDate));
     }
     
@@ -886,17 +914,17 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (newValue == true)
         {
-            // Se marcar 2 anos, desmarcar outras opções
+            // Se marcar 2 anos, desmarcar outras opÃ§Ãµes
             CbHDStorageThreeMonths = false;
             CbHDStorageFiveYears = false;
-            // Carregar preço
+            // Carregar preÃ§o
             LoadHDStoragePriceAsync();
         }
         else
         {
             HdStoragePriceText = string.Empty;
         }
-        // Notificar mudanças nas propriedades calculadas
+        // Notificar mudanÃ§as nas propriedades calculadas
         OnPropertyChanged(nameof(SelectedHdStorageDate));
     }
     
@@ -904,23 +932,23 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (newValue == true)
         {
-            // Se marcar 5 anos, desmarcar outras opções
+            // Se marcar 5 anos, desmarcar outras opÃ§Ãµes
             CbHDStorageThreeMonths = false;
             CbHDStorageTwoYears = false;
-            // Carregar preço
+            // Carregar preÃ§o
             LoadHDStoragePriceAsync();
         }
         else
         {
             HdStoragePriceText = string.Empty;
         }
-        // Notificar mudanças nas propriedades calculadas
+        // Notificar mudanÃ§as nas propriedades calculadas
         OnPropertyChanged(nameof(SelectedHdStorageDate));
     }
     
     private async void LoadHDStoragePriceAsync()
     {
-        // Verifica se há data de armazenamento selecionada
+        // Verifica se hÃ¡ data de armazenamento selecionada
         if (!SelectedHdStorageDate.HasValue)
         {
             HdStoragePriceText = string.Empty;
@@ -938,23 +966,23 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
             }
             
-            // Determina se é coleção nova ou existente
+            // Determina se Ã© coleÃ§Ã£o nova ou existente
             bool isNewCollection = SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode);
             
-            // Para coleção nova: oldScheduledDeletionDate = data de hoje, isCollectionCreation = true
-            // Para coleção existente: oldScheduledDeletionDate = ScheduledDeletionDate da coleção, isCollectionCreation = false
+            // Para coleÃ§Ã£o nova: oldScheduledDeletionDate = data de hoje, isCollectionCreation = true
+            // Para coleÃ§Ã£o existente: oldScheduledDeletionDate = ScheduledDeletionDate da coleÃ§Ã£o, isCollectionCreation = false
             DateTimeOffset oldDate;
             string classCodeToUse;
             
             if (isNewCollection)
             {
-                // Coleção nova: usa data de hoje como oldScheduledDeletionDate
+                // ColeÃ§Ã£o nova: usa data de hoje como oldScheduledDeletionDate
                 oldDate = DateTimeOffset.Now;
-                classCodeToUse = TbCollectionName ?? "new_collection"; // Usa nome temporário se não houver classCode
+                classCodeToUse = TbCollectionName ?? "new_collection"; // Usa nome temporÃ¡rio se nÃ£o houver classCode
             }
             else
             {
-                // Coleção existente: usa ScheduledDeletionDate da coleção
+                // ColeÃ§Ã£o existente: usa ScheduledDeletionDate da coleÃ§Ã£o
                 oldDate = SelectedCollection.ScheduledDeletionDate ?? DateTimeOffset.Now;
                 classCodeToUse = SelectedCollection.classCode;
             }
@@ -971,26 +999,26 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (result != null && result.success == true && result.Content != null)
             {
-                // Para coleção nova, usamos o preço diário por foto retornado pelo backend
-                // Para coleção existente, usamos o valor total retornado
+                // Para coleÃ§Ã£o nova, usamos o preÃ§o diÃ¡rio por foto retornado pelo backend
+                // Para coleÃ§Ã£o existente, usamos o valor total retornado
                 if (isNewCollection)
                 {
-                    // Para coleção nova, o backend retorna o preço diário por foto em centavos,
-                    // então dividimos por 100 para exibir em reais.
+                    // Para coleÃ§Ã£o nova, o backend retorna o preÃ§o diÃ¡rio por foto em centavos,
+                    // entÃ£o dividimos por 100 para exibir em reais.
                     double dailyPricePerPhotoInReais = result.Content.DailyPricePerPhoto / 100.0;
                     
-                    // Calcula o preço por mês (assumindo 30 dias por mês)
+                    // Calcula o preÃ§o por mÃªs (assumindo 30 dias por mÃªs)
                     int daysPerMonth = 30;
                     double monthlyPricePerPhoto = dailyPricePerPhotoInReais * daysPerMonth;
                     
-                    // Formata com 4 casas decimais e substitui ponto por vírgula (formato brasileiro)
+                    // Formata com 4 casas decimais e substitui ponto por vÃ­rgula (formato brasileiro)
                     string monthlyPriceFormatted = monthlyPricePerPhoto.ToString("F4", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
                     HdStoragePriceText = Loc.Tr("Price per photo per month:") + $" R$ {monthlyPriceFormatted}";
                 }
                 else
                 {
-                    // Para coleção existente, o backend retorna o valor total em centavos,
-                    // então dividimos por 100 para exibir em reais.
+                    // Para coleÃ§Ã£o existente, o backend retorna o valor total em centavos,
+                    // entÃ£o dividimos por 100 para exibir em reais.
                     double totalPrice = result.Content.TotalValue / 100.0;
                     HdStoragePriceText = Loc.Tr("Price:") + $" R$ {totalPrice:F2}";
                 }
@@ -1030,11 +1058,11 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
     {
-        // Não processar eventos enquanto estamos carregando dados de reupload
+        // NÃ£o processar eventos enquanto estamos carregando dados de reupload
         if (_isLoadingReuploadData)
             return;
             
-        // Bloquear habilitação de AutoTreatment em turmas de outro período de faturamento
+        // Bloquear habilitaÃ§Ã£o de AutoTreatment em turmas de outro perÃ­odo de faturamento
         if (newValue == true && IsReupload && SelectedCollection != null)
         {
             if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
@@ -1070,7 +1098,6 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
     [ObservableProperty] public bool isReupload = false;
-    [ObservableProperty] public string? tbProfessioanlTaskDescription;
     [ObservableProperty] public bool? cbOcr;
 
     [ObservableProperty] public bool expanderAdvancedOptions;
@@ -1095,7 +1122,7 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             var path = SelectedSeparationFile.FilePathInLocalDisk.Trim();
-            // Abrir a pasta Save (onde está o separacao.hermes)
+            // Abrir a pasta Save (onde estÃ¡ o separacao.hermes)
             var saveDir = Path.GetDirectoryName(path);
             if (!string.IsNullOrWhiteSpace(saveDir) && Directory.Exists(saveDir))
             {
@@ -1109,7 +1136,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch
         {
-            // best-effort: não interromper se o Explorer falhar
+            // best-effort: nÃ£o interromper se o Explorer falhar
         }
     }
 
@@ -1123,21 +1150,21 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Indica se há combos disponíveis
+    /// Indica se hÃ¡ combos disponÃ­veis
     /// </summary>
     public bool HasCombos => DynamicCombos != null && DynamicCombos.Count > 0;
     
     /// <summary>
-    /// Indica se não há combos disponíveis (para exibir mensagem de fallback)
+    /// Indica se nÃ£o hÃ¡ combos disponÃ­veis (para exibir mensagem de fallback)
     /// </summary>
     public bool NoCombosAvailable => DynamicCombos == null || DynamicCombos.Count == 0;
 
     /// <summary>
-    /// Exibe o campo "Total de fotos grátis por formando" quando há pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" está marcado.
+    /// Exibe o campo "Total de fotos grÃ¡tis por formando" quando hÃ¡ pelo menos um formando com CPF ou quando o checkbox "Permitir que as fotos sejam encontradas por qualquer pessoa" estÃ¡ marcado.
     /// </summary>
     public bool IsTotalPhotosForFreePerGraduateVisible => (CbAllowCPFsToSeeAllPhotos == true) || (GraduatesData?.Any(g => !string.IsNullOrWhiteSpace(g?.CPF)) == true);
 
-    /// <summary>Visibilidade do campo de pasta de reconhecimentos (não aparece em combo apenas tratamento).</summary>
+    /// <summary>Visibilidade do campo de pasta de reconhecimentos (nÃ£o aparece em combo apenas tratamento).</summary>
     public bool RecFolderFieldIsVisible => !IsTreatmentOnlyCombo;
 
     partial void OnIsTreatmentOnlyComboChanged(bool value) => OnPropertyChanged(nameof(RecFolderFieldIsVisible));
@@ -1152,20 +1179,20 @@ public partial class CollectionsViewModel : ViewModelBase
     private bool isFirstProfessionalSelection = true;
     partial void OnSelectedProfessionalChanged(Professional value)
     {
-        // N�o volta para a �ltima view na primeira sele��o autom�tica
+        // Nï¿½o volta para a ï¿½ltima view na primeira seleï¿½ï¿½o automï¿½tica
         if (value == null)
             return;
             
         var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
         
-        // Não voltar quando estamos apenas abrindo a lista (LoadProfessionals define SelectedProfessional e fechava a lista no 1º clique)
+        // NÃ£o voltar quando estamos apenas abrindo a lista (LoadProfessionals define SelectedProfessional e fechava a lista no 1Âº clique)
         if (!isFirstProfessionalSelection && !wasViewingCollection && !_isOpeningSelectProfessionalView)
         {
             BackLasViewCommand();
         }
         isFirstProfessionalSelection = false;
         
-        // Só atualizar e salvar o separador quando o usuário escolher um profissional DIFERENTE do atual da coleção
+        // SÃ³ atualizar e salvar o separador quando o usuÃ¡rio escolher um profissional DIFERENTE do atual da coleÃ§Ã£o
         // (evita salvar ao abrir a lista, quando LoadProfessionals define SelectedProfessional = Professionals[0])
         if (SelectedCollection != null && value.username != SelectedCollection.professionalLogin)
         {
@@ -1174,7 +1201,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         CurrentProfessionalName = SelectedProfessional.username;
         
-        // Só voltar para a view da coleção se o usuário realmente escolheu um separador (não quando estamos apenas abrindo a lista)
+        // SÃ³ voltar para a view da coleÃ§Ã£o se o usuÃ¡rio realmente escolheu um separador (nÃ£o quando estamos apenas abrindo a lista)
         if (wasViewingCollection && !_isOpeningSelectProfessionalView)
         {
             ActiveComponent = ActiveViews.CollectionView;
@@ -1189,14 +1216,14 @@ public partial class CollectionsViewModel : ViewModelBase
         IsChangingSeparator = true;
         try
         {
-            // Criar um ProfessionalTask apenas com as informações necessárias para atualizar o separador
-            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
+            // Criar um ProfessionalTask apenas com as informaÃ§Ãµes necessÃ¡rias para atualizar o separador
+            // CORREÃ‡ÃƒO: Normalizar os paths removendo barras finais para evitar duplicaÃ§Ã£o no backend
             ProfessionalTask pt = new ProfessionalTask()
             {
                 professionalLogin = SelectedProfessional.username,
                 classCode = SelectedCollection.classCode,
                 companyUsername = SelectedCollection.companyUsername,
-                // Manter os valores atuais da coleção (normalizados)
+                // Manter os valores atuais da coleÃ§Ã£o (normalizados)
                 originalClassFolder = SelectedCollection.originalClassFolder?.TrimEnd('\\', '/'),
                 originalEventsFolder = SelectedCollection.originalEventsFolder?.TrimEnd('\\', '/'),
                 originalRecFolder = SelectedCollection.originalRecFolder?.TrimEnd('\\', '/'),
@@ -1223,7 +1250,7 @@ public partial class CollectionsViewModel : ViewModelBase
             var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
             if (r != null && r.success)
             {
-                // Atualizar apenas a PT específica (não recarregar toda a lista de coleções)
+                // Atualizar apenas a PT especÃ­fica (nÃ£o recarregar toda a lista de coleÃ§Ãµes)
                 var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(currentClassCode);
                 if (updatedCollection != null)
                 {
@@ -1249,12 +1276,12 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Erro ao atualizar o separador da coleção.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? "Erro ao atualizar o separador da coleÃ§Ã£o.");
             }
         }
         catch (Exception ex)
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao salvar alteração do separador: {ex.Message}");
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao salvar alteraÃ§Ã£o do separador: {ex.Message}");
         }
         finally
         {
@@ -1287,6 +1314,7 @@ public partial class CollectionsViewModel : ViewModelBase
     new ObservableCollection<string> { "WATERMARK", "ACCESS_DENIED" };
 
     [ObservableProperty] private AddIdsViewModel? addIdsVm;
+    [ObservableProperty] private EditIdsViewModel? editIdsVm;
 
     [ObservableProperty] public ProfessionalTask selectedCollectionForCancelBilling;
     [ObservableProperty] public bool cancelBillingIsRunning;
@@ -1310,12 +1338,12 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool isLoadingMoreTasks = false;
     partial void OnIsLoadingMoreTasksChanged(bool value)
     {
-        // Atualiza o texto do botão quando o estado de carregamento muda
+        // Atualiza o texto do botÃ£o quando o estado de carregamento muda
         UpdateLoadOldButtonText();
     }
     [ObservableProperty] public bool hasLoadedAllTasks = false;
     
-    // CORREÇÃO: Propriedade para texto dinâmico do botão "Load old"
+    // CORREÃ‡ÃƒO: Propriedade para texto dinÃ¢mico do botÃ£o "Load old"
     [ObservableProperty] public string loadOldButtonText = "";
 
 
@@ -1324,11 +1352,11 @@ public partial class CollectionsViewModel : ViewModelBase
         Instance = this;
         LoadProfessionalTasks();
         
-        // CORREÇÃO: Inicializa o texto do botão e escuta mudanças de idioma
+        // CORREÃ‡ÃƒO: Inicializa o texto do botÃ£o e escuta mudanÃ§as de idioma
         UpdateLoadOldButtonText();
         App.LanguageChanged += OnLanguageChanged;
         ThemeManager.ThemeApplied += OnApplicationThemeApplied;
-        // Tema já pode ter sido aplicado antes do VM existir — alinha conversores das abas ao tema atual
+        // Tema jÃ¡ pode ter sido aplicado antes do VM existir â€” alinha conversores das abas ao tema atual
         Dispatcher.UIThread.Post(() => OnApplicationThemeApplied(this, EventArgs.Empty), DispatcherPriority.Loaded);
         Task.Run(() => LoadProfessionals());
         GetInfosAboutFreeTrialPeriod();
@@ -1336,7 +1364,7 @@ public partial class CollectionsViewModel : ViewModelBase
         
         GraduatesData.CollectionChanged += GraduatesData_CollectionChanged;
         
-        // Observar mudanças nas mensagens não lidas para decidir view inicial
+        // Observar mudanÃ§as nas mensagens nÃ£o lidas para decidir view inicial
         InitializeMessagesViewLogic();
         
         _timerServerProgress = new System.Timers.Timer();
@@ -1414,7 +1442,7 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Com CPF/ID na lista, o backup HD fica obrigatório e o toggle é desabilitado (igual ao dashboard WPF).
+    /// Com CPF/ID na lista, o backup HD fica obrigatÃ³rio e o toggle Ã© desabilitado (igual ao dashboard WPF).
     /// </summary>
     private void UpdateHdBackupStateFromGraduatesData()
     {
@@ -1442,12 +1470,12 @@ public partial class CollectionsViewModel : ViewModelBase
     private const int ServerProgressPollingIntervalWhenLoadingMaxMs = 420000;
     private const int ServerProgressPollingIntervalFallbackMs = 60000;
 
-    // --- Timer: tagadas/não tagadas (arquivo de separação) ---
+    // --- Timer: tagadas/nÃ£o tagadas (arquivo de separaÃ§Ã£o) ---
     private System.Timers.Timer? _timerSeparationProgress;
     private const int SeparationProgressPollingIntervalMinMs = 60000;   // 1 min
     private const int SeparationProgressPollingIntervalMaxMs = 600000;   // 10 min
 
-    /// <summary>Indica se rec + OCR + tratamento estão em 100%. Se true, não faz polling; só atualiza ao clicar na coleção.</summary>
+    /// <summary>Indica se rec + OCR + tratamento estÃ£o em 100%. Se true, nÃ£o faz polling; sÃ³ atualiza ao clicar na coleÃ§Ã£o.</summary>
     private bool IsServerProgressFullyComplete()
     {
         if (ServerProgressValues == null || SelectedCollection == null) return false;
@@ -1459,7 +1487,7 @@ public partial class CollectionsViewModel : ViewModelBase
         return recognitionComplete && ocrComplete && autoTreatmentComplete;
     }
 
-    /// <summary>Indica se todas as fotos do arquivo de separação estão tagadas. Se true, não faz polling; só atualiza ao clicar.</summary>
+    /// <summary>Indica se todas as fotos do arquivo de separaÃ§Ã£o estÃ£o tagadas. Se true, nÃ£o faz polling; sÃ³ atualiza ao clicar.</summary>
     private bool IsSeparationProgressFullyTagged()
     {
         if (SelectedSeparationFile == null || SeparationProgressValue == null) return true;
@@ -1467,7 +1495,7 @@ public partial class CollectionsViewModel : ViewModelBase
         return SeparationProgressValue.emptyPhotos == 0;
     }
 
-    /// <summary>Intervalo para polling do servidor (rec/OCR/tratamento). Só usado quando não está 100%.</summary>
+    /// <summary>Intervalo para polling do servidor (rec/OCR/tratamento). SÃ³ usado quando nÃ£o estÃ¡ 100%.</summary>
     private double GetServerProgressPollingIntervalMs()
     {
         if (SelectedCollection == null) return ServerProgressPollingIntervalFallbackMs;
@@ -1475,7 +1503,7 @@ public partial class CollectionsViewModel : ViewModelBase
         return Math.Min(Math.Max(ServerProgressPollingIntervalWhenLoadingMinMs, totalPhotos * 50), ServerProgressPollingIntervalWhenLoadingMaxMs);
     }
 
-    /// <summary>Intervalo para polling de tagadas/não tagadas. Dinâmico entre 1 min e 10 min.</summary>
+    /// <summary>Intervalo para polling de tagadas/nÃ£o tagadas. DinÃ¢mico entre 1 min e 10 min.</summary>
     private double GetSeparationProgressPollingIntervalMs()
     {
         if (SeparationProgressValue == null || SeparationProgressValue.totalPhotos <= 0)
@@ -1484,7 +1512,7 @@ public partial class CollectionsViewModel : ViewModelBase
         return Math.Min(SeparationProgressPollingIntervalMaxMs, Math.Max(SeparationProgressPollingIntervalMinMs, total * 150));
     }
 
-    /// <summary>Atualiza apenas progresso do servidor (rec, OCR, tratamento) e UI que depende dele. Usado pelo timer e ao clicar na coleção.</summary>
+    /// <summary>Atualiza apenas progresso do servidor (rec, OCR, tratamento) e UI que depende dele. Usado pelo timer e ao clicar na coleÃ§Ã£o.</summary>
     private async Task RefreshServerProgressAndRelatedUI()
     {
         if (SelectedCollection == null) return;
@@ -1517,7 +1545,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Liga/desliga o timer de progresso do servidor: desliga se 100% ou sem coleção; senão agenda próximo disparo.</summary>
+    /// <summary>Liga/desliga o timer de progresso do servidor: desliga se 100% ou sem coleÃ§Ã£o; senÃ£o agenda prÃ³ximo disparo.</summary>
     private void RefreshServerProgressPollingState()
     {
         _timerServerProgress?.Stop();
@@ -1527,7 +1555,7 @@ public partial class CollectionsViewModel : ViewModelBase
         _timerServerProgress.Start();
     }
 
-    /// <summary>Liga/desliga o timer de tagadas/não tagadas: desliga se 100% tagadas ou sem arquivo; senão agenda próximo disparo (1–10 min).</summary>
+    /// <summary>Liga/desliga o timer de tagadas/nÃ£o tagadas: desliga se 100% tagadas ou sem arquivo; senÃ£o agenda prÃ³ximo disparo (1â€“10 min).</summary>
     private void RefreshSeparationProgressPollingState()
     {
         _timerSeparationProgress?.Stop();
@@ -1538,17 +1566,17 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Inicializa a lógica de observação de mensagens não lidas para decidir qual view mostrar
+    /// Inicializa a lÃ³gica de observaÃ§Ã£o de mensagens nÃ£o lidas para decidir qual view mostrar
     /// </summary>
     private void InitializeMessagesViewLogic()
     {
         // Aguardar um pouco para garantir que o MainWindowViewModel foi inicializado e carregou as mensagens
         Task.Run(async () =>
         {
-            // Aguardar até que o MainWindowViewModel esteja disponível
+            // Aguardar atÃ© que o MainWindowViewModel esteja disponÃ­vel
             MainWindowViewModel? mainVM = null;
             int attempts = 0;
-            while (mainVM == null && attempts < 50) // Máximo 5 segundos
+            while (mainVM == null && attempts < 50) // MÃ¡ximo 5 segundos
             {
                 await Task.Delay(100);
                 mainVM = MainWindowViewModel.Instance;
@@ -1557,13 +1585,13 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (mainVM == null)
             {
-                Console.WriteLine("CollectionsViewModel: MainWindowViewModel não encontrado após inicialização");
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel nÃ£o encontrado apÃ³s inicializaÃ§Ã£o");
                 return;
             }
             
-            // Aguardar até que as mensagens sejam carregadas da API (ou timeout)
-            // Isso garante que a decisão de qual view mostrar seja baseada na resposta real da API
-            int maxWaitAttempts = 100; // Máximo 10 segundos (100 * 100ms)
+            // Aguardar atÃ© que as mensagens sejam carregadas da API (ou timeout)
+            // Isso garante que a decisÃ£o de qual view mostrar seja baseada na resposta real da API
+            int maxWaitAttempts = 100; // MÃ¡ximo 10 segundos (100 * 100ms)
             int waitAttempts = 0;
             bool messagesLoaded = false;
             
@@ -1585,10 +1613,10 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (!messagesLoaded)
             {
-                Console.WriteLine("CollectionsViewModel: Timeout aguardando carregamento de mensagens. Usando estado padrão (welcome).");
+                Console.WriteLine("CollectionsViewModel: Timeout aguardando carregamento de mensagens. Usando estado padrÃ£o (welcome).");
             }
             
-            // Verificar estado inicial das mensagens apenas uma vez na inicialização
+            // Verificar estado inicial das mensagens apenas uma vez na inicializaÃ§Ã£o
             // Agora que as mensagens foram carregadas (ou timeout), podemos decidir qual view mostrar
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -1599,7 +1627,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             });
             
-            // Observar mudanças futuras em ShouldShowMessagesOnStartup usando PropertyChanged
+            // Observar mudanÃ§as futuras em ShouldShowMessagesOnStartup usando PropertyChanged
             // Criar um observador que verifica quando a propriedade muda
             System.Timers.Timer messagesCheckTimer = new System.Timers.Timer();
             messagesCheckTimer.Interval = 2000; // Verificar a cada 2 segundos (menos agressivo)
@@ -1620,17 +1648,17 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Verifica se deve mostrar a view de mensagens ou welcome baseado em mensagens não lidas
+    /// Verifica se deve mostrar a view de mensagens ou welcome baseado em mensagens nÃ£o lidas
     /// </summary>
     private void CheckAndUpdateInitialView(MainWindowViewModel mainVM, bool isInitialCheck)
     {
         try
         {
-            // Verificar se mainVM é válido
+            // Verificar se mainVM Ã© vÃ¡lido
             if (mainVM == null)
             {
-                Console.WriteLine("CollectionsViewModel: MainWindowViewModel é null ao verificar view inicial");
-                // Em caso de erro, garantir que mostra welcome (padrão seguro)
+                Console.WriteLine("CollectionsViewModel: MainWindowViewModel Ã© null ao verificar view inicial");
+                // Em caso de erro, garantir que mostra welcome (padrÃ£o seguro)
                 if (isInitialCheck && ActiveComponent != ActiveViews.NewsView)
                 {
                     ActiveComponent = ActiveViews.NewsView;
@@ -1640,7 +1668,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             if (isInitialCheck)
             {
-                // Na inicialização: se houver mensagens não lidas, mostrar mensagens
+                // Na inicializaÃ§Ã£o: se houver mensagens nÃ£o lidas, mostrar mensagens
                 // Se houver erro (ShouldShowMessagesOnStartup retorna false), mostrar welcome
                 try
                 {
@@ -1650,21 +1678,21 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                     else
                     {
-                        // Se não houver mensagens ou houver erro, garantir que mostra welcome
+                        // Se nÃ£o houver mensagens ou houver erro, garantir que mostra welcome
                         ActiveComponent = ActiveViews.NewsView;
                     }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"CollectionsViewModel: Erro ao verificar ShouldShowMessagesOnStartup: {ex.Message}");
-                    // Em caso de erro, mostrar welcome por padrão
+                    // Em caso de erro, mostrar welcome por padrÃ£o
                     ActiveComponent = ActiveViews.NewsView;
                 }
             }
             else
             {
-                // Após inicialização: se todas as mensagens foram lidas e estamos em MessagesView,
-                // voltar para NewsView (mas só se não foi navegação manual)
+                // ApÃ³s inicializaÃ§Ã£o: se todas as mensagens foram lidas e estamos em MessagesView,
+                // voltar para NewsView (mas sÃ³ se nÃ£o foi navegaÃ§Ã£o manual)
                 try
                 {
                     if (!mainVM.ShouldShowMessagesOnStartup && ActiveComponent == ActiveViews.MessagesView && !_userManuallyNavigatedToMessages)
@@ -1674,15 +1702,15 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar mudança de estado: {ex.Message}");
-                    // Em caso de erro, não fazer nada (manter estado atual)
+                    Console.WriteLine($"CollectionsViewModel: Erro ao verificar mudanÃ§a de estado: {ex.Message}");
+                    // Em caso de erro, nÃ£o fazer nada (manter estado atual)
                 }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"CollectionsViewModel: Erro ao verificar view inicial: {ex.Message}");
-            // Em caso de erro geral, garantir que mostra welcome (padrão seguro)
+            // Em caso de erro geral, garantir que mostra welcome (padrÃ£o seguro)
             if (isInitialCheck)
             {
                 try
@@ -1692,20 +1720,20 @@ public partial class CollectionsViewModel : ViewModelBase
                 catch
                 {
                     // Se nem isso funcionar, pelo menos logar
-                    Console.WriteLine("CollectionsViewModel: Erro crítico ao definir view inicial");
+                    Console.WriteLine("CollectionsViewModel: Erro crÃ­tico ao definir view inicial");
                 }
             }
         }
     }
     
     /// <summary>
-    /// Método chamado quando o idioma é alterado
+    /// MÃ©todo chamado quando o idioma Ã© alterado
     /// </summary>
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
         try
         {
-            // CORREÇÃO: Atualiza o texto do botão "Load old" quando o idioma muda
+            // CORREÃ‡ÃƒO: Atualiza o texto do botÃ£o "Load old" quando o idioma muda
             UpdateLoadOldButtonText();
             
             // Recarregar combos com o novo idioma (sem await para evitar erro)
@@ -1717,14 +1745,14 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
     
-    // CORREÇÃO: Método para atualizar o texto do botão "Load old"
+    // CORREÃ‡ÃƒO: MÃ©todo para atualizar o texto do botÃ£o "Load old"
     private void UpdateLoadOldButtonText()
     {
         LoadOldButtonText = IsLoadingMoreTasks ? Loc.Tr("Loading...") : Loc.Tr("Load old");
     }
     
     /// <summary>
-    /// Descarrega os eventos quando o ViewModel é destruído
+    /// Descarrega os eventos quando o ViewModel Ã© destruÃ­do
     /// </summary>
     ~CollectionsViewModel()
     {
@@ -1732,7 +1760,7 @@ public partial class CollectionsViewModel : ViewModelBase
         ThemeManager.ThemeApplied -= OnApplicationThemeApplied;
     }
 
-    /// <summary>Conversores das sub-abas de coleções leem ThemeDictionaries via ActualThemeVariant; força rebind ao mudar dark/light.</summary>
+    /// <summary>Conversores das sub-abas de coleÃ§Ãµes leem ThemeDictionaries via ActualThemeVariant; forÃ§a rebind ao mudar dark/light.</summary>
     private void OnApplicationThemeApplied(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsNormalTabActive));
@@ -1773,7 +1801,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CollectionsListIsLoading = true;
             IsEnabledFilters = false;
             
-            // CORREÇÃO: Salvar o classCode da coleção selecionada antes de atualizar a lista
+            // CORREÃ‡ÃƒO: Salvar o classCode da coleÃ§Ã£o selecionada antes de atualizar a lista
             string? selectedClassCode = SelectedCollection?.classCode;
             
             {
@@ -1793,8 +1821,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 }
             }
             
-            // CORREÇÃO: Se havia uma coleção selecionada, verificar se ela ainda existe na lista
-            // Se não existir mais (foi deletada), limpar a seleção (vai voltar para home automaticamente)
+            // CORREÃ‡ÃƒO: Se havia uma coleÃ§Ã£o selecionada, verificar se ela ainda existe na lista
+            // Se nÃ£o existir mais (foi deletada), limpar a seleÃ§Ã£o (vai voltar para home automaticamente)
             if (!string.IsNullOrEmpty(selectedClassCode))
             {
                 var collectionStillExists = CollectionsList.Any(c => c.classCode == selectedClassCode);
@@ -1829,18 +1857,18 @@ public partial class CollectionsViewModel : ViewModelBase
 
             if (pts != null && pts.Count > 0)
             {
-                // Carregar todas as coleções em memória primeiro (sem atualizar UI)
+                // Carregar todas as coleÃ§Ãµes em memÃ³ria primeiro (sem atualizar UI)
                 var newCollections = new List<ProfessionalTask>();
                 foreach (var pt in pts)
                 {
-                    // Verificar se o item já existe na lista para evitar duplicatas
+                    // Verificar se o item jÃ¡ existe na lista para evitar duplicatas
                     if (!CollectionsList.Any(existing => existing.classCode == pt.classCode))
                     {
                         newCollections.Add(pt);
                     }
                 }
                 
-                // Adicionar todas as novas coleções de uma vez na UI (evita piscar)
+                // Adicionar todas as novas coleÃ§Ãµes de uma vez na UI (evita piscar)
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     foreach (var pt in newCollections)
@@ -1848,8 +1876,8 @@ public partial class CollectionsViewModel : ViewModelBase
                         CollectionsList.Add(pt);
                     }
                     
-                    // Reaplicar o filtro atual (vazio por padrão, mas mantém qualquer filtro que o usuário tenha aplicado)
-                    // O filtro será reaplicado automaticamente quando CollectionsListIsLoading for false
+                    // Reaplicar o filtro atual (vazio por padrÃ£o, mas mantÃ©m qualquer filtro que o usuÃ¡rio tenha aplicado)
+                    // O filtro serÃ¡ reaplicado automaticamente quando CollectionsListIsLoading for false
                     // e a view for atualizada
                 });
             }
@@ -1858,16 +1886,16 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Erro ao carregar tarefas dos últimos 5 anos: {ex.Message}");
-            ShowLoadMoreButton = true; // Mostrar o botão novamente em caso de erro
+            Console.WriteLine($"Erro ao carregar tarefas dos Ãºltimos 5 anos: {ex.Message}");
+            ShowLoadMoreButton = true; // Mostrar o botÃ£o novamente em caso de erro
         }
         finally
         {
             IsLoadingMoreTasks = false;
             CollectionsListIsLoading = false; // Esconder loading geral (mostra a lista atualizada)
             
-            // Reaplicar o filtro após o loading terminar para atualizar a lista filtrada
-            // Isso garante que as novas coleções apareçam na lista filtrada
+            // Reaplicar o filtro apÃ³s o loading terminar para atualizar a lista filtrada
+            // Isso garante que as novas coleÃ§Ãµes apareÃ§am na lista filtrada
             FilterProfessionalTasks("", "");
         }
     }
@@ -1902,7 +1930,7 @@ public partial class CollectionsViewModel : ViewModelBase
         string.Equals(FilterProfessionalText ?? string.Empty, professional, StringComparison.Ordinal);
 
     /// <summary>
-    /// Aplica o filtro de ID / separador sobre as três fontes e atualiza as listas filtradas de cada sub-aba.
+    /// Aplica o filtro de ID / separador sobre as trÃªs fontes e atualiza as listas filtradas de cada sub-aba.
     /// </summary>
     private void ApplyLocalFilterAllSources(string classCode, string professional)
     {
@@ -1968,7 +1996,7 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Filtra as coleções na lista local e, se não encontrar resultados na sub-aba ativa, busca no servidor.
+    /// Filtra as coleÃ§Ãµes na lista local e, se nÃ£o encontrar resultados na sub-aba ativa, busca no servidor.
     /// </summary>
     public void FilterProfessionalTasks(string? classCode, string? professional)
     {
@@ -2025,7 +2053,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 .ContinueWith(task =>
                 {
                     if (task.IsFaulted && task.Exception != null)
-                        System.Diagnostics.Debug.WriteLine($"Erro não tratado na busca de coleção: {task.Exception.GetBaseException().Message}");
+                        System.Diagnostics.Debug.WriteLine($"Erro nÃ£o tratado na busca de coleÃ§Ã£o: {task.Exception.GetBaseException().Message}");
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
         else
@@ -2035,8 +2063,8 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Busca uma coleção no servidor quando não encontrada na lista local da sub-aba ativa.
-    /// Só exibe o resultado se a categoria (normal / vencida / exclusão pendente) corresponder à sub-aba.
+    /// Busca uma coleÃ§Ã£o no servidor quando nÃ£o encontrada na lista local da sub-aba ativa.
+    /// SÃ³ exibe o resultado se a categoria (normal / vencida / exclusÃ£o pendente) corresponder Ã  sub-aba.
     /// </summary>
     private async Task SearchCollectionOnServerAsync(string classCode, string professional, CollectionsTabKind tabWhenRequested, CancellationToken cancellationToken)
     {
@@ -2090,7 +2118,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Erro ao buscar coleção no servidor: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Erro ao buscar coleÃ§Ã£o no servidor: {ex.Message}");
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsSearchingOnServer = false;
@@ -2231,7 +2259,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Atualiza a view da coleção selecionada (servidor + tagadas). Chamado ao clicar na coleção e pelos timers quando não estão em 100%.</summary>
+    /// <summary>Atualiza a view da coleÃ§Ã£o selecionada (servidor + tagadas). Chamado ao clicar na coleÃ§Ã£o e pelos timers quando nÃ£o estÃ£o em 100%.</summary>
     public async void UpdateCollectionViewSelected()
     {
         if (SelectedCollection == null) return;
@@ -2261,7 +2289,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (cents is null)
             return 0;
-        // Divisão em ponto flutuante: int/int truncaria (ex.: 5/100 == 0).
+        // DivisÃ£o em ponto flutuante: int/int truncaria (ex.: 5/100 == 0).
         return cents.Value / 100.0;
     }
     public int ConvertDecimalToCents(double? decimalValue)
@@ -2270,18 +2298,18 @@ public partial class CollectionsViewModel : ViewModelBase
             return 0;
         return (int)(decimalValue.Value * 100);
     }
-    /// <summary>ID da coleção: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, números, _ / ' . -).</summary>
+    /// <summary>ID da coleÃ§Ã£o: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, nÃºmeros, _ / ' . -).</summary>
     public bool IsTextAllowed(string text)
     {
-        if (string.IsNullOrEmpty(text))
-            return true;
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
         return RegexHelper.RegexToClassCode.IsMatch(text);
     }
 
     public static bool IsClassCodeCharAllowed(char c) =>
         RegexHelper.RegexToClassCode.IsMatch(c.ToString());
 
-    /// <summary>Remove caracteres inválidos (ex.: colar texto) quando o TextInput não bloqueia.</summary>
+    /// <summary>Remove caracteres invÃ¡lidos (ex.: colar texto) quando o TextInput nÃ£o bloqueia.</summary>
     public static string SanitizeClassCodeInput(string? text)
     {
         if (string.IsNullOrEmpty(text))
@@ -2291,14 +2319,13 @@ public partial class CollectionsViewModel : ViewModelBase
     
     private void ValidateCollectionName()
     {
-        if (string.IsNullOrEmpty(TbCollectionName))
-        {
-            TbCollectionNameHasError = false;
-            return;
-        }
-        
-        // Verifica se todos os caracteres são válidos
-        TbCollectionNameHasError = !IsTextAllowed(TbCollectionName);
+        TbCollectionNameIsEmpty = string.IsNullOrWhiteSpace(TbCollectionName);
+        TbCollectionNameIsTooShort = !TbCollectionNameIsEmpty
+            && (TbCollectionName?.Trim().Length ?? 0) < MinCollectionIdLength;
+        TbCollectionNameHasInvalidChars = !TbCollectionNameIsEmpty
+            && !TbCollectionNameIsTooShort
+            && !IsTextAllowed(TbCollectionName);
+        TbCollectionNameHasError = TbCollectionNameIsEmpty || TbCollectionNameIsTooShort || TbCollectionNameHasInvalidChars;
     }
     
     private bool CheckIfClassAlreadyExists(string classCode)
@@ -2319,13 +2346,13 @@ public partial class CollectionsViewModel : ViewModelBase
         (bool isThereFilepathTooLong, string firstFilepathTooLong) = FileHelper.FileListHasFilepathsLargerThan(files, 200);
 
         if (isThereFilepathTooLong)
-            return (false, "O caminho do arquivo " + firstFilepathTooLong + " � muito longo, por isso o Windows n�o permite ao programa acess�-lo. O m�ximo permitido s�o 200 caracteres.");
+            return (false, "O caminho do arquivo " + firstFilepathTooLong + " ï¿½ muito longo, por isso o Windows nï¿½o permite ao programa acessï¿½-lo. O mï¿½ximo permitido sï¿½o 200 caracteres.");
 
         (bool isThereFilepathWithProhibitedCharacter, string firstFilepathWithProhibitedCharacter, string prohibitedCharacterFound)
             = FileHelper.FileListHasFilepathWithProhibitedCharacter(files, new string[] { "&", ";" });
 
         if (isThereFilepathWithProhibitedCharacter)
-            return (false, "O caminho " + firstFilepathWithProhibitedCharacter + " possui o caracter " + prohibitedCharacterFound + ", que n�o � permitido.");
+            return (false, "O caminho " + firstFilepathWithProhibitedCharacter + " possui o caracter " + prohibitedCharacterFound + ", que nï¿½o ï¿½ permitido.");
 
         foreach (FileInfo c in files)
         {
@@ -2340,15 +2367,15 @@ public partial class CollectionsViewModel : ViewModelBase
                         break;
                     }
                 }
-                return (false, $"N�o � permitido utilizar o caractere '{chBlocked}' no nome do arquivo \"{c.FullName}\".\nRenomeie o arquivo e tente novamente.");
+                return (false, $"Nï¿½o ï¿½ permitido utilizar o caractere '{chBlocked}' no nome do arquivo \"{c.FullName}\".\nRenomeie o arquivo e tente novamente.");
             }
         }
 
-        // Validação: Verificar se há pelo menos 1 foto na pasta de reconhecimento
-        // Exceto quando as fotos já foram separadas (UploadPhotosAreAlreadySorted = true) ou quando for apenas tratamento
+        // ValidaÃ§Ã£o: Verificar se hÃ¡ pelo menos 1 foto na pasta de reconhecimento
+        // Exceto quando as fotos jÃ¡ foram separadas (UploadPhotosAreAlreadySorted = true) ou quando for apenas tratamento
         if (!(pt.IsTreatmentOnly ?? false) && !(pt.UploadPhotosAreAlreadySorted ?? false) && RecFiles.Count == 0)
         {
-            return (false, "É necessário ter pelo menos 1 foto na pasta de reconhecimento para criar a coleção. Se as fotos já foram separadas, marque a opção 'Fotos já foram separadas'.");
+            return (false, "Ã‰ necessÃ¡rio ter pelo menos 1 foto na pasta de reconhecimento para criar a coleÃ§Ã£o. Se as fotos jÃ¡ foram separadas, marque a opÃ§Ã£o 'Fotos jÃ¡ foram separadas'.");
         }
 
         return (true, "");
@@ -2361,7 +2388,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         if (p == null)
         {
-            Console.WriteLine("O processo � nulo");
+            Console.WriteLine("O processo ï¿½ nulo");
             return;
         }
         try
@@ -2410,7 +2437,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 TbEventFolderError = false;
             }
 
-            // Combo apenas tratamento: exceção robusta — aceitar qualquer pasta; não sobrescrever TbEventFolder nem buscar reconhecimentos
+            // Combo apenas tratamento: exceÃ§Ã£o robusta â€” aceitar qualquer pasta; nÃ£o sobrescrever TbEventFolder nem buscar reconhecimentos
             if (IsTreatmentOnlyCombo)
             {
                 TbRecFolder = "";
@@ -2487,7 +2514,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     TbEventFolder ?? "",
                     denied,
                     uex,
-                    "Não foi possível ler o conteúdo da pasta de eventos. O Windows negou permissão ao listar as subpastas — a pasta pode estar bloqueada, ser de outro usuário ou exigir permissões de administrador.");
+                    "NÃ£o foi possÃ­vel ler o conteÃºdo da pasta de eventos. O Windows negou permissÃ£o ao listar as subpastas â€” a pasta pode estar bloqueada, ser de outro usuÃ¡rio ou exigir permissÃµes de administrador.");
             });
         }
         catch (IOException ioex)
@@ -2496,15 +2523,15 @@ public partial class CollectionsViewModel : ViewModelBase
             _ = Dispatcher.UIThread.InvokeAsync(() =>
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(
-                    "Não foi possível acessar a pasta de eventos ao listar subpastas.\n\n" + ioex.Message,
-                    "Acesso à pasta");
+                    "NÃ£o foi possÃ­vel acessar a pasta de eventos ao listar subpastas.\n\n" + ioex.Message,
+                    "Acesso Ã  pasta");
             });
         }
         finally
         {
         }
     }
-    /// <summary>Atualiza dados de tagadas/não tagadas do arquivo de separação. Ao final atualiza o estado do timer de polling.</summary>
+    /// <summary>Atualiza dados de tagadas/nÃ£o tagadas do arquivo de separaÃ§Ã£o. Ao final atualiza o estado do timer de polling.</summary>
     private async Task UpdateSeparationProgress()
     {
         if (SelectedSeparationFile == null)
@@ -2548,10 +2575,10 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                //Redundancia  necess�ria pois ha casos em que alternar rapidamente entre turmas faz com que haja um erro dentro do LesserFunctionClient.General.cs, arquivo que n�o � recomend�vel alterar por enquanto.
-                //Acredito que o erro seja ocasionado porque a response chega depois que o objeto j� foi destru�do, ou seja, o objeto que chama o m�todo j� n�o existe mais.
-                //Colocar qualquer tipo de trava para aguardar uma chamada acontecer prejudica a experi�ncia do usu�rio para esse caso.
-                //Para conservar a boa experi�ncia do usu�rio, o melhor � tratar o erro internamente e deixar o programa seguir sem problemas ou avisos.
+                //Redundancia  necessï¿½ria pois ha casos em que alternar rapidamente entre turmas faz com que haja um erro dentro do LesserFunctionClient.General.cs, arquivo que nï¿½o ï¿½ recomendï¿½vel alterar por enquanto.
+                //Acredito que o erro seja ocasionado porque a response chega depois que o objeto jï¿½ foi destruï¿½do, ou seja, o objeto que chama o mï¿½todo jï¿½ nï¿½o existe mais.
+                //Colocar qualquer tipo de trava para aguardar uma chamada acontecer prejudica a experiï¿½ncia do usuï¿½rio para esse caso.
+                //Para conservar a boa experiï¿½ncia do usuï¿½rio, o melhor ï¿½ tratar o erro internamente e deixar o programa seguir sem problemas ou avisos.
                 try
                 {
                     if (GlobalAppStateViewModel.lfc == null || SelectedCollection == null || SelectedSeparationFile == null)
@@ -2566,7 +2593,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 catch (Exception ex)
                 {
                     SeparationProgressValue = null;
-                    Console.WriteLine("Erro ao obter progresso de separa��o: " + ex.Message);
+                    Console.WriteLine("Erro ao obter progresso de separaï¿½ï¿½o: " + ex.Message);
                 }
             }
         }
@@ -2599,19 +2626,26 @@ public partial class CollectionsViewModel : ViewModelBase
     /// </summary>
     public string? UpdateGraduateDataFromFile(FileInfo f)
     {
-        // Se for apenas tratamento, não processar dados de reconhecimento
         if (IsTreatmentOnlyCombo)
-        {
             return null;
-        }
 
-        // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
-        if (!CanAddCPFs)
-        {
-            return CPFsErrorMessage;
-        }
-        
-        GraduatesData.Clear();
+        var err = ImportGraduatesFromExcel(f, GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage);
+        if (err == null)
+            SortGraduatesDataAlphabetically();
+        return err;
+    }
+
+    public string? ImportGraduatesFromExcel(
+        FileInfo f,
+        ObservableCollection<GraduateByCPF> graduates,
+        string recFolder,
+        bool canEditCpfs,
+        string cpfsErrorMessage)
+    {
+        if (!canEditCpfs)
+            return cpfsErrorMessage;
+
+        graduates.Clear();
         ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
         using var package = new ExcelPackage(f);
 
@@ -2619,18 +2653,18 @@ public partial class CollectionsViewModel : ViewModelBase
         if (workSheet?.Dimension == null)
             return null;
 
-        // Mapear colunas por cabeçalho (inclui Nome / Name)
+        // Mapear colunas por cabeÃ§alho (inclui Nome / Name)
         static string NormalizeHeader(string? h)
         {
             return (h ?? "")
                 .Trim()
                 .ToLowerInvariant()
-                .Replace("á", "a").Replace("à", "a").Replace("ã", "a").Replace("â", "a")
-                .Replace("é", "e").Replace("ê", "e")
-                .Replace("í", "i")
-                .Replace("ó", "o").Replace("ô", "o").Replace("õ", "o")
-                .Replace("ú", "u")
-                .Replace("ç", "c");
+                .Replace("Ã¡", "a").Replace("Ã ", "a").Replace("Ã£", "a").Replace("Ã¢", "a")
+                .Replace("Ã©", "e").Replace("Ãª", "e")
+                .Replace("Ã­", "i")
+                .Replace("Ã³", "o").Replace("Ã´", "o").Replace("Ãµ", "o")
+                .Replace("Ãº", "u")
+                .Replace("Ã§", "c");
         }
 
         var colCount = workSheet.Dimension.End.Column;
@@ -2646,7 +2680,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         bool LooksLikeHeaderRow()
         {
-            // Se a primeira célula parece um nome de arquivo de imagem, é dado (não cabeçalho).
+            // Se a primeira cÃ©lula parece um nome de arquivo de imagem, Ã© dado (nÃ£o cabeÃ§alho).
             var firstCell = (workSheet.Cells[1, 1].Text ?? "").Trim().ToLowerInvariant();
             if (firstCell.EndsWith(".jpg") || firstCell.EndsWith(".jpeg") || firstCell.EndsWith(".png")
                 || firstCell.EndsWith(".nef") || firstCell.EndsWith(".cr2") || firstCell.EndsWith(".cr3")
@@ -2654,7 +2688,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 || firstCell.EndsWith(".dng") || firstCell.EndsWith(".heic") || firstCell.EndsWith(".raf"))
                 return false;
 
-            // Evitar falsos positivos quando uma tradução vier vazia (Contains("") seria sempre true).
+            // Evitar falsos positivos quando uma traduÃ§Ã£o vier vazia (Contains("") seria sempre true).
             var photoKey = NormalizeHeader(TranslationHelper.Default.PHOTO_NAME);
             var idKey = NormalizeHeader(TranslationHelper.Default.ID);
             var maxKey = NormalizeHeader(TranslationHelper.Default.MAX_PHOTOS);
@@ -2667,7 +2701,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (string.IsNullOrWhiteSpace(norm))
                     continue;
 
-                // Só contar "contains" quando o token tem conteúdo suficiente.
+                // SÃ³ contar "contains" quando o token tem conteÃºdo suficiente.
                 if ((!string.IsNullOrWhiteSpace(photoKey) && photoKey.Length >= 3 && norm.Contains(photoKey))
                     || norm == "photo" || norm == "foto" || norm.Contains("shortpath") || norm.Contains("short path"))
                     hits++;
@@ -2719,7 +2753,7 @@ public partial class CollectionsViewModel : ViewModelBase
             return name;
         }
 
-        // Fallback compatível com layout antigo (sem a coluna Nome)
+        // Fallback compatÃ­vel com layout antigo (sem a coluna Nome)
         if (colPhoto == -1) colPhoto = 1;
         if (colCpf == -1) colCpf = 2;
         if (colName == -1) colName = 3;
@@ -2740,14 +2774,17 @@ public partial class CollectionsViewModel : ViewModelBase
             if (photoPathCell == null)
                 break;
 
-            var recFolder = TbRecFolder.Replace("\\", "/");
+            var recFolderNorm = (recFolder ?? "").Replace("\\", "/").TrimEnd('/');
             var photoPath = photoPathCell.ToString().Replace("\\", "/");
-            if (photoPath.StartsWith(recFolder))
-                photoPath = photoPath.Replace(recFolder, "").TrimStart('/');
+            if (!string.IsNullOrEmpty(recFolderNorm) && photoPath.StartsWith(recFolderNorm, StringComparison.OrdinalIgnoreCase))
+                photoPath = photoPath.Replace(recFolderNorm, "", StringComparison.OrdinalIgnoreCase).TrimStart('/');
 
-            if (!File.Exists(recFolder + "/" + photoPath))
+            if (string.IsNullOrWhiteSpace(recFolderNorm) || !Directory.Exists(recFolderNorm))
+                return "A pasta de reconhecimentos especificada nÃ£o existe.";
+
+            if (!File.Exists(recFolderNorm + "/" + photoPath))
             {
-                return "O arquivo " + recFolder + "/" + photoPath + " não existe.";
+                return "O arquivo " + recFolderNorm + "/" + photoPath + " nÃ£o existe.";
             }
             gradByCPF.ShortPath = photoPath;
 
@@ -2829,7 +2866,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         };
                     var falseValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                         {
-                            "n�o","nao", "no", "not", "n", "false","f","�","falso","0"
+                            "nï¿½o","nao", "no", "not", "n", "false","f","ï¿½","falso","0"
                         };
                     if (trueValues.Contains(blockedCell))
                     {
@@ -2857,7 +2894,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         };
                     var falseValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                         {
-                            "acesso negado","acesso_negado","negado","access denied","access_denied","n�o", "no", "not", "n","nao", "false","f","�","falso","0"
+                            "acesso negado","acesso_negado","negado","access denied","access_denied","nï¿½o", "no", "not", "n","nao", "false","f","ï¿½","falso","0"
                         };
                     if (trueValues.Contains(blockTypeCell))
                     {
@@ -2869,11 +2906,103 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                 }
             }
-            GraduatesData.Add(gradByCPF);
+            graduates.Add(gradByCPF);
         }
-        SortGraduatesDataAlphabetically();
         return null;
     }
+
+    public async Task GenerateAndOpenExcelForGraduatesAsync(
+        ObservableCollection<GraduateByCPF> graduates,
+        string recFolder,
+        bool canEditCpfs,
+        string cpfsErrorMessage)
+    {
+        if (!canEditCpfs)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(cpfsErrorMessage);
+            return;
+        }
+
+        if (!Directory.Exists(recFolder))
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Recognition folder dosent exist"));
+            return;
+        }
+
+        ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+        using var excel = new ExcelPackage();
+        excel.Workbook.Worksheets.Add("Worksheet");
+        var excelWorksheet = excel.Workbook.Worksheets["Worksheet"];
+
+        List<string[]> cellsData = new List<string[]>()
+        {
+            new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
+        };
+        string headerRange = "A1:" + Char.ConvertFromUtf32(cellsData[0].Length + 64) + "1";
+        excelWorksheet.Cells[headerRange].Style.Font.Bold = true;
+        excelWorksheet.Column(1).Width = 100;
+        excelWorksheet.Column(2).Width = 30;
+        excelWorksheet.Column(3).Width = 30;
+        excelWorksheet.Column(4).Width = 30;
+        excelWorksheet.Column(5).Width = 30;
+        excelWorksheet.Column(6).Width = 30;
+        excelWorksheet.Column(7).Width = 18;
+        excelWorksheet.Column(8).Width = 18;
+
+        foreach (var g in graduates)
+        {
+            if (g.BlockType == null)
+                g.BlockType = "WATERMARK";
+            cellsData.Add(new string[]
+            {
+                g.ShortPath,
+                g.CPF,
+                g.Name ?? "",
+                g.Email,
+                g.MaxPhotos.ToString(),
+                g.MaxPhotosForTreatmentRequest.ToString(),
+                g.Blocked.ToString(),
+                g.BlockType.ToString()
+            });
+        }
+        excelWorksheet.Cells[1, 1].LoadFromArrays(cellsData);
+
+        var excelFile = new FileInfo(recFolder.TrimEnd('\\', '/') + "/Excel/" +
+            DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "-" + DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second + "-" + DateTime.Now.Millisecond + ".xlsx");
+
+        try
+        {
+            Directory.CreateDirectory(excelFile.Directory!.FullName);
+        }
+        catch
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk("A pasta " + excelFile.Directory!.FullName + " nÃ£o pÃ´de ser criada. Verifique se estÃ¡ acessÃ­vel.");
+            return;
+        }
+        excel.SaveAs(excelFile);
+
+        var importError1 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage);
+        if (importError1 != null)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(importError1, "Erro");
+            return;
+        }
+
+        var p = new Process();
+        p.StartInfo = new ProcessStartInfo
+        {
+            FileName = excelFile.ToString(),
+            UseShellExecute = true
+        };
+        p.Start();
+
+        await Task.Run(() => WaitForProcess(p));
+
+        var importError2 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage);
+        if (importError2 != null)
+            GlobalAppStateViewModel.Instance.ShowDialogOk(importError2, "Erro");
+    }
+
     /// <summary>
     /// Ordena a lista GraduatesData alfabeticamente crescente pelo nome da foto (ShortPath)
     /// </summary>
@@ -2913,11 +3042,11 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void BackLasViewCommand()
     {
-        // Se estávamos em MessagesView e tinha uma coleção selecionada antes, restaurar
+        // Se estÃ¡vamos em MessagesView e tinha uma coleÃ§Ã£o selecionada antes, restaurar
         if (ActiveComponent == ActiveViews.MessagesView && _lastSelectedCollection != null)
         {
-            // Restaurar a coleção selecionada antes de mudar a view
-            // (evita que OnActiveComponentChanged limpe a referência)
+            // Restaurar a coleÃ§Ã£o selecionada antes de mudar a view
+            // (evita que OnActiveComponentChanged limpe a referÃªncia)
             var collectionToRestore = _lastSelectedCollection;
             _lastSelectedCollection = null;
             
@@ -2932,7 +3061,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenQuickAccessViewCommand()
     {
-        // Sempre mostra os combos (QuickAccess) para criar nova cole��o
+        // Sempre mostra os combos (QuickAccess) para criar nova coleï¿½ï¿½o
         SelectedCollection = null;
         ActiveComponent = ActiveViews.QuickAccess;
     }
@@ -2940,7 +3069,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void ShowNewsCommand()
     {
-        // Sempre mostra as novidades (usado pelo bot�o Home)
+        // Sempre mostra as novidades (usado pelo botï¿½o Home)
         SelectedCollection = null;
         ActiveComponent = ActiveViews.NewsView;
     }
@@ -2952,7 +3081,7 @@ public partial class CollectionsViewModel : ViewModelBase
         IsReupload = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
-        ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova cole��o personalizada
+        ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova coleï¿½ï¿½o personalizada
         _preConfiguredComboAuthority = null;
 
         GraduatesData.Clear();
@@ -2967,7 +3096,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
-        TbProfessioanlTaskDescription = string.Empty;
+        TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
         
@@ -3013,7 +3142,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
-        TbProfessioanlTaskDescription = string.Empty;
+        TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
         
@@ -3060,12 +3189,12 @@ public partial class CollectionsViewModel : ViewModelBase
         CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
-        TbProfessioanlTaskDescription = string.Empty;
+        TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
         CbAllowDeletedProductionToBeFoundAnyone = options.AllowDeletedProductionToBeFoundAnyone;
         
-        // Definir se é um combo apenas tratamento
+        // Definir se Ã© um combo apenas tratamento
         IsTreatmentOnlyCombo = options.IsTreatmentOnly;
         
         // Resetar propriedades de bloqueio de CPFs, HD e AutoTreatment
@@ -3076,7 +3205,7 @@ public partial class CollectionsViewModel : ViewModelBase
         CbEnableAutoTreatmentIsDisabled = false;
         CbEnableAutoTreatmentErrorMessage = string.Empty;
         
-        // Resetar propriedades de armazenamento HD (será atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
+        // Resetar propriedades de armazenamento HD (serÃ¡ atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
         ApplyHdStoragePeriodFromComboOptions(options);
 
@@ -3085,7 +3214,7 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Aplica o prazo de armazenamento definido no combo (meses no backend) aos toggles 3 meses / 2 anos / 5 anos da criação da turma.
+    /// Aplica o prazo de armazenamento definido no combo (meses no backend) aos toggles 3 meses / 2 anos / 5 anos da criaÃ§Ã£o da turma.
     /// </summary>
     private void ApplyHdStoragePeriodFromComboOptions(CollectionComboOptions options)
     {
@@ -3108,7 +3237,7 @@ public partial class CollectionsViewModel : ViewModelBase
             return;
         }
 
-        // Sem meses explícitos no backend: manter o padrão já usado no app (5 anos quando HD está no combo)
+        // Sem meses explÃ­citos no backend: manter o padrÃ£o jÃ¡ usado no app (5 anos quando HD estÃ¡ no combo)
         CbHDStorageFiveYears = true;
     }
 
@@ -3136,7 +3265,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CheckPathEventFolder();
         }
 
-        // Regras de CPF/ID: mantém o mesmo bloqueio usado no reupload (outro período + não-HD).
+        // Regras de CPF/ID: mantÃ©m o mesmo bloqueio usado no reupload (outro perÃ­odo + nÃ£o-HD).
         var canAddCpfs = true;
         var cpfsErrorMessage = string.Empty;
         if (IsCollectionFromDifferentBillingPeriod(SelectedCollection) && (SelectedCollection.UploadHD != true))
@@ -3153,8 +3282,47 @@ public partial class CollectionsViewModel : ViewModelBase
             canAddCpfs,
             cpfsErrorMessage);
 
-        // Abrir rápido: navega já com título/ID/separador preenchidos e carrega a lista em background.
+        // Abrir rÃ¡pido: navega jÃ¡ com tÃ­tulo/ID/separador preenchidos e carrega a lista em background.
         _ = AddIdsVm.InitializeAsync();
+    }
+
+    [RelayCommand]
+    public async Task OpenEditIdsViewCommand()
+    {
+        if (SelectedCollection == null || string.IsNullOrWhiteSpace(SelectedCollection.classCode))
+            return;
+
+        IsReupload = false;
+
+        CurrentProfessionalName = SelectedCollection.professionalLogin;
+        ScrollComponentNewCollection = 0;
+        ActiveComponent = ActiveViews.EditIds;
+        _preConfiguredComboAuthority = null;
+
+        TbCollectionName = SelectedCollection.classCode;
+
+        TbEventFolder = SelectedCollection.originalEventsFolder;
+        TbRecFolder = SelectedCollection.originalRecFolder;
+        if (string.IsNullOrWhiteSpace(TbRecFolder) || !Directory.Exists(TbRecFolder))
+            CheckPathEventFolder();
+
+        var canEditCpfs = true;
+        var cpfsErrorMessage = string.Empty;
+        if (IsCollectionFromDifferentBillingPeriod(SelectedCollection) && (SelectedCollection.UploadHD != true))
+        {
+            canEditCpfs = false;
+            cpfsErrorMessage = Loc.Tr("This collection is from another billing period. CPFs cannot be added or modified during reupload.");
+        }
+
+        EditIdsVm = new EditIdsViewModel(
+            GlobalAppStateViewModel.lfc,
+            SelectedCollection,
+            CurrentProfessionalName,
+            TbRecFolder,
+            canEditCpfs,
+            cpfsErrorMessage);
+
+        _ = EditIdsVm.InitializeAsync();
     }
 
     public void SortGraduatesDataAlphabeticallyForUi() => SortGraduatesDataAlphabetically();
@@ -3177,14 +3345,14 @@ public partial class CollectionsViewModel : ViewModelBase
             _preConfiguredComboAuthority = null;
 
             ExpanderAdvancedOptions = true;
-            ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteração de todas as configurações no reupload
+            ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteraÃ§Ã£o de todas as configuraÃ§Ãµes no reupload
 
             IsReupload = true;
             TbCollectionName = SelectedCollection.classCode;
             TbEventFolder = SelectedCollection.originalEventsFolder;
             TbRecFolder = SelectedCollection.originalRecFolder;
             CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
-            // Desabilitar a opção de "já estão separados" durante reupload
+            // Desabilitar a opÃ§Ã£o de "jÃ¡ estÃ£o separados" durante reupload
             CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
@@ -3192,7 +3360,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CbPhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
             TbTotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
-            TbProfessioanlTaskDescription = SelectedCollection.Description;
+            TbProfessionalTaskDescription = SelectedCollection.Description ?? string.Empty;
             CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
             AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
             CbOcr = SelectedCollection.OCR ?? false;
@@ -3201,24 +3369,24 @@ public partial class CollectionsViewModel : ViewModelBase
             // IMPORTANTE: Atribuir CbHDBackup ANTES de verificar as regras de CPF
             CbHDBackup = SelectedCollection.UploadHD ?? false;
             
-            // Verificar se o HD deve estar desabilitado devido ao período de faturamento
+            // Verificar se o HD deve estar desabilitado devido ao perÃ­odo de faturamento
             if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
             {
-                // Em reupload de outro período de faturamento:
-                // - Não permitir transformar turma NÃO-HD em HD (desabilita o toggle)
-                // - Não permitir habilitar AutoTreatment (está ligado ao HD)
-                // - Se a turma já é HD, permitir adicionar/editar CPFs
+                // Em reupload de outro perÃ­odo de faturamento:
+                // - NÃ£o permitir transformar turma NÃƒO-HD em HD (desabilita o toggle)
+                // - NÃ£o permitir habilitar AutoTreatment (estÃ¡ ligado ao HD)
+                // - Se a turma jÃ¡ Ã© HD, permitir adicionar/editar CPFs
                 CbHDBackupIsDisabled = true;
                 CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
                 
-                // Bloquear AutoTreatment também (está ligado ao HD)
+                // Bloquear AutoTreatment tambÃ©m (estÃ¡ ligado ao HD)
                 CbEnableAutoTreatmentIsDisabled = true;
                 CbEnableAutoTreatmentErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to enable automatic enhancement.");
 
-                // Não force desabilitar se já for HD; apenas impeça mudar o estado
-                // Mantém CbHDBackup como está (true permanece true; false permanece false)
+                // NÃ£o force desabilitar se jÃ¡ for HD; apenas impeÃ§a mudar o estado
+                // MantÃ©m CbHDBackup como estÃ¡ (true permanece true; false permanece false)
 
-                // Regras de CPF: turmas NÃO-HD não podem adicionar/editar CPF; turmas HD podem
+                // Regras de CPF: turmas NÃƒO-HD nÃ£o podem adicionar/editar CPF; turmas HD podem
                 if (CbHDBackup == true)
                 {
                     CanAddCPFs = true;
@@ -3246,15 +3414,15 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
-            // Desativar flag após carregar todos os dados
+            // Desativar flag apÃ³s carregar todos os dados
             _isLoadingReuploadData = false;
         }
     }
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()
     {
-        // Não limpar SelectedCollection se estiver visualizando uma coleção
-        // Isso permite trocar o separador de uma coleção existente
+        // NÃ£o limpar SelectedCollection se estiver visualizando uma coleÃ§Ã£o
+        // Isso permite trocar o separador de uma coleÃ§Ã£o existente
         var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
         
         if (!wasViewingCollection)
@@ -3269,7 +3437,7 @@ public partial class CollectionsViewModel : ViewModelBase
             if (Professionals == null || Professionals.Count == 0)
                 await LoadProfessionals();
             
-            // Se estiver visualizando uma coleção, selecionar o profissional atual da coleção (sem disparar save)
+            // Se estiver visualizando uma coleÃ§Ã£o, selecionar o profissional atual da coleÃ§Ã£o (sem disparar save)
             if (wasViewingCollection && SelectedCollection != null)
             {
                 var currentProfessional = Professionals?.FirstOrDefault(p => p.username == SelectedCollection.professionalLogin);
@@ -3295,13 +3463,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void OpenCancelBillingViewCommand()
     {
-        // Não limpar SelectedCollection para manter a coleção selecionada na tela de cancelamento
+        // NÃ£o limpar SelectedCollection para manter a coleÃ§Ã£o selecionada na tela de cancelamento
         ActiveComponent = ActiveViews.CancelBilling;
     }
 
     /// <summary>
     /// Atualiza um objeto ProfessionalTask na lista com os dados atualizados do servidor
-    /// Mantém a referência do objeto para evitar problemas de seleção na UI
+    /// MantÃ©m a referÃªncia do objeto para evitar problemas de seleÃ§Ã£o na UI
     /// </summary>
     private void UpdateCollectionInList(ProfessionalTask updatedCollection, string classCode)
     {
@@ -3313,7 +3481,7 @@ public partial class CollectionsViewModel : ViewModelBase
         if (collectionInList != null)
         {
             // Atualizar todas as propriedades relevantes do objeto na lista
-            // Isso mantém a referência do objeto, evitando problemas de seleção
+            // Isso mantÃ©m a referÃªncia do objeto, evitando problemas de seleÃ§Ã£o
             collectionInList.professionalLogin = updatedCollection.professionalLogin;
             collectionInList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
             collectionInList.BillingCancelled = updatedCollection.BillingCancelled;
@@ -3335,7 +3503,7 @@ public partial class CollectionsViewModel : ViewModelBase
             collectionInList.eventPhotos = updatedCollection.eventPhotos;
             collectionInList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
             
-            // Atualizar também na lista filtrada se existir
+            // Atualizar tambÃ©m na lista filtrada se existir
             var collectionInFilteredList = CollectionsListFiltered.FirstOrDefault(c => c.classCode == classCode);
             if (collectionInFilteredList != null)
             {
@@ -3370,7 +3538,7 @@ public partial class CollectionsViewModel : ViewModelBase
         if (SelectedCollection == null || GlobalAppStateViewModel.lfc == null)
             return;
 
-        // Salvar o classCode antes de abrir o diálogo
+        // Salvar o classCode antes de abrir o diÃ¡logo
         var currentClassCode = SelectedCollection.classCode;
 
         try
@@ -3382,42 +3550,42 @@ public partial class CollectionsViewModel : ViewModelBase
                 {
                     try
                     {
-                        // Busca a coleção atualizada do servidor
+                        // Busca a coleÃ§Ã£o atualizada do servidor
                         var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(currentClassCode);
                         if (updatedCollection != null)
                         {
                             // Atualizar o objeto na lista com os dados do servidor
-                            // Isso mantém a referência do objeto, evitando problemas de seleção
+                            // Isso mantÃ©m a referÃªncia do objeto, evitando problemas de seleÃ§Ã£o
                             UpdateCollectionInList(updatedCollection, currentClassCode);
                             
                             // Garantir que SelectedCollection ainda aponta para o objeto na lista
-                            // Se o classCode ainda corresponde, manter a referência atual
+                            // Se o classCode ainda corresponde, manter a referÃªncia atual
                             if (SelectedCollection?.classCode == currentClassCode)
                             {
                                 // Encontrar o objeto atualizado na lista
                                 var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == currentClassCode);
                                 if (collectionInList != null && SelectedCollection != collectionInList)
                                 {
-                                    // Atualizar a referência apenas se for diferente
-                                    // Isso notifica a UI sem perder a seleção
+                                    // Atualizar a referÃªncia apenas se for diferente
+                                    // Isso notifica a UI sem perder a seleÃ§Ã£o
                                     _isUpdatingSelectedCollection = true;
                                     SelectedCollection = collectionInList;
                                     _isUpdatingSelectedCollection = false;
                                 }
                                 else if (collectionInList != null)
                                 {
-                                    // Se já é a mesma referência, apenas notificar mudanças nas propriedades
-                                    // Isso força a UI a atualizar sem perder a seleção
+                                    // Se jÃ¡ Ã© a mesma referÃªncia, apenas notificar mudanÃ§as nas propriedades
+                                    // Isso forÃ§a a UI a atualizar sem perder a seleÃ§Ã£o
                                     OnPropertyChanged(nameof(SelectedCollection));
                                 }
                             }
                             
-                            // Atualizar a view da coleção selecionada de forma síncrona
+                            // Atualizar a view da coleÃ§Ã£o selecionada de forma sÃ­ncrona
                             await Dispatcher.UIThread.InvokeAsync(() =>
                             {
                                 UpdateCollectionViewSelected();
                                 
-                                // Notificar mudanças nas propriedades relacionadas à data de deleção
+                                // Notificar mudanÃ§as nas propriedades relacionadas Ã  data de deleÃ§Ã£o
                                 OnPropertyChanged(nameof(IsDeletionDatePassed));
                                 OnPropertyChanged(nameof(IsDeletionDateNear));
                                 OnPropertyChanged(nameof(DeletionDateForeground));
@@ -3430,7 +3598,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         await Dispatcher.UIThread.InvokeAsync(() =>
                         {
-                            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao atualizar a coleção: {ex.Message}", Loc.Tr("Error"));
+                            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao atualizar a coleÃ§Ã£o: {ex.Message}", Loc.Tr("Error"));
                         });
                     }
                 }
@@ -3443,7 +3611,7 @@ public partial class CollectionsViewModel : ViewModelBase
             
             viewModel.SetWindow(dialog);
 
-            // Carrega o preço após o modal estar carregado
+            // Carrega o preÃ§o apÃ³s o modal estar carregado
             _ = viewModel.LoadInitialPriceAsync();
 
             await dialog.ShowDialog(MainWindow.instance);
@@ -3460,8 +3628,8 @@ public partial class CollectionsViewModel : ViewModelBase
         if (SelectedCollection == null || string.IsNullOrEmpty(SelectedCollection.classCode))
             return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
-            Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusão desta coleção? Esta ação pode ser cancelada depois na lista de coleções deletadas."),
-            Loc.Tr("Delete collection", "Excluir coleção"));
+            Loc.Tr("Do you really want to request the deletion of this collection? This action can be cancelled later from the deleted collections list.", "Deseja realmente solicitar a exclusÃ£o desta coleÃ§Ã£o? Esta aÃ§Ã£o pode ser cancelada depois na lista de coleÃ§Ãµes deletadas."),
+            Loc.Tr("Delete collection", "Excluir coleÃ§Ã£o"));
         if (!confirmed)
             return;
         try
@@ -3474,12 +3642,12 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             if (result?.success != true)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not request deletion.", "Não foi possível solicitar a exclusão."), Loc.Tr("Error", "Erro"));
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not request deletion.", "NÃ£o foi possÃ­vel solicitar a exclusÃ£o."), Loc.Tr("Error", "Erro"));
                 return;
             }
             await UpdateProfessionalTasksList(null);
             await LoadDeletedCollectionsAsync();
-            // Atualiza a lista de vencidas para remover a coleção da UI se o usuário estava nessa aba
+            // Atualiza a lista de vencidas para remover a coleÃ§Ã£o da UI se o usuÃ¡rio estava nessa aba
             await LoadExpiredCollectionsAsync();
         }
         catch (Exception ex)
@@ -3488,12 +3656,12 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>True se a lista de deletadas já foi carregada nesta sessão (carrega só na primeira vez ao abrir a aba).</summary>
+    /// <summary>True se a lista de deletadas jÃ¡ foi carregada nesta sessÃ£o (carrega sÃ³ na primeira vez ao abrir a aba).</summary>
     private bool _deletedListLoadedOnce;
-    /// <summary>True se a lista de vencidas já foi carregada nesta sessão.</summary>
+    /// <summary>True se a lista de vencidas jÃ¡ foi carregada nesta sessÃ£o.</summary>
     private bool _expiredListLoadedOnce;
 
-    /// <summary>Seleciona a aba da lista de coleções (Normal, Expired, Deleted). Comando usado pelos botões de aba com CommandParameter.</summary>
+    /// <summary>Seleciona a aba da lista de coleÃ§Ãµes (Normal, Expired, Deleted). Comando usado pelos botÃµes de aba com CommandParameter.</summary>
     [RelayCommand]
     public void SelectCollectionsTab(object parameter)
     {
@@ -3501,7 +3669,7 @@ public partial class CollectionsViewModel : ViewModelBase
             SelectedCollectionsTab = tab;
     }
 
-    /// <summary>Garante que os dados da aba ativa foram carregados (na primeira vez que o usuário entra na aba).</summary>
+    /// <summary>Garante que os dados da aba ativa foram carregados (na primeira vez que o usuÃ¡rio entra na aba).</summary>
     private async void EnsureTabDataLoadedAsync(CollectionsTabKind tab)
     {
         if (tab == CollectionsTabKind.Expired && !_expiredListLoadedOnce)
@@ -3516,7 +3684,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Carrega a lista de coleções vencidas (prazo de armazenamento expirado).</summary>
+    /// <summary>Carrega a lista de coleÃ§Ãµes vencidas (prazo de armazenamento expirado).</summary>
     public async Task LoadExpiredCollectionsAsync()
     {
         if (GlobalAppStateViewModel.lfc == null) return;
@@ -3550,7 +3718,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Carrega a lista de coleções com solicitação de exclusão pendente (mesmo formato da lista normal: ProfessionalTask).</summary>
+    /// <summary>Carrega a lista de coleÃ§Ãµes com solicitaÃ§Ã£o de exclusÃ£o pendente (mesmo formato da lista normal: ProfessionalTask).</summary>
     public async Task LoadDeletedCollectionsAsync()
     {
         if (GlobalAppStateViewModel.lfc == null) return;
@@ -3584,24 +3752,24 @@ public partial class CollectionsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Item cujo menu de ações (três pontinhos) foi aberto; usado pelo dropdown para Cancelar deleção.</summary>
+    /// <summary>Item cujo menu de aÃ§Ãµes (trÃªs pontinhos) foi aberto; usado pelo dropdown para Cancelar deleÃ§Ã£o.</summary>
     [ObservableProperty] private ProfessionalTask pendingItemForCancelDeletion;
 
-    /// <summary>Cancela a solicitação de exclusão da coleção em PendingItemForCancelDeletion (chamado pelo menu dropdown).</summary>
+    /// <summary>Cancela a solicitaÃ§Ã£o de exclusÃ£o da coleÃ§Ã£o em PendingItemForCancelDeletion (chamado pelo menu dropdown).</summary>
     [RelayCommand]
     public async Task CancelDeleteCollectionFromPendingCommand()
     {
         await CancelDeleteCollectionCommand(PendingItemForCancelDeletion);
     }
 
-    /// <summary>Cancela a solicitação de exclusão da coleção e reintegra na lista normal.</summary>
+    /// <summary>Cancela a solicitaÃ§Ã£o de exclusÃ£o da coleÃ§Ã£o e reintegra na lista normal.</summary>
     [RelayCommand]
     public async Task CancelDeleteCollectionCommand(ProfessionalTask item)
     {
         if (item == null || string.IsNullOrEmpty(item.classCode)) return;
         var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
-            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your recent collections list or expired list, depending on its expiration date.", "Deseja cancelar a solicitação de exclusão desta coleção? Ela voltará para a lista de coleções recentes ou para a lista de vencidas, conforme a data de vencimento."),
-            Loc.Tr("Cancel deletion", "Cancelar deleção"));
+            Loc.Tr("Do you want to cancel the deletion request for this collection? It will be restored to your recent collections list or expired list, depending on its expiration date.", "Deseja cancelar a solicitaÃ§Ã£o de exclusÃ£o desta coleÃ§Ã£o? Ela voltarÃ¡ para a lista de coleÃ§Ãµes recentes ou para a lista de vencidas, conforme a data de vencimento."),
+            Loc.Tr("Cancel deletion", "Cancelar deleÃ§Ã£o"));
         if (!confirmed) return;
         try
         {
@@ -3613,7 +3781,7 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             if (result?.success != true)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not cancel deletion.", "Não foi possível cancelar a deleção."), Loc.Tr("Error", "Erro"));
+                GlobalAppStateViewModel.Instance.ShowDialogOk(result?.message ?? Loc.Tr("Could not cancel deletion.", "NÃ£o foi possÃ­vel cancelar a deleÃ§Ã£o."), Loc.Tr("Error", "Erro"));
                 return;
             }
             await LoadDeletedCollectionsAsync();
@@ -3622,7 +3790,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 if (pt != null)
                 {
-                    // Coleção vencida: data de deleção já passou → vai para a lista de vencidas
+                    // ColeÃ§Ã£o vencida: data de deleÃ§Ã£o jÃ¡ passou â†’ vai para a lista de vencidas
                     bool isExpired = pt.ScheduledDeletionDate.HasValue && pt.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
                     if (isExpired)
                     {
@@ -3661,27 +3829,40 @@ public partial class CollectionsViewModel : ViewModelBase
 
             IsCreatingCollection = true;
             
-            // Valida o diretório de downloads PRIMEIRO, antes de qualquer outra validação
-            // Esta validação DEVE bloquear a criação se o diretório não estiver válido
+            // Valida o diretÃ³rio de downloads PRIMEIRO, antes de qualquer outra validaÃ§Ã£o
+            // Esta validaÃ§Ã£o DEVE bloquear a criaÃ§Ã£o se o diretÃ³rio nÃ£o estiver vÃ¡lido
             var (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
             if (!isValid)
             {
-                // Se o diretório não estiver válido, mostra o diálogo e força a seleção
+                // Se o diretÃ³rio nÃ£o estiver vÃ¡lido, mostra o diÃ¡logo e forÃ§a a seleÃ§Ã£o
                 await GlobalAppStateViewModel.Instance.ValidateAndPromptDownloadDirectoryIfNeeded();
                 
-                // Verifica NOVAMENTE após o diálogo - se ainda não estiver válido, BLOQUEIA
+                // Verifica NOVAMENTE apÃ³s o diÃ¡logo - se ainda nÃ£o estiver vÃ¡lido, BLOQUEIA
                 (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
                 if (!isValid)
                 {
-                    // Se ainda não estiver válido após o diálogo, mostra erro e bloqueia a criação
-                    // Isso garante que a coleção NUNCA será criada sem um diretório válido
-                    GlobalAppStateViewModel.Instance.ShowDialogOk(errorMessage + "\n\n" + "Não é possível criar a coleção sem um diretório de downloads válido.");
+                    // Se ainda nÃ£o estiver vÃ¡lido apÃ³s o diÃ¡logo, mostra erro e bloqueia a criaÃ§Ã£o
+                    // Isso garante que a coleÃ§Ã£o NUNCA serÃ¡ criada sem um diretÃ³rio vÃ¡lido
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(errorMessage + "\n\n" + "NÃ£o Ã© possÃ­vel criar a coleÃ§Ã£o sem um diretÃ³rio de downloads vÃ¡lido.");
                     return;
                 }
             }
             
+            if (string.IsNullOrWhiteSpace(TbCollectionName))
+            {
+                ValidateCollectionName();
+                GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Collection ID is required", "O ID da coleção é obrigatório."));
+                return;
+            }
+            if ((TbCollectionName?.Trim().Length ?? 0) < MinCollectionIdLength)
+            {
+                ValidateCollectionName();
+                GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Collection ID must have at least 3 characters", "O ID da coleção deve ter no mínimo 3 caracteres."));
+                return;
+            }
             if (!IsTextAllowed(TbCollectionName))
             {
+                ValidateCollectionName();
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("The class code can only contain letters and numbers"));
                 return;
             }
@@ -3691,7 +3872,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
 
             }
-            // Só validar pasta de reconhecimento se não for um combo apenas tratamento
+            // SÃ³ validar pasta de reconhecimento se nÃ£o for um combo apenas tratamento
             if (!IsTreatmentOnlyCombo && !Directory.Exists(TbRecFolder))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Acknowledgments folder not found"));
@@ -3721,7 +3902,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
             CollectionCreationQueue.Enqueue(TbCollectionName);
             
-            // CORREÇÃO: Normalizar os paths removendo barras finais para evitar duplicação no backend
+            // CORREÃ‡ÃƒO: Normalizar os paths removendo barras finais para evitar duplicaÃ§Ã£o no backend
             var normalizedEventFolder = TbEventFolder?.TrimEnd('\\', '/') ?? string.Empty;
             var normalizedRecFolder = IsTreatmentOnlyCombo ? string.Empty : (TbRecFolder?.TrimEnd('\\', '/') ?? string.Empty);
             
@@ -3740,7 +3921,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 AllowCPFsToSeeAllPhotos = CbAllowCPFsToSeeAllPhotos,
                 UploadHD = CbHDBackup,
                 UploadComplete = false,
-                Description = TbProfessionalTaskDescription,
+                Description = string.IsNullOrWhiteSpace(TbProfessionalTaskDescription) ? null : TbProfessionalTaskDescription.Trim(),
                 EnablePhotosSales = CbEnablePhotoSales,
                 PhotosCannotHaveWatermarks = CbPhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
@@ -3755,10 +3936,10 @@ public partial class CollectionsViewModel : ViewModelBase
                 pt.AutoTreatmentVersion = "2.0";
             }
 
-            // Definir data de deleção agendada baseada na opção de armazenamento HD selecionada
+            // Definir data de deleÃ§Ã£o agendada baseada na opÃ§Ã£o de armazenamento HD selecionada
             if (CbHDBackup == true && SelectedHdStorageDate.HasValue)
             {
-                // Armazenar a data de deleção com 5 horas a mais, para manter 05:00 em vez de 00:00
+                // Armazenar a data de deleÃ§Ã£o com 5 horas a mais, para manter 05:00 em vez de 00:00
                 pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
             }
 
@@ -3767,7 +3948,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (eventsErr is UnauthorizedAccessException)
                     await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
                 else
-                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"NÃ£o foi possÃ­vel ler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
                 return;
             }
 
@@ -3783,7 +3964,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (recErr is UnauthorizedAccessException)
                     await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
                 else
-                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"NÃ£o foi possÃ­vel ler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
                 return;
             }
             var checkIfClassCanBeCreated = CheckIfClassCanBeCreated(pt, eventFiles, recFiles);
@@ -3812,9 +3993,9 @@ public partial class CollectionsViewModel : ViewModelBase
             if (_preConfiguredComboAuthority != null)
                 PreConfiguredComboProfessionalTaskAuthority.Apply(_preConfiguredComboAuthority, pt);
 
-            // CORREÇÃO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
-            // O Beta não tem barra final no originalEventsFolder, então os shortPaths ficam com \ no início
-            // O Alpha tinha barra final, então os shortPaths ficavam sem \ no início, causando duplicação no backend
+            // CORREÃ‡ÃƒO: Normalizar os paths base removendo barra final para garantir que shortPaths comecem com \
+            // O Beta nÃ£o tem barra final no originalEventsFolder, entÃ£o os shortPaths ficam com \ no inÃ­cio
+            // O Alpha tinha barra final, entÃ£o os shortPaths ficavam sem \ no inÃ­cio, causando duplicaÃ§Ã£o no backend
             var eventsBase = pt.originalEventsFolder.TrimEnd('\\', '/');
             var recBase = string.IsNullOrEmpty(pt.originalRecFolder) ? "" : pt.originalRecFolder.TrimEnd('\\', '/');
             
@@ -3823,8 +4004,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 ? new List<string>() 
                 : recFiles.Select(x => x.FullName.Substring(recBase.Length)).ToList();
 
-            // Impedir criar coleção se existirem fotos com o mesmo nome em Eventos e Reconhecimentos
-            // Se o usuário corrigir os nomes, ao clicar em "Já corrigi, continuar" recarregamos os arquivos e repetimos a verificação.
+            // Impedir criar coleÃ§Ã£o se existirem fotos com o mesmo nome em Eventos e Reconhecimentos
+            // Se o usuÃ¡rio corrigir os nomes, ao clicar em "JÃ¡ corrigi, continuar" recarregamos os arquivos e repetimos a verificaÃ§Ã£o.
             while (true)
             {
                 var duplicates = GetDuplicatePhotoNamesBetweenEventsAndRec(eventsBase, recBase, eventFilesShortPaths, recFilesShortPaths);
@@ -3834,7 +4015,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 const int maxShow = 15;
                 var intro = "Existem fotos com o mesmo nome na pasta de Eventos e na pasta de Reconhecimentos. " +
                     "Para evitar conflitos, renomeie as fotos duplicadas (em uma das pastas) e tente novamente." +
-                    "\n\n— Fotos com o mesmo nome —";
+                    "\n\nâ€” Fotos com o mesmo nome â€”";
                 var moreCount = duplicates.Count > maxShow ? duplicates.Count - maxShow : 0;
 
                 var dialog = new DuplicatePhotosWarningWindow();
@@ -3846,13 +4027,13 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (!dialog.ContinueRequested)
                     return;
 
-                // Recarrega as pastas para refletir os renomeios feitos durante o diálogo
+                // Recarrega as pastas para refletir os renomeios feitos durante o diÃ¡logo
                 if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out eventFiles, out deniedEventsPath, out eventsErr))
                 {
                     if (eventsErr is UnauthorizedAccessException)
                         await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalEventsFolder, deniedEventsPath ?? pt.originalEventsFolder, eventsErr);
                     else
-                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"NÃ£o foi possÃ­vel reler as fotos da pasta de eventos.\n\n{eventsErr?.Message}");
                     return;
                 }
 
@@ -3865,7 +4046,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     if (recErr is UnauthorizedAccessException)
                         await GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(pt.originalRecFolder, deniedRecPath ?? pt.originalRecFolder, recErr);
                     else
-                        GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível reler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
+                        GlobalAppStateViewModel.Instance.ShowDialogOk($"NÃ£o foi possÃ­vel reler as fotos da pasta de reconhecimentos.\n\n{recErr?.Message}");
                     return;
                 }
 
@@ -3887,12 +4068,12 @@ public partial class CollectionsViewModel : ViewModelBase
             bool shouldNotifyPipedriveAboutFreeTrialLimitReached = false;
             if (RemainingFreeTrialPhotosResult.IsFreeTrialActive)
             {
-                //VERIFICA SE � O PRIMEIRO USO DO SISTEMA
+                //VERIFICA SE ï¿½ O PRIMEIRO USO DO SISTEMA
                 if(RemainingFreeTrialPhotosResult.IsFirstUse)
                     shouldNotifyPipedriveAboutFirstUse = true;
 
                 int totalCollectionPhotos = recFilesShortPaths.Count + eventFilesShortPaths.Count;
-                // Em reupload, a cota do teste deve considerar apenas as fotos NOVAS (diferença vs. o que já existe na coleção).
+                // Em reupload, a cota do teste deve considerar apenas as fotos NOVAS (diferenÃ§a vs. o que jÃ¡ existe na coleÃ§Ã£o).
                 int existingCollectionPhotos = 0;
                 if (IsReupload && SelectedCollection != null)
                     existingCollectionPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
@@ -3900,21 +4081,21 @@ public partial class CollectionsViewModel : ViewModelBase
                     ? Math.Max(0, totalCollectionPhotos - existingCollectionPhotos)
                     : totalCollectionPhotos;
 
-                //VERIFICA SE A QUOTA DE TESTE EST� PASSANDO DE 50%
+                //VERIFICA SE A QUOTA DE TESTE ESTï¿½ PASSANDO DE 50%
                 if(RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos > 0 && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.HalfQuotaRemainingPhotos)
                     shouldNotifyPipedriveAboutFreeTrial50PercentReached = true;
 
-                //VERIFICA SE A QUOTA DE TESTE EST� SENDO EXCEDIDA
+                //VERIFICA SE A QUOTA DE TESTE ESTï¿½ SENDO EXCEDIDA
                 if (RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos > 0
                     && photosToConsumeFromFreeTrial > 0
                     && photosToConsumeFromFreeTrial > RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos)
                 {
                     shouldNotifyPipedriveAboutFreeTrialLimitReached = true;
-                    var msg = $"**Você atingiu o limite de fotos grátis do teste.**\n\n" +
-                              $"Neste envio, **{photosToConsumeFromFreeTrial}** foto(s) serão contabilizadas na cota grátis.\n" +
-                              $"Saldo grátis disponível: **{RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}** foto(s).\n\n" +
-                              $"A partir de agora, as fotos adicionais desta turma (e de turmas futuras) poderão estar sujeitas a cobrança.";
-                    await GlobalAppStateViewModel.Instance.ShowDialogEntendi(msg, "Limite de fotos grátis do teste atingido");
+                    var msg = $"**VocÃª atingiu o limite de fotos grÃ¡tis do teste.**\n\n" +
+                              $"Neste envio, **{photosToConsumeFromFreeTrial}** foto(s) serÃ£o contabilizadas na cota grÃ¡tis.\n" +
+                              $"Saldo grÃ¡tis disponÃ­vel: **{RemainingFreeTrialPhotosResult.RemainingFreeTrialPhotos}** foto(s).\n\n" +
+                              $"A partir de agora, as fotos adicionais desta turma (e de turmas futuras) poderÃ£o estar sujeitas a cobranÃ§a.";
+                    await GlobalAppStateViewModel.Instance.ShowDialogEntendi(msg, "Limite de fotos grÃ¡tis do teste atingido");
                 }
             }
 
@@ -3972,8 +4153,8 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Devolve as fotos que têm o mesmo nome na pasta de Eventos e na de Reconhecimentos (comparação case-insensitive).
-    /// Cada entrada contém o nome do ficheiro e os caminhos completos em cada pasta para exibir ao utilizador.
+    /// Devolve as fotos que tÃªm o mesmo nome na pasta de Eventos e na de Reconhecimentos (comparaÃ§Ã£o case-insensitive).
+    /// Cada entrada contÃ©m o nome do ficheiro e os caminhos completos em cada pasta para exibir ao utilizador.
     /// </summary>
     private static List<(string fileName, string eventFullPath, string recFullPath)> GetDuplicatePhotoNamesBetweenEventsAndRec(
         string eventsBase,
@@ -4018,28 +4199,28 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            // Se não conseguir escrever no log, apenas ignora silenciosamente
+            // Se nÃ£o conseguir escrever no log, apenas ignora silenciosamente
             System.Diagnostics.Debug.WriteLine($"Erro ao escrever no log: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Verifica se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor.
-    /// Se houver divergência, atualiza a contagem de fotos via endpoint UpdateCollectionPhotoCount.
+    /// Verifica se o total de fotos da coleÃ§Ã£o corresponde ao total de fotos reconhecidas no servidor.
+    /// Se houver divergÃªncia, atualiza a contagem de fotos via endpoint UpdateCollectionPhotoCount.
     /// </summary>
-    /// <returns>True se pode prosseguir com a operação, False se houve erro na atualização</returns>
+    /// <returns>True se pode prosseguir com a operaÃ§Ã£o, False se houve erro na atualizaÃ§Ã£o</returns>
     private async Task<bool> VerifyAndUpdatePhotoCountIfNeeded()
     {
         if (SelectedCollection == null || ServerProgressValues == null)
             return true;
 
-        // Total de fotos da coleção (somatório de fotos de reconhecimento + eventos)
+        // Total de fotos da coleÃ§Ã£o (somatÃ³rio de fotos de reconhecimento + eventos)
         int collectionTotalPhotos = (SelectedCollection.recognitionPhotos ?? 0) + (SelectedCollection.eventPhotos ?? 0);
         
         // Total de fotos do reconhecimento no servidor (ServerProgress.total)
         int serverTotalPhotos = ServerProgressValues.total ?? 0;
 
-        // Se os valores são iguais, segue o fluxo normal
+        // Se os valores sÃ£o iguais, segue o fluxo normal
         if (collectionTotalPhotos == serverTotalPhotos)
             return true;
 
@@ -4050,11 +4231,11 @@ public partial class CollectionsViewModel : ViewModelBase
             
             if (result != null && result.success)
             {
-                // Atualização bem-sucedida - atualiza a lista de coleções para refletir as mudanças
+                // AtualizaÃ§Ã£o bem-sucedida - atualiza a lista de coleÃ§Ãµes para refletir as mudanÃ§as
                 var classCodeToUpdate = SelectedCollection.classCode;
                 await UpdateProfessionalTasksList();
                 
-                // Restaurar a coleção selecionada após atualizar a lista
+                // Restaurar a coleÃ§Ã£o selecionada apÃ³s atualizar a lista
                 if (!string.IsNullOrEmpty(classCodeToUpdate))
                 {
                     var updatedCollection = CollectionsListFiltered.FirstOrDefault(x => x.classCode == classCodeToUpdate);
@@ -4070,28 +4251,28 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                // Não foi possível atualizar a contagem - registra no log
+                // NÃ£o foi possÃ­vel atualizar a contagem - registra no log
                 var message = result?.message;
                 if (string.IsNullOrEmpty(message))
                 {
-                    message = "Não foi possível sincronizar a contagem de fotos automaticamente.";
+                    message = "NÃ£o foi possÃ­vel sincronizar a contagem de fotos automaticamente.";
                 }
                 
                 WriteToLogFile($"VerifyAndUpdatePhotoCountIfNeeded - Falha ao atualizar contagem: {message}");
-                return true; // Continua o fluxo mesmo se não conseguiu atualizar
+                return true; // Continua o fluxo mesmo se nÃ£o conseguiu atualizar
             }
         }
         catch (Exception ex)
         {
-            // Em caso de exceção, registra no log
-            WriteToLogFile($"VerifyAndUpdatePhotoCountIfNeeded - Exceção: {ex.Message}\nStackTrace: {ex.StackTrace}");
+            // Em caso de exceÃ§Ã£o, registra no log
+            WriteToLogFile($"VerifyAndUpdatePhotoCountIfNeeded - ExceÃ§Ã£o: {ex.Message}\nStackTrace: {ex.StackTrace}");
             return true; // Continua o fluxo mesmo em caso de erro
         }
     }
 
     /// <summary>
     /// Retorna a pasta Save para usar no TagSort (baixar separacao.hermes da nuvem).
-    /// Se o usuário configurou diretório de downloads diferente de Documents, usa esse path para não criar pasta em Documents antes do Download Manager rodar.
+    /// Se o usuÃ¡rio configurou diretÃ³rio de downloads diferente de Documents, usa esse path para nÃ£o criar pasta em Documents antes do Download Manager rodar.
     /// </summary>
     private static string GetSaveFolderForTagSort(string classCode)
     {
@@ -4113,23 +4294,23 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             SharedClientSide.Helpers.AppInstaller.MsixLog("TagSortCommand INICIADO");
-            // Validação: verificar se SelectedCollection não é null antes de usar
+            // ValidaÃ§Ã£o: verificar se SelectedCollection nÃ£o Ã© null antes de usar
             if (SelectedCollection == null)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleção selecionada. Por favor, selecione uma coleção antes de usar Tag/Sort.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Nenhuma coleÃ§Ã£o selecionada. Por favor, selecione uma coleÃ§Ã£o antes de usar Tag/Sort.");
                 return;
             }
 
             BtTagSortIsRunning = true;
 
-            // Verificar se o total de fotos da coleção corresponde ao total de fotos reconhecidas no servidor
+            // Verificar se o total de fotos da coleÃ§Ã£o corresponde ao total de fotos reconhecidas no servidor
             if (!await VerifyAndUpdatePhotoCountIfNeeded())
                 return;
 
             if (SelectedSeparationFile != null)
             {
                 BtTagSortIsEnabled = false;
-                // Usar o path das opções quando o usuário escolheu diretório diferente de Documents, para não criar Save em Documents antes do Download Manager rodar
+                // Usar o path das opÃ§Ãµes quando o usuÃ¡rio escolheu diretÃ³rio diferente de Documents, para nÃ£o criar Save em Documents antes do Download Manager rodar
                 var saveFolderPath = GetSaveFolderForTagSort(SelectedCollection.classCode);
                 var sepFile = new FileInfo(Path.Combine(saveFolderPath, "separacao.hermes"));
 
@@ -4200,12 +4381,12 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk("N�o foi poss�vel preencher os dados automaticamente. " +
-                "Ser� necess�rio inserir manualmente o nome da pasta e inserir o arquivo separacao.hermes no local correto manualmente.");
+            GlobalAppStateViewModel.Instance.ShowDialogOk("Nï¿½o foi possï¿½vel preencher os dados automaticamente. " +
+                "Serï¿½ necessï¿½rio inserir manualmente o nome da pasta e inserir o arquivo separacao.hermes no local correto manualmente.");
         }
         finally
         {
-            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botão
+            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botÃ£o
             await Task.Delay(500);
             BtExportIsEnabled = true;
             BtExportIsRunning = false;
@@ -4234,7 +4415,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 onUiDone: () => callback?.Invoke(100),
                 onUiError: msg => 
                 {
-                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro na instalação: {msg}");
+                    GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro na instalaÃ§Ã£o: {msg}");
                 }
             );
         }
@@ -4244,7 +4425,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
-            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botão
+            // Delay para permitir que o InstallerRunner inicie antes de reabilitar o botÃ£o
             await Task.Delay(500);
             BtDownloadHdIsEnabled = true;
             BtDownloadHdIsRunning = false;
@@ -4280,7 +4461,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             BtRequestManualTreatmentAllCollectionIsEnabled = false;
             BtRequestManualTreatmentAllCollectionIsRunning = true;
-            bool dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Tem certeza que deseja solicitar o tratamento manual de todas as imagens da sua cole��o? \n A��o Irrevers�vel", "Aten��o");
+            bool dialog = await GlobalAppStateViewModel.Instance.ShowDialogYesNo("Tem certeza que deseja solicitar o tratamento manual de todas as imagens da sua coleï¿½ï¿½o? \n Aï¿½ï¿½o Irreversï¿½vel", "Atenï¿½ï¿½o");
 
             if (dialog == true)
             {
@@ -4300,13 +4481,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public void InsertDataBasedOnRecFolderCommand()
     {
-        // Se for apenas tratamento, não buscar dados de reconhecimento
+        // Se for apenas tratamento, nÃ£o buscar dados de reconhecimento
         if (IsTreatmentOnlyCombo)
         {
             return;
         }
 
-        // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
+        // Verificar se pode adicionar CPFs (bloqueado para turmas de outro perÃ­odo no reupload)
         if (!CanAddCPFs)
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
@@ -4315,19 +4496,19 @@ public partial class CollectionsViewModel : ViewModelBase
         
         if (Directory.Exists(TbRecFolder) == false)
         {
-            //MessageBox.Show("A pasta de reconhecimentos especificada não existe.");
+            //MessageBox.Show("A pasta de reconhecimentos especificada nÃ£o existe.");
             return;
         }
         if (!FileHelper.TryGetFilesWithExtensionsAndFilters(TbRecFolder, out var gradPhotos, out var deniedPath, out var err))
         {
             if (err is UnauthorizedAccessException)
             {
-                // Este comando não é async; mostrar diálogo sem bloquear.
+                // Este comando nÃ£o Ã© async; mostrar diÃ¡logo sem bloquear.
                 _ = GlobalAppStateViewModel.Instance.ShowFolderAccessDeniedDialogAsync(TbRecFolder, deniedPath ?? TbRecFolder, err);
             }
             else
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk($"Não foi possível ler as fotos da pasta de reconhecimentos.\n\n{err?.Message}");
+                GlobalAppStateViewModel.Instance.ShowDialogOk($"NÃ£o foi possÃ­vel ler as fotos da pasta de reconhecimentos.\n\n{err?.Message}");
             }
             return;
         }
@@ -4366,107 +4547,16 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task GenerateExcelBasedOnDataCommand()
     {
+        if (IsTreatmentOnlyCombo)
+            return;
+
         try
         {
-            // Se for apenas tratamento, não permitir gerar Excel baseado em reconhecimento
-            if (IsTreatmentOnlyCombo)
-            {
-                return;
-            }
-
-            // Verificar se pode adicionar CPFs (bloqueado para turmas de outro período no reupload)
-            if (!CanAddCPFs)
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
-                return;
-            }
-            
             ComponentNewCollectionIsEnabled = false;
-            if (!Directory.Exists(TbRecFolder))
-            {
-                GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Recognition folder dosent exist"));
-                return;
-            }
-            ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-            using (ExcelPackage excel = new ExcelPackage())
-            {
-                excel.Workbook.Worksheets.Add("Worksheet");
-                var excelWorksheet = excel.Workbook.Worksheets["Worksheet"];
-
-                List<string[]> cellsData = new List<string[]>()
-                    {
-                      new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
-                    };
-                string headerRange = "A1:" + Char.ConvertFromUtf32(cellsData[0].Length + 64) + "1";
-                excelWorksheet.Cells[headerRange].Style.Font.Bold = true;
-                excelWorksheet.Column(1).Width = 100;
-                excelWorksheet.Column(2).Width = 30;
-                excelWorksheet.Column(3).Width = 30;
-                excelWorksheet.Column(4).Width = 30;
-                //New Columns
-                excelWorksheet.Column(5).Width = 30;
-                excelWorksheet.Column(6).Width = 30;
-                excelWorksheet.Column(7).Width = 18;
-                excelWorksheet.Column(8).Width = 18;
-
-                foreach (var g in GraduatesData)
-                {
-                    if (g.BlockType == null)
-                    {
-                        g.BlockType = "WATERMARK";
-                    }
-                    cellsData.Add(new string[]
-                    {
-                        g.ShortPath,
-                        g.CPF,
-                        g.Name ?? "",
-                        g.Email,
-                        g.MaxPhotos.ToString(),
-                        g.MaxPhotosForTreatmentRequest.ToString(),
-                        g.Blocked.ToString(),
-                        g.BlockType.ToString()
-                    });
-                }
-                excelWorksheet.Cells[1, 1].LoadFromArrays(cellsData);
-
-                var excelFile = new FileInfo(TbRecFolder + "/Excel/" +
-                    DateTime.Now.Year + "-" + DateTime.Now.Month + "-" + DateTime.Now.Day + "-" + DateTime.Now.Hour + "-" + DateTime.Now.Minute + "-" + DateTime.Now.Second + "-" + DateTime.Now.Millisecond + ".xlsx");
-
-                try
-                {
-                    Directory.CreateDirectory(excelFile.Directory.FullName);
-
-                }
-                catch
-                {
-                    GlobalAppStateViewModel.Instance.ShowDialogOk("A pasta " + excelFile.Directory.FullName + "n�o p�de ser criada. Verifique se est� acess�vel.");
-                    return;
-                }
-                excel.SaveAs(excelFile);
-
-                var importError1 = UpdateGraduateDataFromFile(excelFile);
-                if (importError1 != null)
-                {
-                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError1, "Erro");
-                    return;
-                }
-
-                var p = new System.Diagnostics.Process();
-                p.StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = excelFile.ToString(),
-                    UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
-                };
-                p.Start();
-
-                await Task.Run(() => WaitForProcess(p));
-
-                var importError2 = UpdateGraduateDataFromFile(excelFile);
-                if (importError2 != null)
-                    GlobalAppStateViewModel.Instance.ShowDialogOk(importError2, "Erro");
-            }
+            await GenerateAndOpenExcelForGraduatesAsync(GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage);
+            SortGraduatesDataAlphabetically();
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(e.Message);
         }
@@ -4475,6 +4565,7 @@ public partial class CollectionsViewModel : ViewModelBase
             ComponentNewCollectionIsEnabled = true;
         }
     }
+
     [RelayCommand]
     public void ToggleViewReportsContainer()
     {
@@ -4488,7 +4579,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CancelBillingIsRunning = true;
             if (SelectedCollection == null)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleção para continuar.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Selecione uma coleÃ§Ã£o para continuar.");
                 return;
             }
             
@@ -4509,7 +4600,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(SelectedCollection.classCode);
                 SelectedCollectionForCancelBilling.BillingCancelled = pt.BillingCancelled;
                 FilterProfessionalTasks("","");
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Cobran�a do contrato cancelada com sucesso.");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Cobranï¿½a do contrato cancelada com sucesso.");
                 await OpenSelectProfessionalViewCommand();
             }
 
@@ -4527,11 +4618,11 @@ public partial class CollectionsViewModel : ViewModelBase
             GeneratingGeneralReport = true;
             if (SeparationProgressValue == null)
             {
-                GlobalAppStateViewModel.Instance.ShowDialogOk("N�o foram encontrados dados no servidor sobre esta turma, ou houve problema na conex�o. O profissional j� separou esta turma?");
+                GlobalAppStateViewModel.Instance.ShowDialogOk("Nï¿½o foram encontrados dados no servidor sobre esta turma, ou houve problema na conexï¿½o. O profissional jï¿½ separou esta turma?");
                 return;
             }
             var photographers = SeparationProgressValue.photographers;
-            var stringList = new List<string>() { "Dados sobre a turma " + SeparationProgressValue.code, "Fot�grafo,Total de fotos,Fotos aproveitadas" };
+            var stringList = new List<string>() { "Dados sobre a turma " + SeparationProgressValue.code, "Fotï¿½grafo,Total de fotos,Fotos aproveitadas" };
             foreach (Photographer p in photographers)
             {
                 stringList.Add(p.name + ";" + p.totalPhotos + ";" + p.totalPhotosUtilized);
@@ -4547,7 +4638,7 @@ public partial class CollectionsViewModel : ViewModelBase
             proc.StartInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = fileName,
-                UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
+                UseShellExecute = true // <- necessï¿½rio para abrir com o aplicativo padrï¿½o
             };
             proc.Start();
         }
@@ -4627,7 +4718,7 @@ public partial class CollectionsViewModel : ViewModelBase
                         p.StartInfo = new System.Diagnostics.ProcessStartInfo
                         {
                             FileName = file.FullName,
-                            UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
+                            UseShellExecute = true // <- necessï¿½rio para abrir com o aplicativo padrï¿½o
                         };
                         p.Start();
                     }
@@ -4652,7 +4743,7 @@ public partial class CollectionsViewModel : ViewModelBase
             p.StartInfo = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "https://www.lesser.biz/lesser-system-helpers/pricing-page/index.html",
-                UseShellExecute = true // <- necess�rio para abrir com o aplicativo padr�o
+                UseShellExecute = true // <- necessï¿½rio para abrir com o aplicativo padrï¿½o
             };
             p.Start();
         }
@@ -4687,7 +4778,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao abrir o formulário: {ex.Message}");
+            GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao abrir o formulÃ¡rio: {ex.Message}");
         }
     }
 
@@ -4700,31 +4791,31 @@ public partial class CollectionsViewModel : ViewModelBase
             CreateProfessionalErrorMessage = "";
             CreateProfessionalSuccessMessage = "";
 
-            // Validações
+            // ValidaÃ§Ãµes
             if (string.IsNullOrWhiteSpace(TbNewProfessionalUsername) || TbNewProfessionalUsername.Length < 4)
             {
-                CreateProfessionalErrorMessage = "Nome de usuário deve ter pelo menos 4 caracteres.";
+                CreateProfessionalErrorMessage = "Nome de usuÃ¡rio deve ter pelo menos 4 caracteres.";
                 return;
             }
 
             // Validar formato do username
             if (!System.Text.RegularExpressions.Regex.IsMatch(TbNewProfessionalUsername, @"^[a-zA-Z0-9_.-]+$"))
             {
-                CreateProfessionalErrorMessage = "Nome de usuário deve conter apenas letras, números, pontos, hífens e underscore.";
+                CreateProfessionalErrorMessage = "Nome de usuÃ¡rio deve conter apenas letras, nÃºmeros, pontos, hÃ­fens e underscore.";
                 return;
             }
 
             // Validar email
             if (string.IsNullOrWhiteSpace(TbNewProfessionalEmail) || !IsValidEmail(TbNewProfessionalEmail))
             {
-                CreateProfessionalErrorMessage = "Email inválido.";
+                CreateProfessionalErrorMessage = "Email invÃ¡lido.";
                 return;
             }
 
-            // Validar confirmação de email
+            // Validar confirmaÃ§Ã£o de email
             if (TbNewProfessionalEmail.Trim().ToLower() != TbNewProfessionalConfirmEmail.Trim().ToLower())
             {
-                CreateProfessionalErrorMessage = "Confirmação de email não confere.";
+                CreateProfessionalErrorMessage = "ConfirmaÃ§Ã£o de email nÃ£o confere.";
                 return;
             }
 
@@ -4732,7 +4823,7 @@ public partial class CollectionsViewModel : ViewModelBase
             var companyResult = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
             if (companyResult == null || !companyResult.success || companyResult.Content?.company == null)
             {
-                CreateProfessionalErrorMessage = "Não foi possível obter dados da empresa.";
+                CreateProfessionalErrorMessage = "NÃ£o foi possÃ­vel obter dados da empresa.";
                 return;
             }
 
@@ -4761,7 +4852,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     SelectedProfessional = newProf;
                 }
 
-                // Fechar dialog após 1.5 segundos
+                // Fechar dialog apÃ³s 1.5 segundos
                 await Task.Delay(1500);
                 _addNewProfessionalDialog?.Close();
             }
@@ -4801,10 +4892,10 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// Verifica se a coleção foi criada em um período de faturamento diferente do atual
+    /// Verifica se a coleÃ§Ã£o foi criada em um perÃ­odo de faturamento diferente do atual
     /// </summary>
-    /// <param name="collection">A coleção a ser verificada</param>
-    /// <returns>True se a coleção é de outro período de faturamento</returns>
+    /// <param name="collection">A coleÃ§Ã£o a ser verificada</param>
+    /// <returns>True se a coleÃ§Ã£o Ã© de outro perÃ­odo de faturamento</returns>
     private bool IsCollectionFromDifferentBillingPeriod(ProfessionalTask collection)
     {
         try
@@ -4815,8 +4906,8 @@ public partial class CollectionsViewModel : ViewModelBase
             var currentDate = DateTime.UtcNow;
             var creationDate = collection.CreationDate.Value.DateTime;
             
-            // Verificar se o mês ou ano são diferentes (mesma lógica do backend)
-            // Isso garante que períodos de faturamento diferentes sejam respeitados
+            // Verificar se o mÃªs ou ano sÃ£o diferentes (mesma lÃ³gica do backend)
+            // Isso garante que perÃ­odos de faturamento diferentes sejam respeitados
             return currentDate.Month != creationDate.Month || currentDate.Year != creationDate.Year;
         }
         catch
@@ -4836,7 +4927,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         try
         {
-            // Verificar se o cliente está inicializado
+            // Verificar se o cliente estÃ¡ inicializado
             if (GlobalAppStateViewModel.lfc == null)
             {
                 // Aguardar um pouco e tentar novamente
@@ -4851,7 +4942,7 @@ public partial class CollectionsViewModel : ViewModelBase
             // Carregar combos dinamicamente
             var serverCombos = await ComboPriceService.GetDynamicCombosAsync();
             
-            // Notificar mudanças na UI thread
+            // Notificar mudanÃ§as na UI thread
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 // Limpar combos antigos
@@ -4863,7 +4954,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     DynamicCombos.Add(combo);
                 }
                 
-                // Notificar que a coleção mudou
+                // Notificar que a coleÃ§Ã£o mudou
                 OnPropertyChanged(nameof(DynamicCombos));
                 OnPropertyChanged(nameof(HasCombos));
                 OnPropertyChanged(nameof(NoCombosAvailable));
@@ -4871,19 +4962,19 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            // Em caso de erro, usar combos estáticos
+            // Em caso de erro, usar combos estÃ¡ticos
             LoadStaticCombos();
         }
     }
 
     /// <summary>
-    /// Carrega os combos estáticos como fallback
+    /// Carrega os combos estÃ¡ticos como fallback
     /// </summary>
     private void LoadStaticCombos()
     {
         DynamicCombos.Clear();
         
-        // Adicionar os combos estáticos
+        // Adicionar os combos estÃ¡ticos
         DynamicCombos.Add(NewCollection_Combo0);
         DynamicCombos.Add(NewCollection_Combo1);
         DynamicCombos.Add(NewCollection_Combo2);
@@ -4898,7 +4989,7 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Recarrega os combos dinâmicos (útil para refresh manual)
+    /// Recarrega os combos dinÃ¢micos (Ãºtil para refresh manual)
     /// </summary>
     [RelayCommand]
     public void RefreshPrices()

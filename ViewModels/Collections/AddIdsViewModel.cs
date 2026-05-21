@@ -1,3 +1,5 @@
+using Avalonia.Media;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SharedClientSide.ServerInteraction;
@@ -13,6 +15,39 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace LesserDashboardClient.ViewModels.Collections;
+
+public enum AddIdRegistrationStatus
+{
+    None,
+    Success,
+    Failed
+}
+
+public partial class AddIdItemStatus : ObservableObject
+{
+    [ObservableProperty] private AddIdRegistrationStatus status = AddIdRegistrationStatus.None;
+    [ObservableProperty] private string failureReason = "";
+
+    public string StatusIcon => Status switch
+    {
+        AddIdRegistrationStatus.Success => "\u2714",
+        AddIdRegistrationStatus.Failed => "\u2716",
+        _ => ""
+    };
+
+    public IBrush StatusColor => Status switch
+    {
+        AddIdRegistrationStatus.Success => Brushes.Green,
+        AddIdRegistrationStatus.Failed => Brushes.Red,
+        _ => Brushes.Transparent
+    };
+
+    partial void OnStatusChanged(AddIdRegistrationStatus value)
+    {
+        OnPropertyChanged(nameof(StatusIcon));
+        OnPropertyChanged(nameof(StatusColor));
+    }
+}
 
 public partial class AddIdsViewModel : ObservableObject
 {
@@ -47,6 +82,20 @@ public partial class AddIdsViewModel : ObservableObject
     [ObservableProperty] private string cPFsErrorMessage = "";
 
     public ObservableCollection<GraduateByCPFWithPhotos> GraduatesData { get; } = new();
+
+    public Dictionary<string, AddIdItemStatus> ItemStatuses { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public AddIdItemStatus GetItemStatus(string shortPath)
+    {
+        var key = NormalizeShortPath(shortPath);
+        if (string.IsNullOrEmpty(key)) return new AddIdItemStatus();
+        if (!ItemStatuses.TryGetValue(key, out var status))
+        {
+            status = new AddIdItemStatus();
+            ItemStatuses[key] = status;
+        }
+        return status;
+    }
 
     [ObservableProperty] private bool isRegistering;
     [ObservableProperty] private bool isLoading;
@@ -105,6 +154,52 @@ public partial class AddIdsViewModel : ObservableObject
             GraduatesData.Add(g);
     }
 
+    private void ClearItemStatuses()
+    {
+        ItemStatuses.Clear();
+        OnPropertyChanged(nameof(ItemStatuses));
+    }
+
+    private void SetItemStatus(string shortPath, AddIdRegistrationStatus status, string failureReason = "")
+    {
+        var itemStatus = GetItemStatus(shortPath);
+        void Apply()
+        {
+            itemStatus.Status = status;
+            itemStatus.FailureReason = failureReason;
+        }
+
+        // Na UI thread: aplicar já (evita corrida com IsRegistering=false + RefreshRowStyles antes do Post).
+        // Em thread pool: Invoke bloqueia até aplicar na UI, para o estado existir antes do fim do lote.
+        if (Dispatcher.UIThread.CheckAccess())
+            Apply();
+        else
+            Dispatcher.UIThread.Invoke(Apply);
+    }
+
+    private string BuildRegisterResultDialogMessage(int ok, int fail)
+    {
+        if (fail == 0)
+            return "IDs adicionados com sucesso.";
+
+        var header = $"IDs adicionados com sucesso (ok: {ok}, falhas: {fail}).";
+        var failedLines = new List<string>();
+        foreach (var kvp in ItemStatuses.Where(x => x.Value.Status == AddIdRegistrationStatus.Failed))
+        {
+            var key = kvp.Key;
+            var cpf = GraduatesData.FirstOrDefault(g => string.Equals(NormalizeShortPath(g?.ShortPath), key, StringComparison.OrdinalIgnoreCase))?.CPF?.Trim();
+            var cpfPart = string.IsNullOrWhiteSpace(cpf) ? "" : $" (CPF {cpf})";
+            var reason = kvp.Value.FailureReason?.Trim();
+            var detail = string.IsNullOrWhiteSpace(reason) ? "" : $" — {reason}";
+            failedLines.Add($"• {key}{cpfPart}{detail}");
+        }
+
+        if (failedLines.Count == 0)
+            return header;
+
+        return header + "\n\n" + string.Join("\n", failedLines);
+    }
+
     [RelayCommand]
     public async Task RegisterGraduatesIds()
     {
@@ -145,10 +240,8 @@ public partial class AddIdsViewModel : ObservableObject
             RegisterTotalRequests = 0;
             RegisterCompletedRequests = 0;
             RegisterSuccessCount = 0;
+            ClearItemStatuses();
 
-            // Garante que estamos usando o estado mais recente do servidor para mapear
-            // - quais CPFs já estão registrados (não chamar criação de novo)
-            // - quais shortPaths de IDs já existem (não re-enviar foto)
             await LoadGraduatesData();
             var existingByCpf = GraduatesData
                 .Where(g => g != null && !string.IsNullOrWhiteSpace(g.CPF))
@@ -168,8 +261,6 @@ public partial class AddIdsViewModel : ObservableObject
                 return;
             }
 
-            // Novo comportamento (igual ao Separador NETCORE6): upload + registro via RegisterGraduateByCpf (multipart).
-            // Payload é montado dentro do SharedClientSide: token + uploadPhotoToClassRequest + recShortPaths + grads[] + arquivo.
             var items = grads
                 .Select(g => new
                 {
@@ -188,11 +279,10 @@ public partial class AddIdsViewModel : ObservableObject
 
             RegisterTotalRequests = items.Count;
 
-            // 1 requisição por ID/CPF. Pode ser em paralelo, mas com limite de concorrência para não sobrecarregar.
             const int maxParallel = 4;
             using var sem = new SemaphoreSlim(maxParallel, maxParallel);
 
-            async Task<bool> RegisterOneAsync(string cpf, string shortPathRaw, CancellationToken ct)
+            async Task<bool> RegisterOneAsync(GraduateByCPFWithPhotos graduate, string cpf, string shortPathRaw, CancellationToken ct)
             {
                 await sem.WaitAsync(ct);
                 try
@@ -201,26 +291,31 @@ public partial class AddIdsViewModel : ObservableObject
                     var shortPathNorm = NormalizeShortPath(shortPathRaw);
                     var fileNameOnly = Path.GetFileName(shortPathRaw.Replace("/", "\\"));
                     if (string.IsNullOrWhiteSpace(fileNameOnly))
+                    {
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Failed, "Nome de arquivo inválido");
                         return false;
+                    }
 
                     var candidate1 = Path.Combine(TbRecFolder, shortPathRaw.TrimStart('\\', '/').Replace("/", "\\"));
                     var candidate2 = Path.Combine(TbRecFolder, fileNameOnly);
                     var fullPath = File.Exists(candidate1) ? candidate1 : (File.Exists(candidate2) ? candidate2 : null);
                     if (fullPath == null)
+                    {
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Failed, "Arquivo não encontrado no disco");
                         return false;
+                    }
 
                     byte[] bytes;
                     try
                     {
                         bytes = File.ReadAllBytes(fullPath);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Failed, $"Erro ao ler arquivo: {ex.Message}");
                         return false;
                     }
 
-                    // Se o CPF já está registrado, NÃO chamar criação novamente.
-                    // Ainda assim, se a foto (shortPath) ainda não existe no servidor, faz só o upload.
                     if (!string.IsNullOrWhiteSpace(cpfNorm) && existingByCpf.ContainsKey(cpfNorm))
                     {
                         if (!existingShortPaths.Contains(shortPathNorm))
@@ -234,21 +329,26 @@ public partial class AddIdsViewModel : ObservableObject
                             var uploadResult = await _lfc.UploadPhotoToClass(utcr, bytes, await LesserFunctionClient.GetGCloudAppEndpoint());
                             var uploadOk = uploadResult?.loginFailed != true && uploadResult?.success == true;
                             if (!uploadOk)
+                            {
+                                SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Failed, "Falha no upload da foto");
                                 return false;
+                            }
 
                             existingShortPaths.Add(shortPathNorm);
                         }
 
                         Interlocked.Increment(ref registerSuccessCount);
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Success);
                         return true;
                     }
 
-                    // CPF ainda não existe: cria + faz upload via RegisterGraduateByCpf (multipart)
+                    graduate.CPF = cpfNorm;
+                    graduate.ShortPath = fileNameOnly;
+                    graduate.ClassCode = _collection.classCode;
+                    graduate.Company = _collection.companyUsername;
+
                     var r = await _lfc.RegisterGraduateByCpf(
-                        _collection.classCode,
-                        _collection.companyUsername,
-                        cpfNorm,
-                        fileNameOnly,
+                        graduate,
                         bytes,
                         isHDPhoto: false);
 
@@ -260,6 +360,11 @@ public partial class AddIdsViewModel : ObservableObject
                             existingByCpf[cpfNorm] = new GraduateByCPFWithPhotos { CPF = cpfNorm, ShortPath = shortPathNorm };
                         if (!string.IsNullOrWhiteSpace(shortPathNorm))
                             existingShortPaths.Add(shortPathNorm);
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Success);
+                    }
+                    else
+                    {
+                        SetItemStatus(shortPathRaw, AddIdRegistrationStatus.Failed, r?.message ?? "Falha no registro");
                     }
                     return success;
                 }
@@ -274,16 +379,13 @@ public partial class AddIdsViewModel : ObservableObject
             }
 
             using var cts = new CancellationTokenSource();
-            var tasks = items.Select(x => RegisterOneAsync(x.Cpf, x.ShortPathRaw, cts.Token)).ToList();
+            var tasks = items.Select(x => RegisterOneAsync(x.Graduate, x.Cpf, x.ShortPathRaw, cts.Token)).ToList();
             var results = await Task.WhenAll(tasks);
 
             var ok = results.Count(r => r);
             var fail = results.Length - ok;
 
-            GlobalAppStateViewModel.Instance.ShowDialogOk(
-                fail == 0
-                    ? "IDs adicionados com sucesso."
-                    : $"IDs adicionados com sucesso (ok: {ok}, falhas: {fail}).");
+            GlobalAppStateViewModel.Instance.ShowDialogOk(BuildRegisterResultDialogMessage(ok, fail));
             await LoadGraduatesData();
         }
         catch (Exception ex)
@@ -296,13 +398,77 @@ public partial class AddIdsViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Executa o mesmo fluxo visual do registro (progresso, cores por linha, lista de falhas) sem chamar a API.
+    /// </summary>
+    [RelayCommand]
+    public async Task TestAddIdsSimulationAsync()
+    {
+        const string okPath = "addid_sim_ok.jpg";
+        const string failPath = "addid_sim_fail.jpg";
+
+        ClearItemStatuses();
+
+        for (var i = GraduatesData.Count - 1; i >= 0; i--)
+        {
+            var sp = GraduatesData[i]?.ShortPath;
+            if (string.IsNullOrWhiteSpace(sp)) continue;
+            var n = NormalizeShortPath(sp);
+            if (string.Equals(n, NormalizeShortPath(okPath), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(n, NormalizeShortPath(failPath), StringComparison.OrdinalIgnoreCase))
+                GraduatesData.RemoveAt(i);
+        }
+
+        GraduatesData.Add(new GraduateByCPFWithPhotos
+        {
+            ShortPath = okPath,
+            CPF = "11111111111",
+            Name = "",
+            Blocked = false,
+            BlockType = GraduateByCPF.BlockTypes.WATERMARK
+        });
+        GraduatesData.Add(new GraduateByCPFWithPhotos
+        {
+            ShortPath = failPath,
+            CPF = "22222222222",
+            Name = "",
+            Blocked = false,
+            BlockType = GraduateByCPF.BlockTypes.WATERMARK
+        });
+        SortGraduatesDataAlphabetically();
+
+        try
+        {
+            IsRegistering = true;
+            RegisterTotalRequests = 2;
+            RegisterCompletedRequests = 0;
+            RegisterSuccessCount = 0;
+
+            await Task.Delay(400);
+            RegisterCompletedRequests = 1;
+            RegisterSuccessCount = 1;
+            SetItemStatus(okPath, AddIdRegistrationStatus.Success);
+
+            await Task.Delay(400);
+            RegisterCompletedRequests = 2;
+            SetItemStatus(failPath, AddIdRegistrationStatus.Failed, "Falha no registro");
+        }
+        finally
+        {
+            IsRegistering = false;
+        }
+
+        var ok = ItemStatuses.Values.Count(v => v.Status == AddIdRegistrationStatus.Success);
+        var fail = ItemStatuses.Values.Count(v => v.Status == AddIdRegistrationStatus.Failed);
+        GlobalAppStateViewModel.Instance.ShowDialogOk(BuildRegisterResultDialogMessage(ok, fail));
+    }
+
     public bool CanPickNewIdsFromRecFolder() => !string.IsNullOrWhiteSpace(TbRecFolder) && Directory.Exists(TbRecFolder);
 
     private static string NormalizeCpf(string? cpf)
     {
         if (string.IsNullOrWhiteSpace(cpf))
             return "";
-        // Mantém apenas dígitos (evita divergência "123.456.789-00" vs "12345678900")
         return new string(cpf.Where(char.IsDigit).ToArray());
     }
 

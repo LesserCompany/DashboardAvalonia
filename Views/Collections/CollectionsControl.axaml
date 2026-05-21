@@ -40,6 +40,11 @@
                     IsVisible="{Binding DataContext.ComponentAddIdsIsVisible, ElementName=root}"
                     DataContext="{Binding AddIdsVm}"
                     Margin="5" />
+      <local:EditIds Grid.Row="1"
+                     Grid.Column="1"
+                     IsVisible="{Binding DataContext.ComponentEditIdsIsVisible, ElementName=root}"
+                     DataContext="{Binding EditIdsVm}"
+                     Margin="5" />
       <local:NewCollectionPreConfigured Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentNewCollectionPreConfiguredIsVisible}"  Margin="5" />
       <local:SelectProfessional Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentSelectProfessionalIsIsVisible}" />
       <local:CancelBilling Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCancelBillingIsVisible}" />

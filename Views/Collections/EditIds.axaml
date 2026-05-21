@@ -1,0 +1,250 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
+             x:DataType="vm:EditIdsViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+             x:Class="LesserDashboardClient.Views.Collections.EditIds"
+             x:Name="root">
+  <UserControl.Styles>
+    <Style Selector="Border.skeleton">
+      <Style.Animations>
+        <Animation Duration="0:0:1.5" IterationCount="INFINITE" Easing="SineEaseInOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.2"/>
+          </KeyFrame>
+          <KeyFrame Cue="50%">
+            <Setter Property="Opacity" Value="0.6"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0.2"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+  <Grid>
+    <ScrollViewer Padding="0,0,0,20">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" Margin="0,0,0,30">
+
+        <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
+          <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
+          <TextBlock Text="{Tr 'Edit IDs'}" VerticalAlignment="Center" FontSize="20" />
+        </StackPanel>
+
+        <Grid Grid.Row="1"
+              Margin="10"
+              RowDefinitions="Auto"
+              ColumnDefinitions="Auto,*"
+              RowSpacing="6"
+              ColumnSpacing="6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center" />
+          <TextBox Grid.Row="0"
+                   Grid.Column="1"
+                   Text="{Binding TbCollectionName}"
+                   IsReadOnly="True"
+                   VerticalAlignment="Center" />
+        </Grid>
+
+        <Expander Grid.Row="2"
+                  Margin="30,0,30,0"
+                  Header="{Tr 'Graduates'}"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Top"
+                  IsExpanded="True">
+          <StackPanel Spacing="10" VerticalAlignment="Top">
+            <TextBlock Text="{Binding TbCollectionName}" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" />
+
+            <!-- Excel + drag-and-drop (mesmo fluxo da nova coleção) -->
+            <StackPanel IsVisible="{Binding !IsLoading}" Spacing="6">
+              <Button Command="{Binding GenerateExcelBasedOnDataCommand}"
+                      IsEnabled="{Binding IsGraduatesEditable}"
+                      Content="{Tr 'Edit data in excel'}"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" />
+
+              <Border Height="100"
+                      BorderThickness="2"
+                      BorderBrush="{StaticResource AccentButtonBackground}"
+                      Background="Transparent"
+                      CornerRadius="6"
+                      HorizontalAlignment="Stretch"
+                      IsEnabled="{Binding IsGraduatesEditable}">
+                <Grid DragDrop.AllowDrop="True"
+                      DragDrop.Drop="ExcelDropZone_OnDrop"
+                      DragDrop.DragOver="ExcelDropZone_OnDragOver"
+                      Background="Transparent">
+                  <StackPanel VerticalAlignment="Center" IsHitTestVisible="False">
+                    <Svg Path="/Assets/icons/drop-file.svg" Width="20" Height="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Tr 'Drop your excel file here'}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </StackPanel>
+
+            <!-- Skeleton -->
+            <Border IsVisible="{Binding IsLoading}"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
+                    Padding="8"
+                    Margin="20,0"
+                    VerticalAlignment="Top"
+                    Background="{DynamicResource SystemChromeLowColor}">
+              <StackPanel Spacing="6">
+                <TextBlock Text="{Tr 'Loading graduates...'}"
+                           HorizontalAlignment="Center"
+                           FontSize="12"
+                           Opacity="0.75"
+                           Margin="0,0,0,4" />
+                <Grid ColumnDefinitions="100,*,*,*,70,70,55,75" ColumnSpacing="6" Margin="0,0,0,2">
+                  <Border Grid.Column="0" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="1" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="2" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="3" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="4" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="5" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="6" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                  <Border Grid.Column="7" Classes="skeleton" Height="22" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.35"/>
+                </Grid>
+                <ItemsControl>
+                  <ItemsControl.Items>
+                    <x:Int32>1</x:Int32>
+                    <x:Int32>2</x:Int32>
+                    <x:Int32>3</x:Int32>
+                    <x:Int32>4</x:Int32>
+                    <x:Int32>5</x:Int32>
+                    <x:Int32>6</x:Int32>
+                  </ItemsControl.Items>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <Grid ColumnDefinitions="100,*,*,*,70,70,55,75" ColumnSpacing="6" Margin="0,2">
+                        <Border Grid.Column="0" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="1" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="2" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="3" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="4" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="5" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="6" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                        <Border Grid.Column="7" Classes="skeleton" Height="28" CornerRadius="3" Background="{DynamicResource TextSecondaryBrush}" Opacity="0.3"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <DataGrid x:Name="GraduatesDataGrid"
+                      IsVisible="{Binding !IsLoading}"
+                      Margin="20,0"
+                      ItemsSource="{Binding GraduatesData}"
+                      GridLinesVisibility="All"
+                      CanUserResizeColumns="True"
+                      IsReadOnly="{Binding !IsGraduatesEditable}"
+                      BorderThickness="1"
+                      BorderBrush="Gray"
+                      LoadingRow="GraduatesDataGrid_LoadingRow">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="{Tr 'Photo'}" Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
+                  <DataGridTextColumn Header="{Tr 'CPF'}" Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Name'}" Binding="{Binding Name, Mode=TwoWay}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Email'}" Binding="{Binding Email, Mode=TwoWay}" FontSize="8" />
+                  <DataGridTextColumn Header="{Tr 'Max photos'}" Binding="{Binding MaxPhotos}" FontSize="8" />
+
+                  <DataGridTextColumn Binding="{Binding MaxPhotosForTreatmentRequest}">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Tr 'Max photos to enhancement'}"
+                                 TextWrapping="Wrap"
+                                 MaxWidth="100"
+                                 TextAlignment="Center" />
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridCheckBoxColumn Header="{Tr 'Blocked'}" Binding="{Binding Blocked, TargetNullValue=False}" />
+                  <DataGridTemplateColumn Header="{Tr 'Block type'}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <StackPanel>
+                          <TextBlock Text="{Tr 'None'}"
+                                     IsVisible="{Binding Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                     VerticalAlignment="Center"
+                                     HorizontalAlignment="Center"
+                                     FontSize="10" />
+                          <ComboBox IsVisible="{Binding !Blocked, Converter={StaticResource FalseToVisibleConverter}}"
+                                    ItemsSource="{Binding DataContext.BlockTypeOptions, ElementName=root}"
+                                    SelectedItem="{Binding BlockType, Mode=TwoWay}"
+                                    FontSize="10"
+                                    MaxDropDownHeight="100"
+                                    Margin="4"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center">
+                            <ComboBox.ItemTemplate>
+                              <DataTemplate>
+                                <ContentControl Content="{Binding .}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                      <TextBlock Text="{Binding .}" />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                              </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                          </ComboBox>
+                        </StackPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+          </StackPanel>
+        </Expander>
+
+        <StackPanel Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,20" Spacing="10">
+          <Button Command="{Binding RegisterGraduatesEditsCommand}"
+                  IsEnabled="{Binding CanSubmitEdits}"
+                  Height="46"
+                  Padding="26,10"
+                  VerticalContentAlignment="Center"
+                  HorizontalContentAlignment="Center"
+                  HorizontalAlignment="Center">
+            <TextBlock Text="{Tr 'Edit ID'}" VerticalAlignment="Center" />
+          </Button>
+
+          <StackPanel IsVisible="{Binding IsRegistering}" Width="360" Spacing="6">
+            <ProgressBar Minimum="0" Maximum="100" Value="{Binding RegisterProgressPercent}" Height="10" />
+            <TextBlock Text="{Binding RegisterProgressText}" HorizontalAlignment="Center" />
+            <TextBlock Text="Este processo pode demorar alguns minutos. Por favor, aguarde."
+                       TextWrapping="Wrap"
+                       FontSize="11"
+                       Opacity="0.85"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Margin="0,2,0,0" />
+          </StackPanel>
+
+          <Expander x:Name="FailedItemsExpander"
+                    IsVisible="False"
+                    Margin="0,6,0,0"
+                    HorizontalAlignment="Center"
+                    MaxWidth="500">
+            <Expander.Header>
+              <TextBlock x:Name="FailedItemsHeader" Foreground="Red" FontSize="12" />
+            </Expander.Header>
+            <ScrollViewer MaxHeight="180">
+              <ItemsControl x:Name="FailedItemsList">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="Red" BorderThickness="0,0,0,0.5" Padding="4,3">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="11" Foreground="Red" Opacity="0.9" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Expander>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
