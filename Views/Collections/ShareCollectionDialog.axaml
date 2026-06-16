@@ -1,0 +1,114 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+        x:DataType="vm:ShareCollectionDialogViewModel"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="560"
+        x:Class="LesserDashboardClient.Views.Collections.ShareCollectionDialog"
+        Title="{Tr 'Share collection'}"
+        Width="480"
+        MinHeight="480"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+  <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto">
+    <StackPanel Grid.Row="0" Spacing="6">
+      <TextBlock Text="{Tr 'Share collection'}" FontSize="22" FontWeight="Bold"/>
+      <TextBlock Text="{Tr 'Share collection dialog description'}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource MetaFg}"
+                 FontSize="13"/>
+    </StackPanel>
+
+    <Border Grid.Row="1"
+            Margin="0,20,0,16"
+            Padding="20"
+            CornerRadius="12"
+            Background="{DynamicResource CardBg}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            HorizontalAlignment="Center">
+      <StackPanel Spacing="12" HorizontalAlignment="Center">
+        <TextBlock Text="{Tr 'Scan QR code'}"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   FontSize="13"/>
+        <Border Background="White"
+                CornerRadius="8"
+                Padding="12"
+                HorizontalAlignment="Center">
+          <Image Source="{Binding QrCodeImage}"
+                 Width="200"
+                 Height="200"
+                 Stretch="Uniform"/>
+        </Border>
+      </StackPanel>
+    </Border>
+
+    <StackPanel Grid.Row="2" Spacing="8">
+      <StackPanel Spacing="6" IsVisible="{Binding IsBaseSelectorVisible}">
+        <TextBlock Text="{Tr 'Share link base'}" FontWeight="SemiBold" FontSize="13"/>
+        <ComboBox ItemsSource="{Binding BaseOptions}"
+                  SelectedItem="{Binding SelectedBaseOption, Mode=TwoWay}"
+                  HorizontalAlignment="Stretch"
+                  MinHeight="36">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DisplayLabel}" TextTrimming="CharacterEllipsis"/>
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+      </StackPanel>
+      <TextBlock Text="{Tr 'Collection link'}" FontWeight="SemiBold" FontSize="13"/>
+      <Border Background="{DynamicResource CardBg}"
+              BorderBrush="{DynamicResource CardBorder}"
+              BorderThickness="1"
+              CornerRadius="8"
+              Padding="12,10">
+        <SelectableTextBlock Text="{Binding ShareLink}"
+                             TextWrapping="Wrap"
+                             FontSize="12"
+                             FontFamily="Consolas, Courier New, monospace"/>
+      </Border>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Command="{Binding CopyLinkCommand}"
+                MinWidth="120"
+                Padding="12,8"
+                CornerRadius="8"
+                Background="{DynamicResource SystemAccentColor}"
+                Foreground="White">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock FontFamily="Segoe MDL2 Assets"
+                       Text="&#xE8C8;"
+                       FontSize="14"
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Tr 'Copy link'}" VerticalAlignment="Center"/>
+          </StackPanel>
+        </Button>
+        <Button Command="{Binding OpenLinkCommand}"
+                Content="{Tr 'Open in browser'}"
+                Padding="12,8"
+                CornerRadius="8"
+                Background="{DynamicResource CardBg}"
+                BorderBrush="{DynamicResource CardBorder}"
+                BorderThickness="1"/>
+      </StackPanel>
+      <TextBlock IsVisible="{Binding LinkCopied}"
+                 Text="{Tr 'Link copied!'}"
+                 Foreground="#FF4CAF50"
+                 FontSize="12"
+                 FontWeight="SemiBold"/>
+    </StackPanel>
+
+    <Button Grid.Row="3"
+            Margin="0,20,0,0"
+            HorizontalAlignment="Right"
+            Content="{Tr 'Close'}"
+            Width="100"
+            Cursor="Hand"
+            IsCancel="True"
+            Click="OnCloseClick"/>
+  </Grid>
+</Window>

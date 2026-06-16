@@ -6,52 +6,284 @@
              xmlns:local="clr-namespace:LesserDashboardClient.Views.Collections"
              xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
              x:DataType="vm:CollectionsViewModel"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
              x:Name="Root"
              x:Class="LesserDashboardClient.Views.Collections.SelectProfessional">
-  <Grid RowDefinitions="Auto, *, Auto">
-    <!-- Botão de voltar -->
-    <Button Grid.Row="0" 
-            Command="{Binding BackLasViewCommand}" 
-            HorizontalAlignment="Left" 
-            VerticalAlignment="Top"
-            Margin="10"
-            Padding="8,4"
-            Background="Transparent"
-            BorderThickness="0">
-      <StackPanel Orientation="Horizontal" Spacing="4">
-        <TextBlock Text="←" FontSize="16" VerticalAlignment="Center" />
-        <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
+  <UserControl.Styles>
+    <Style Selector="Border.header-panel">
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="12,10"/>
+    </Style>
+
+    <Style Selector="Border.search-panel">
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Padding" Value="10,6"/>
+    </Style>
+
+    <Style Selector="Border.prof-card">
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Padding" Value="12"/>
+    </Style>
+    <Style Selector="Border.prof-card:pointerover">
+      <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+      <Setter Property="BorderBrush" Value="#99FF9600"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Button.danger-icon-button">
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+    <Style Selector="Button.danger-icon-button:pointerover">
+      <Setter Property="Background" Value="#18FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#30FFFFFF"/>
+    </Style>
+    <Style Selector="Button.danger-icon-button:pressed">
+      <Setter Property="Background" Value="#30FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+    </Style>
+
+    <Style Selector="Button.add-professional-button">
+      <Setter Property="Padding" Value="16,10"/>
+      <Setter Property="CornerRadius" Value="10"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.add-professional-button:pointerover">
+      <Setter Property="Background" Value="{DynamicResource CardBgHover}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="Auto, Auto, Auto, *, Auto" Margin="16,8,16,16">
+
+    <!-- Cabeçalho -->
+    <Border Grid.Row="0" Classes="header-panel" Margin="0,0,0,12">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Button Grid.Column="0"
+                Command="{Binding BackLasViewCommand}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Padding="8,4"
+                Background="Transparent"
+                BorderThickness="0">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="←" FontSize="16" VerticalAlignment="Center" />
+            <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+
+        <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="4">
+          <TextBlock Text="{Tr 'Select professional'}"
+                     FontSize="22"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <Border Background="#14FFFFFF"
+                  BorderBrush="#25FFFFFF"
+                  BorderThickness="1"
+                  CornerRadius="999"
+                  Padding="10,4">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+              <TextBlock Text="{Binding ProfessionalCountLabel}"
+                         FontSize="12"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource MetaFg}"/>
+              <ui:ProgressRing IsIndeterminate="True"
+                               Width="14" Height="14"
+                               BorderThickness="2"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding ShowProfessionalBusyIndicator}"/>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Toast de sucesso -->
+    <Border Grid.Row="1"
+            Margin="0,0,0,8"
+            Padding="12,8"
+            CornerRadius="8"
+            Background="#E8F5E9"
+            BorderBrush="#4CAF50"
+            BorderThickness="1"
+            IsVisible="{Binding IsProfessionalToastVisible}">
+      <TextBlock Text="{Binding ProfessionalToastMessage}"
+                 Foreground="#2E7D32"
+                 FontWeight="SemiBold"
+                 TextWrapping="Wrap"/>
+    </Border>
+
+    <!-- Busca -->
+    <Border Grid.Row="2"
+            Classes="search-panel"
+            Margin="0,0,0,12"
+            IsVisible="{Binding !LoadProfessionalsIsRunning}">
+      <Grid ColumnDefinitions="Auto,*">
+        <Path Grid.Column="0"
+              Data="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
+              Width="18" Height="18"
+              Fill="{DynamicResource MetaFg}"
+              VerticalAlignment="Center"
+              Margin="4,0,8,0"/>
+        <TextBox Grid.Column="1"
+                 x:Name="SearchBox"
+                 Text="{Binding ProfessionalSearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 Watermark="{Tr 'Search professionals...'}"
+                 BorderThickness="0"
+                 Background="Transparent"/>
+      </Grid>
+    </Border>
+
+    <!-- Área principal: loading / vazio / lista -->
+    <Grid Grid.Row="3">
+      <!-- Loading inicial -->
+      <StackPanel VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Spacing="12"
+                  IsVisible="{Binding LoadProfessionalsIsRunning}">
+        <ui:ProgressRing IsIndeterminate="True" BorderThickness="6" Width="48" Height="48" HorizontalAlignment="Center"/>
+        <TextBlock Text="{Tr 'Loading professionals...'}"
+                   Foreground="{DynamicResource MetaFg}"
+                   HorizontalAlignment="Center"/>
       </StackPanel>
-    </Button>
-    
-    <Grid Grid.Row="1" IsVisible="{Binding LoadProfessionalsIsRunning}">
-      <ui:ProgressRing IsIndeterminate="True" BorderThickness="8" Width="48" Height="48" HorizontalAlignment="Center" VerticalAlignment="Center" IsVisible="{Binding LoadProfessionalsIsRunning}" />
+
+      <!-- Lista vazia -->
+      <StackPanel VerticalAlignment="Center"
+                  HorizontalAlignment="Center"
+                  Spacing="8"
+                  IsVisible="{Binding ShowProfessionalListEmptyState}">
+        <Svg Path="/Assets/icons/person.svg" Width="48" Height="48" Opacity="0.4"/>
+        <TextBlock Text="{Tr 'No professionals found'}"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   HorizontalAlignment="Center"
+                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+        <TextBlock Text="{Tr 'Add your first professional to assign collections'}"
+                   FontSize="12"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"
+                   Foreground="{DynamicResource MetaFg}"/>
+      </StackPanel>
+
+      <!-- Lista de profissionais (grade responsiva + virtualização) -->
+      <ScrollViewer IsVisible="{Binding ShowProfessionalListContent}"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+        <ItemsRepeater ItemsSource="{Binding FilteredProfessionals}">
+          <ItemsRepeater.Layout>
+            <UniformGridLayout MinItemWidth="290"
+                               MinItemHeight="94"
+                               MinColumnSpacing="12"
+                               MinRowSpacing="12"/>
+          </ItemsRepeater.Layout>
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="prof-card"
+                      Tag="{Binding}"
+                      PointerPressed="ProfessionalCard_OnPointerPressed"
+                      Cursor="Hand">
+                <Border.BorderBrush>
+                  <MultiBinding Converter="{StaticResource ProfessionalSelectionStateConverter}" ConverterParameter="BorderBrush">
+                    <Binding Path="username"/>
+                    <Binding Path="SelectedProfessional.username" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                  </MultiBinding>
+                </Border.BorderBrush>
+                <Border.BorderThickness>
+                  <MultiBinding Converter="{StaticResource ProfessionalSelectionStateConverter}" ConverterParameter="BorderThickness">
+                    <Binding Path="username"/>
+                    <Binding Path="SelectedProfessional.username" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                  </MultiBinding>
+                </Border.BorderThickness>
+                <Border.Background>
+                  <MultiBinding Converter="{StaticResource ProfessionalSelectionStateConverter}" ConverterParameter="Background">
+                    <Binding Path="username"/>
+                    <Binding Path="SelectedProfessional.username" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                  </MultiBinding>
+                </Border.Background>
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                  <local:ProfessionalRepresentation Grid.Column="0"
+                                                    FriendlyName="{Binding surname}"
+                                                    LoginName="{Binding username}"
+                                                    Email="{Binding contactMail}"
+                                                    ShowEmail="True"
+                                                    AvatarSize="48"
+                                                    AvatarFontSize="18"
+                                                    PrimaryFontSize="15"/>
+                  <StackPanel Grid.Column="1"
+                              Orientation="Horizontal"
+                              Spacing="6"
+                              VerticalAlignment="Center">
+                    <Button Classes="danger-icon-button"
+                            Tag="{Binding}"
+                            ToolTip.Tip="{Tr 'Remove professional'}"
+                            Cursor="Hand"
+                            IsEnabled="{Binding !RemoveProfessionalIsRunning, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                            PointerPressed="DeleteProfessionalButton_OnPointerPressed"
+                            Click="DeleteProfessionalButton_OnClick">
+                      <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                            Width="14"
+                            Height="14"
+                            Stretch="Uniform"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Fill="#FF6E6E"/>
+                    </Button>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+      </ScrollViewer>
+
+      <!-- Overlay leve durante filtro -->
+      <Border Background="#66000000"
+              CornerRadius="8"
+              IsVisible="{Binding IsProfessionalFilterBusy}">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+          <ui:ProgressRing IsIndeterminate="True" BorderThickness="4" Width="32" Height="32"/>
+          <TextBlock Text="{Tr 'Filtering professionals...'}"
+                     Foreground="White"
+                     HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Border>
     </Grid>
 
-    <ScrollViewer Margin="10" Grid.Row="1" IsVisible="{Binding !LoadProfessionalsIsRunning}">
-      <ListBox ItemsSource="{Binding Professionals}" SelectedItem="{Binding SelectedProfessional}">
-        <ListBox.ItemsPanel>
-          <ItemsPanelTemplate>
-            <!-- UniformGrid cria um layout uniforme em linhas/colunas -->
-            <UniformGrid Columns="2" />
-          </ItemsPanelTemplate>
-        </ListBox.ItemsPanel>
-
-        <ListBox.ItemTemplate>
-          <DataTemplate>
-              <local:ProfessionalRepresentation VerticalAlignment="Center" HorizontalAlignment="Center" ProfessionalName="{Binding username}" />
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
-    </ScrollViewer>
-    <StackPanel Grid.Row="2" Margin="10">
-      <Button VerticalAlignment="Center" HorizontalAlignment="Center" Command="{Binding OpenAddNewProfessionalDialogCommand}">
-        <StackPanel Orientation="Horizontal">
-          <Svg Path="/Assets/icons/person-add.svg" Width="16" Height="16" VerticalAlignment="Center" />
-          <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center" Margin="5,0,0,0" />
+    <!-- Ações -->
+    <StackPanel Grid.Row="4"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                Margin="0,12,0,0"
+                IsVisible="{Binding !LoadProfessionalsIsRunning}">
+      <Button Classes="add-professional-button"
+              Command="{Binding OpenAddNewProfessionalDialogCommand}"
+              ToolTip.Tip="{Tr 'Add new professional'}">
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <Svg Path="/Assets/icons/person-add.svg" Width="16" Height="16" VerticalAlignment="Center"/>
+          <TextBlock Text="{Tr 'Add new professional'}" VerticalAlignment="Center"/>
         </StackPanel>
-      </Button> 
+      </Button>
     </StackPanel>
   </Grid>
 </UserControl>

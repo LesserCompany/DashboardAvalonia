@@ -244,6 +244,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
     public static void ResetLesserFunctionClient()
     {
         Console.WriteLine("ResetLesserFunctionClient: Resetando lfc...");
+        LesserFunctionClient.ClearTargetEnvironmentState();
         _lfc = null;
         LesserFunctionClient.DefaultClient = null;
 

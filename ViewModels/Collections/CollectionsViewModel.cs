@@ -114,6 +114,12 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool IsDeletionDatePassed => SelectedCollection?.ScheduledDeletionDate != null && 
         SelectedCollection.ScheduledDeletionDate.Value <= DateTimeOffset.Now;
 
+    /// <summary>Coleção selecionada com venda de fotos habilitada (exibe botão Compartilhar).</summary>
+    public bool IsSelectedCollectionPhotoSalesEnabled => SelectedCollection?.EnablePhotosSales == true;
+
+    private string? _companyShareUsername;
+    private SharedClientSide.ServerInteraction.Users.Companies.Company? _cachedCompanyForShare;
+
     /// <summary>Exibe "Deletar coleÃ§Ã£o" para coleÃ§Ãµes HD (exceto na lista de deletadas).</summary>
     public bool IsDeleteCollectionButtonVisible =>
         !IsSelectedCollectionInDeletedList &&
@@ -166,6 +172,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     OnPropertyChanged(nameof(IsDeletionDatePassed));
                     OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
                     OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
+                    OnPropertyChanged(nameof(IsSelectedCollectionPhotoSalesEnabled));
                     NotifyDeletedCollectionViewState();
                 });
             }
@@ -184,7 +191,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             await MessageBoxManager.GetMessageBoxStandard(
                 "Erro",
-                "ColeÃ§Ã£o invÃ¡lida: classCode ausente.",
+                "Coleção invalida: classCode ausente.",
                 MsBox.Avalonia.Enums.ButtonEnum.Ok,
                 MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
             return;
@@ -201,7 +208,7 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 await MessageBoxManager.GetMessageBoxStandard(
                     "Erro",
-                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleÃ§Ã£o." : result.message,
+                    string.IsNullOrWhiteSpace(result.message) ? "Falha ao carregar CPFs da coleção." : result.message,
                     MsBox.Avalonia.Enums.ButtonEnum.Ok,
                     MsBox.Avalonia.Enums.Icon.Error).ShowAsync();
                 return;
@@ -544,14 +551,34 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
         OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
         OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
-        OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
+        NotifyTagSortBypassState();
         OnPropertyChanged(nameof(BtExportIsEnabledForView));
         OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
         OnPropertyChanged(nameof(ExpanderAdvancedIsEnabled));
     }
 
+    /// <summary>Temporário: permitir Tag/Separar enquanto exibe "Aguardando upload...". Remover quando não for mais necessário.</summary>
+    private const bool TempAllowTagSortWhileAwaitingUpload = true;
+
+    private bool TagSortBypassForAwaitingUpload =>
+        TempAllowTagSortWhileAwaitingUpload
+        && SelectedCollection != null
+        && !UploadComplete
+        && SelectedCollection.BillingCancelled != true;
+
+    private void NotifyTagSortBypassState()
+    {
+        OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
+        OnPropertyChanged(nameof(BtTagSortIsVisibleForView));
+    }
+
     /// <summary>Tag/Sort habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
-    public bool BtTagSortIsEnabledForView => BtTagSortIsEnabled && !IsSelectedCollectionInDeletedList;
+    public bool BtTagSortIsEnabledForView =>
+        (BtTagSortIsEnabled || TagSortBypassForAwaitingUpload) && !IsSelectedCollectionInDeletedList;
+
+    /// <summary>Visibilidade do botão Tag/Separar (inclui exceção temporária durante upload incompleto).</summary>
+    public bool BtTagSortIsVisibleForView =>
+        ActionsButtonsIsVisible || (TagSortBypassForAwaitingUpload && !IsSelectedCollectionInDeletedList);
     /// <summary>Export habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtExportIsEnabledForView => BtExportIsEnabled && !IsSelectedCollectionInDeletedList;
     /// <summary>Download HD habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
@@ -595,6 +622,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public int? totalPhotosForAutoTreatment;
     [ObservableProperty] public int? totalPhotosForAutoTreatmentDone;
     [ObservableProperty] public bool uploadComplete = true;
+    partial void OnUploadCompleteChanged(bool value) => NotifyTagSortBypassState();
     [ObservableProperty] public int? totalPhotosForOCR;
     [ObservableProperty] public int? totalPhotosForOCRDone;
     [ObservableProperty] public bool? cbUploadOnTestSystem;
@@ -829,9 +857,10 @@ public partial class CollectionsViewModel : ViewModelBase
 
     //Buttons
     [ObservableProperty] public bool actionsButtonsIsVisible = false;
+    partial void OnActionsButtonsIsVisibleChanged(bool value) => NotifyTagSortBypassState();
     [ObservableProperty] public bool showButtonsCollectionView = true;
     [ObservableProperty] public bool btTagSortIsEnabled = false;
-    partial void OnBtTagSortIsEnabledChanged(bool value) => OnPropertyChanged(nameof(BtTagSortIsEnabledForView));
+    partial void OnBtTagSortIsEnabledChanged(bool value) => NotifyTagSortBypassState();
     [ObservableProperty] public bool btTagSortIsRunning = false;
     [ObservableProperty] public bool btExportIsEnabled = false;
     partial void OnBtExportIsEnabledChanged(bool value) => OnPropertyChanged(nameof(BtExportIsEnabledForView));
@@ -1171,8 +1200,10 @@ public partial class CollectionsViewModel : ViewModelBase
 
     [ObservableProperty] public bool componentNewCollectionIsEnabled = true;
     [ObservableProperty] public bool loadProfessionalsIsRunning = false;
-
-
+    private Task? _loadProfessionalsTask;
+    private bool _professionalsLoaded;
+    private CancellationTokenSource? _professionalFilterCts;
+    private string? _removeInFlightUsername;
 
     [ObservableProperty] public List<Professional> professionals = new();
     [ObservableProperty] public Professional selectedProfessional;
@@ -1206,6 +1237,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             ActiveComponent = ActiveViews.CollectionView;
         }
+
     }
     
     private async Task SaveCollectionSeparatorChange()
@@ -1325,12 +1357,94 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool generatingReportPerGraduate = false;
 
     // Add New Professional Properties
+    [ObservableProperty] public string tbNewProfessionalSurname = "";
     [ObservableProperty] public string tbNewProfessionalUsername = "";
     [ObservableProperty] public string tbNewProfessionalEmail = "";
     [ObservableProperty] public string tbNewProfessionalConfirmEmail = "";
     [ObservableProperty] public bool createProfessionalIsRunning = false;
     [ObservableProperty] public string createProfessionalErrorMessage = "";
     [ObservableProperty] public string createProfessionalSuccessMessage = "";
+
+    // Professional list UI
+    [ObservableProperty] public string professionalSearchText = "";
+    [ObservableProperty] public bool removeProfessionalIsRunning = false;
+    [ObservableProperty] public bool isProfessionalSearchPending = false;
+    [ObservableProperty] public bool isProfessionalFilterBusy = false;
+    [ObservableProperty] public bool isProfessionalToastVisible = false;
+    [ObservableProperty] public string professionalToastMessage = string.Empty;
+    [ObservableProperty] private ObservableCollection<Professional> filteredProfessionals = new();
+
+    public bool ShowProfessionalBusyIndicator =>
+        LoadProfessionalsIsRunning || IsProfessionalSearchPending || IsProfessionalFilterBusy;
+
+    public bool ShowProfessionalListEmptyState =>
+        !LoadProfessionalsIsRunning && !IsProfessionalFilterBusy && FilteredProfessionals.Count == 0;
+
+    public bool ShowProfessionalListContent =>
+        !LoadProfessionalsIsRunning && FilteredProfessionals.Count > 0;
+
+    public string ProfessionalCountLabel
+    {
+        get
+        {
+            var total = Professionals?.Count ?? 0;
+            var shown = FilteredProfessionals.Count;
+            if (string.IsNullOrWhiteSpace(ProfessionalSearchText))
+                return total == 1
+                    ? Loc.Tr("1 professional available", "1 profissional disponível")
+                    : string.Format(Loc.Tr("{0} professionals available", "{0} profissionais disponíveis"), total);
+            return string.Format(Loc.Tr("Showing {0} of {1}", "Exibindo {0} de {1}"), shown, total);
+        }
+    }
+
+    partial void OnProfessionalSearchTextChanged(string value)
+    {
+        IsProfessionalSearchPending = true;
+        OnPropertyChanged(nameof(ShowProfessionalBusyIndicator));
+        ScheduleProfessionalFilter();
+    }
+
+    partial void OnLoadProfessionalsIsRunningChanged(bool value)
+    {
+        NotifyProfessionalListUiChanged();
+    }
+
+    partial void OnIsProfessionalSearchPendingChanged(bool value) => OnPropertyChanged(nameof(ShowProfessionalBusyIndicator));
+    partial void OnIsProfessionalFilterBusyChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ShowProfessionalBusyIndicator));
+        NotifyProfessionalListUiChanged();
+    }
+
+    private void NotifyProfessionalListUiChanged()
+    {
+        OnPropertyChanged(nameof(ShowProfessionalListEmptyState));
+        OnPropertyChanged(nameof(ShowProfessionalListContent));
+        OnPropertyChanged(nameof(ShowProfessionalBusyIndicator));
+        OnPropertyChanged(nameof(ProfessionalCountLabel));
+    }
+
+    private void ScheduleProfessionalFilter()
+    {
+        _professionalFilterCts?.Cancel();
+        _professionalFilterCts = new CancellationTokenSource();
+        var ct = _professionalFilterCts.Token;
+        _ = ApplyProfessionalFilterDebouncedAsync(ct);
+    }
+
+    private async Task ApplyProfessionalFilterDebouncedAsync(CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(300, ct);
+            IsProfessionalSearchPending = false;
+            await ApplyProfessionalFilterAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Nova digitação cancelou este ciclo.
+        }
+    }
 
     // Load More Button Properties
     [ObservableProperty] public bool showLoadMoreButton = true;
@@ -1358,7 +1472,8 @@ public partial class CollectionsViewModel : ViewModelBase
         ThemeManager.ThemeApplied += OnApplicationThemeApplied;
         // Tema jÃ¡ pode ter sido aplicado antes do VM existir â€” alinha conversores das abas ao tema atual
         Dispatcher.UIThread.Post(() => OnApplicationThemeApplied(this, EventArgs.Empty), DispatcherPriority.Loaded);
-        Task.Run(() => LoadProfessionals());
+        _ = LoadProfessionalsAsync();
+        _ = LoadCompanyDetailsAsync();
         GetInfosAboutFreeTrialPeriod();
         LoadDynamicCombos();
         
@@ -1542,6 +1657,7 @@ public partial class CollectionsViewModel : ViewModelBase
         finally
         {
             IsUpdateProgressBars = false;
+            NotifyTagSortBypassState();
         }
     }
 
@@ -2401,27 +2517,167 @@ public partial class CollectionsViewModel : ViewModelBase
             GlobalAppStateViewModel.Instance.ShowDialogOk($"Erro ao aguardar o processo: {ex.Message}");
         }
     }
-    private async Task LoadProfessionals()
+    private Task LoadProfessionalsAsync(bool forceReload = false)
     {
+        if (!forceReload && _professionalsLoaded && Professionals.Count > 0)
+            return Task.CompletedTask;
+
+        if (_loadProfessionalsTask is { IsCompleted: false } existing)
+            return existing;
+
+        _loadProfessionalsTask = LoadProfessionalsInternalAsync(forceReload);
+        return _loadProfessionalsTask;
+    }
+
+    private async Task LoadProfessionalsInternalAsync(bool forceReload = false)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => LoadProfessionalsInternalAsync(forceReload));
+            return;
+        }
+
         try
         {
             LoadProfessionalsIsRunning = true;
+            await Task.Yield();
+
             if (GlobalAppStateViewModel.lfc != null)
             {
-                Professionals = await GlobalAppStateViewModel.lfc.getCompanyProfessionals();
+                // Evita trabalho pesado (desserialização + materialização) na UI thread.
+                var loaded = await Task.Run(async () => await GlobalAppStateViewModel.lfc.getCompanyProfessionals());
+                Professionals = loaded ?? new List<Professional>();
+                _professionalsLoaded = true;
 
-                if(Professionals != null && Professionals.Count > 0)
+                if (forceReload || string.IsNullOrWhiteSpace(ProfessionalSearchText))
+                    await ApplyProfessionalFilterAsync(CancellationToken.None);
+                else
+                    ScheduleProfessionalFilter();
+
+                if (Professionals.Count > 0 && SelectedProfessional == null)
                     SelectedProfessional = Professionals[0];
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Console.WriteLine(e.Message);
         }
         finally
         {
             LoadProfessionalsIsRunning = false;
+            _loadProfessionalsTask = null;
+            NotifyProfessionalListUiChanged();
         }
+    }
+
+    private async Task ApplyProfessionalFilterAsync(CancellationToken ct)
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => ApplyProfessionalFilterAsync(ct));
+            return;
+        }
+
+        IsProfessionalFilterBusy = true;
+        var searchText = ProfessionalSearchText;
+        var source = Professionals?.ToList() ?? new List<Professional>();
+
+        List<Professional> filtered;
+        try
+        {
+            filtered = await Task.Run(() => FilterProfessionals(source, searchText), ct);
+        }
+        catch (OperationCanceledException)
+        {
+            IsProfessionalFilterBusy = false;
+            return;
+        }
+
+        if (ct.IsCancellationRequested)
+        {
+            IsProfessionalFilterBusy = false;
+            return;
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            FilteredProfessionals = new ObservableCollection<Professional>(filtered);
+            IsProfessionalFilterBusy = false;
+            NotifyProfessionalListUiChanged();
+        }, DispatcherPriority.Background);
+    }
+
+    private static List<Professional> FilterProfessionals(List<Professional> source, string searchText)
+    {
+        if (source.Count == 0)
+            return source;
+
+        if (string.IsNullOrWhiteSpace(searchText))
+            return source;
+
+        var query = searchText.Trim();
+        return source.Where(p =>
+            (p.username?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (p.surname?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (p.contactMail?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
+        ).ToList();
+    }
+
+    private void RemoveProfessionalFromLocalLists(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return;
+
+        Professionals = Professionals.Where(p => !string.Equals(p.username, username, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (SelectedProfessional != null &&
+            string.Equals(SelectedProfessional.username, username, StringComparison.OrdinalIgnoreCase))
+        {
+            SelectedProfessional = Professionals.FirstOrDefault();
+        }
+
+        FilteredProfessionals = new ObservableCollection<Professional>(
+            FilterProfessionals(Professionals, ProfessionalSearchText));
+        NotifyProfessionalListUiChanged();
+    }
+
+    private async Task ShowProfessionalToastAsync(string message)
+    {
+        ProfessionalToastMessage = message;
+        IsProfessionalToastVisible = true;
+        try
+        {
+            await Task.Delay(2800);
+        }
+        finally
+        {
+            IsProfessionalToastVisible = false;
+        }
+    }
+
+    public static string GetProfessionalDisplayName(string? username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return string.Empty;
+
+        var professional = Instance?.Professionals?.FirstOrDefault(p =>
+            string.Equals(p.username, username, StringComparison.OrdinalIgnoreCase));
+
+        if (professional != null && !string.IsNullOrWhiteSpace(professional.surname))
+            return professional.surname.Trim();
+
+        return username;
+    }
+
+    public static string? GetProfessionalSurname(string? username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+            return null;
+
+        var professional = Instance?.Professionals?.FirstOrDefault(p =>
+            string.Equals(p.username, username, StringComparison.OrdinalIgnoreCase));
+
+        return string.IsNullOrWhiteSpace(professional?.surname) ? null : professional!.surname.Trim();
     }
     private void CheckPathEventFolder()
     {
@@ -3434,8 +3690,14 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             ActiveComponent = ActiveViews.SelectProfessional;
-            if (Professionals == null || Professionals.Count == 0)
-                await LoadProfessionals();
+
+            if (!_professionalsLoaded)
+            {
+                LoadProfessionalsIsRunning = true;
+                await Task.Yield();
+            }
+
+            await LoadProfessionalsAsync();
             
             // Se estiver visualizando uma coleÃ§Ã£o, selecionar o profissional atual da coleÃ§Ã£o (sem disparar save)
             if (wasViewingCollection && SelectedCollection != null)
@@ -3468,6 +3730,75 @@ public partial class CollectionsViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Busca no backend o estado de cobrança da coleção e sincroniza listas + seleção na UI.
+    /// </summary>
+    private async Task RefreshBillingCancelledFromServerAsync(string classCode)
+    {
+        if (string.IsNullOrEmpty(classCode) || GlobalAppStateViewModel.lfc == null)
+            return;
+
+        var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(classCode);
+        if (updatedCollection == null)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            UpdateCollectionInList(updatedCollection, classCode);
+            var collectionInList = FindCollectionInAnyList(classCode);
+            if (collectionInList != null && SelectedCollection?.classCode == classCode)
+            {
+                if (SelectedCollection != collectionInList)
+                {
+                    _isUpdatingSelectedCollection = true;
+                    SelectedCollection = collectionInList;
+                    _isUpdatingSelectedCollection = false;
+                }
+                else
+                    OnPropertyChanged(nameof(SelectedCollection));
+            }
+
+            if (SelectedCollection?.classCode == classCode)
+            {
+                SelectedCollectionIsCanceled = SelectedCollection.BillingCancelled == true;
+                NotifyDeletedCollectionViewState();
+            }
+        });
+    }
+
+    private ProfessionalTask? FindCollectionInAnyList(string classCode)
+    {
+        if (string.IsNullOrEmpty(classCode))
+            return null;
+        return CollectionsList?.FirstOrDefault(c => c.classCode == classCode)
+               ?? ExpiredCollectionsList.FirstOrDefault(c => c.classCode == classCode)
+               ?? DeletedCollectionsList.FirstOrDefault(c => c.classCode == classCode);
+    }
+
+    private static void CopyProfessionalTaskFields(ProfessionalTask target, ProfessionalTask source)
+    {
+        target.professionalLogin = source.professionalLogin;
+        target.ScheduledDeletionDate = source.ScheduledDeletionDate;
+        target.BillingCancelled = source.BillingCancelled;
+        target.UploadComplete = source.UploadComplete;
+        target.UploadHD = source.UploadHD;
+        target.AutoTreatment = source.AutoTreatment;
+        target.OCR = source.OCR;
+        target.EnablePhotosSales = source.EnablePhotosSales;
+        target.PhotosCannotHaveWatermarks = source.PhotosCannotHaveWatermarks;
+        target.PricePerPhotoForSellingOnlineInCents = source.PricePerPhotoForSellingOnlineInCents;
+        target.TotalPhotosForFreePerGraduate = source.TotalPhotosForFreePerGraduate;
+        target.Status = source.Status;
+        target.StorageLocation = source.StorageLocation;
+        target.CreationDate = source.CreationDate;
+        target.DeletionDate = source.DeletionDate;
+        target.EnqueuedForDeletion = source.EnqueuedForDeletion;
+        target.IsDeleted = source.IsDeleted;
+        target.recognitionPhotos = source.recognitionPhotos;
+        target.eventPhotos = source.eventPhotos;
+        target.photosSeparatedByProfessional = source.photosSeparatedByProfessional;
+    }
+
+    /// <summary>
     /// Atualiza um objeto ProfessionalTask na lista com os dados atualizados do servidor
     /// MantÃ©m a referÃªncia do objeto para evitar problemas de seleÃ§Ã£o na UI
     /// </summary>
@@ -3476,59 +3807,18 @@ public partial class CollectionsViewModel : ViewModelBase
         if (updatedCollection == null || string.IsNullOrEmpty(classCode))
             return;
 
-        // Encontrar o objeto na lista CollectionsList pelo classCode
-        var collectionInList = CollectionsList.FirstOrDefault(c => c.classCode == classCode);
-        if (collectionInList != null)
+        void UpdateInList(IEnumerable<ProfessionalTask> list)
         {
-            // Atualizar todas as propriedades relevantes do objeto na lista
-            // Isso mantÃ©m a referÃªncia do objeto, evitando problemas de seleÃ§Ã£o
-            collectionInList.professionalLogin = updatedCollection.professionalLogin;
-            collectionInList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
-            collectionInList.BillingCancelled = updatedCollection.BillingCancelled;
-            collectionInList.UploadComplete = updatedCollection.UploadComplete;
-            collectionInList.UploadHD = updatedCollection.UploadHD;
-            collectionInList.AutoTreatment = updatedCollection.AutoTreatment;
-            collectionInList.OCR = updatedCollection.OCR;
-            collectionInList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
-            collectionInList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
-            collectionInList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
-            collectionInList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
-            collectionInList.Status = updatedCollection.Status;
-            collectionInList.StorageLocation = updatedCollection.StorageLocation;
-            collectionInList.CreationDate = updatedCollection.CreationDate;
-            collectionInList.DeletionDate = updatedCollection.DeletionDate;
-            collectionInList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
-            collectionInList.IsDeleted = updatedCollection.IsDeleted;
-            collectionInList.recognitionPhotos = updatedCollection.recognitionPhotos;
-            collectionInList.eventPhotos = updatedCollection.eventPhotos;
-            collectionInList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
-            
-            // Atualizar tambÃ©m na lista filtrada se existir
-            var collectionInFilteredList = CollectionsListFiltered.FirstOrDefault(c => c.classCode == classCode);
-            if (collectionInFilteredList != null)
-            {
-                collectionInFilteredList.professionalLogin = updatedCollection.professionalLogin;
-                collectionInFilteredList.ScheduledDeletionDate = updatedCollection.ScheduledDeletionDate;
-                collectionInFilteredList.BillingCancelled = updatedCollection.BillingCancelled;
-                collectionInFilteredList.UploadComplete = updatedCollection.UploadComplete;
-                collectionInFilteredList.UploadHD = updatedCollection.UploadHD;
-                collectionInFilteredList.AutoTreatment = updatedCollection.AutoTreatment;
-                collectionInFilteredList.OCR = updatedCollection.OCR;
-                collectionInFilteredList.EnablePhotosSales = updatedCollection.EnablePhotosSales;
-                collectionInFilteredList.PhotosCannotHaveWatermarks = updatedCollection.PhotosCannotHaveWatermarks;
-                collectionInFilteredList.PricePerPhotoForSellingOnlineInCents = updatedCollection.PricePerPhotoForSellingOnlineInCents;
-                collectionInFilteredList.TotalPhotosForFreePerGraduate = updatedCollection.TotalPhotosForFreePerGraduate;
-                collectionInFilteredList.Status = updatedCollection.Status;
-                collectionInFilteredList.StorageLocation = updatedCollection.StorageLocation;
-                collectionInFilteredList.CreationDate = updatedCollection.CreationDate;
-                collectionInFilteredList.DeletionDate = updatedCollection.DeletionDate;
-                collectionInFilteredList.EnqueuedForDeletion = updatedCollection.EnqueuedForDeletion;
-                collectionInFilteredList.IsDeleted = updatedCollection.IsDeleted;
-                collectionInFilteredList.recognitionPhotos = updatedCollection.recognitionPhotos;
-                collectionInFilteredList.eventPhotos = updatedCollection.eventPhotos;
-                collectionInFilteredList.photosSeparatedByProfessional = updatedCollection.photosSeparatedByProfessional;
-            }
+            var item = list.FirstOrDefault(c => c.classCode == classCode);
+            if (item != null)
+                CopyProfessionalTaskFields(item, updatedCollection);
         }
+
+        if (CollectionsList != null)
+            UpdateInList(CollectionsList);
+
+        UpdateInList(ExpiredCollectionsList);
+        UpdateInList(DeletedCollectionsList);
 
         ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
     }
@@ -4597,11 +4887,12 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(SelectedCollection.classCode);
-                SelectedCollectionForCancelBilling.BillingCancelled = pt.BillingCancelled;
-                FilterProfessionalTasks("","");
-                GlobalAppStateViewModel.Instance.ShowDialogOk("Cobranï¿½a do contrato cancelada com sucesso.");
-                await OpenSelectProfessionalViewCommand();
+                var cancelledClassCode = SelectedCollection.classCode;
+                await RefreshBillingCancelledFromServerAsync(cancelledClassCode);
+                GlobalAppStateViewModel.Instance.ShowDialogOk(
+                    Loc.Tr("Contract billing was canceled successfully.", "Cobrança do contrato cancelada com sucesso."));
+                SelectedCollectionForCancelBilling = null;
+                UpdateCollectionViewSelected();
             }
 
         }
@@ -4750,6 +5041,65 @@ public partial class CollectionsViewModel : ViewModelBase
         catch { }
     }
 
+    public async Task LoadCompanyDetailsAsync()
+    {
+        try
+        {
+            if (GlobalAppStateViewModel.lfc == null)
+                return;
+
+            var result = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
+            if (result == null || result.loginFailed == true || result.success != true || result.Content == null)
+                return;
+
+            _cachedCompanyForShare = result.Content;
+            _companyShareUsername = CollectionViewerLinkService.ResolveCompanyUsername(result.Content);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"LoadCompanyDetailsAsync: {ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenShareCollectionDialogAsync(ProfessionalTask? professionalTask)
+    {
+        var collection = professionalTask ?? SelectedCollection;
+        if (collection?.EnablePhotosSales != true || string.IsNullOrWhiteSpace(collection.classCode))
+            return;
+
+        if (string.IsNullOrWhiteSpace(_companyShareUsername))
+            await LoadCompanyDetailsAsync();
+
+        if (string.IsNullOrWhiteSpace(_companyShareUsername))
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(
+                Loc.Tr("Could not load company data to build the share link."),
+                Loc.Tr("Error", "Erro"));
+            return;
+        }
+
+        try
+        {
+            var dialog = new ShareCollectionDialog
+            {
+                DataContext = new ShareCollectionDialogViewModel(
+                    collection.classCode,
+                    _companyShareUsername,
+                    _cachedCompanyForShare)
+            };
+
+            if (MainWindow.instance != null)
+                await dialog.ShowDialog(MainWindow.instance);
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(
+                $"Erro ao abrir compartilhamento: {ex.Message}",
+                Loc.Tr("Error", "Erro"));
+        }
+    }
+
     // Add New Professional Commands
     private AddNewProfessionalDialog? _addNewProfessionalDialog;
     
@@ -4759,6 +5109,7 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             // Limpar campos e mensagens
+            TbNewProfessionalSurname = "";
             TbNewProfessionalUsername = "";
             TbNewProfessionalEmail = "";
             TbNewProfessionalConfirmEmail = "";
@@ -4831,6 +5182,7 @@ public partial class CollectionsViewModel : ViewModelBase
             var professional = new SharedClientSide.ServerInteraction.Users.Professionals.Professional
             {
                 username = TbNewProfessionalUsername.Trim(),
+                surname = string.IsNullOrWhiteSpace(TbNewProfessionalSurname) ? null : TbNewProfessionalSurname.Trim(),
                 company = companyResult.Content.company,
                 contactMail = TbNewProfessionalEmail.Trim().ToLower()
             };
@@ -4843,7 +5195,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 CreateProfessionalSuccessMessage = "Profissional criado com sucesso!";
                 
                 // Recarregar lista de profissionais
-                await LoadProfessionals();
+                await LoadProfessionalsAsync(forceReload: true);
                 
                 // Selecionar o novo profissional
                 var newProf = Professionals.FirstOrDefault(p => p.username == professional.username);
@@ -4876,6 +5228,62 @@ public partial class CollectionsViewModel : ViewModelBase
     public void CancelAddNewProfessionalCommand()
     {
         _addNewProfessionalDialog?.Close();
+    }
+
+    public async Task RemoveProfessionalAsync(Professional professional)
+    {
+        if (professional == null || string.IsNullOrWhiteSpace(professional.username))
+            return;
+
+        if (RemoveProfessionalIsRunning)
+            return;
+
+        if (string.Equals(_removeInFlightUsername, professional.username, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        RemoveProfessionalIsRunning = true;
+
+        try
+        {
+            var displayName = professional.DisplayName;
+            var confirmed = await GlobalAppStateViewModel.Instance.ShowDialogYesNo(
+                string.Format(
+                    Loc.Tr("Remove professional confirmation", "Deseja remover o profissional \"{0}\" da sua empresa?\n\nEsta ação não pode ser desfeita."),
+                    displayName),
+                Loc.Tr("Remove professional", "Remover profissional"));
+
+            if (!confirmed)
+                return;
+
+            var usernameToRemove = professional.username;
+            _removeInFlightUsername = usernameToRemove;
+
+            var result = await GlobalAppStateViewModel.lfc.RemoveCompanyProfessional(usernameToRemove);
+
+            if (result != null && result.success)
+            {
+                RemoveProfessionalFromLocalLists(usernameToRemove);
+                _ = ShowProfessionalToastAsync(
+                    Loc.Tr("Professional removed successfully", "Profissional removido com sucesso."));
+            }
+            else
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(
+                    result?.message ?? Loc.Tr("Could not remove professional.", "Não foi possível remover o profissional."),
+                    Loc.Tr("Error", "Erro"));
+            }
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(
+                string.Format(Loc.Tr("Error removing professional: {0}", "Erro ao remover profissional: {0}"), ex.Message),
+                Loc.Tr("Error", "Erro"));
+        }
+        finally
+        {
+            _removeInFlightUsername = null;
+            RemoveProfessionalIsRunning = false;
+        }
     }
 
     private bool IsValidEmail(string email)

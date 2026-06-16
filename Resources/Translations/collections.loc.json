@@ -447,6 +447,58 @@
     "en-US": "Manage CPF",
     "pt-BR": "Gerenciar CPF"
   },
+  "Share": {
+    "en-US": "Share",
+    "pt-BR": "Compartilhar"
+  },
+  "Share collection": {
+    "en-US": "Share collection",
+    "pt-BR": "Compartilhar coleção"
+  },
+  "Share collection with your clients": {
+    "en-US": "Share this link or QR code so clients can view and buy photos.",
+    "pt-BR": "Compartilhe o link ou o QR code para seus clientes visualizarem e comprarem as fotos."
+  },
+  "Share collection dialog description": {
+    "en-US": "Clients who scan the QR code or open the link will go directly to this collection in the photo viewer.",
+    "pt-BR": "Ao escanear o QR code ou abrir o link, seus clientes acessam esta coleção no visualizador de fotos."
+  },
+  "Scan QR code": {
+    "en-US": "Scan QR code",
+    "pt-BR": "Escaneie o QR code"
+  },
+  "Share link base": {
+    "en-US": "Link base",
+    "pt-BR": "Base do link"
+  },
+  "Default viewer (visualizador.lesser.biz)": {
+    "en-US": "Viewer — visualizador.lesser.biz (default)",
+    "pt-BR": "Visualizador — visualizador.lesser.biz (padrão)"
+  },
+  "Collection link": {
+    "en-US": "Collection link",
+    "pt-BR": "Link da coleção"
+  },
+  "Copy link": {
+    "en-US": "Copy link",
+    "pt-BR": "Copiar link"
+  },
+  "Link copied!": {
+    "en-US": "Link copied!",
+    "pt-BR": "Link copiado!"
+  },
+  "Open in browser": {
+    "en-US": "Open in browser",
+    "pt-BR": "Abrir no navegador"
+  },
+  "Open share dialog for this collection": {
+    "en-US": "Open link and QR code to share this collection",
+    "pt-BR": "Abrir link e QR code para compartilhar esta coleção"
+  },
+  "Could not load company data to build the share link.": {
+    "en-US": "Could not load company data to build the share link.",
+    "pt-BR": "Não foi possível carregar os dados da empresa para montar o link de compartilhamento."
+  },
   "Open CPF protection for this collection filter": {
     "en-US": "Open CPF management → CPF protection and access control with this collection’s CPFs in the filter",
     "pt-BR": "Abrir Gerenciamento de CPF → Proteção e controle de CPFs com os CPFs desta coleção no filtro"
@@ -474,6 +526,10 @@
   "Back": {
     "en-US": "Back",
     "pt-BR": "Voltar"
+  },
+  "Close": {
+    "en-US": "Close",
+    "pt-BR": "Fechar"
   },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",
@@ -798,5 +854,141 @@
   "Your collection can be restored until {0}, after which it will be permanently removed.": {
     "en-US": "Your collection can be restored until {0}, after which it will be permanently removed.",
     "pt-BR": "Sua coleção pode ser restaurada até {0}, depois disso ela será removida permanentemente."
+  },
+  "Canceled": {
+    "en-US": "Canceled",
+    "pt-BR": "Cancelada"
+  },
+  "Billing canceled": {
+    "en-US": "Billing canceled",
+    "pt-BR": "Cobrança cancelada"
+  },
+  "Billing canceled — this collection is not charged.": {
+    "en-US": "Billing canceled — this collection is not charged.",
+    "pt-BR": "Cobrança cancelada — esta coleção não é cobrada."
+  },
+  "This collection is no longer billed on your invoice.": {
+    "en-US": "This collection is no longer billed on your invoice.",
+    "pt-BR": "Esta coleção não é mais cobrada na sua fatura."
+  },
+  "This collection will no longer be charged on your invoice. Advanced actions are disabled.": {
+    "en-US": "This collection will no longer be charged on your invoice. Advanced actions are disabled.",
+    "pt-BR": "Esta coleção não será mais cobrada na sua fatura. As ações avançadas ficam desabilitadas."
+  },
+  "Collection to cancel:": {
+    "en-US": "Collection to cancel:",
+    "pt-BR": "Coleção a cancelar:"
+  },
+  "Repeated collection...": {
+    "en-US": "Repeated collection...",
+    "pt-BR": "Coleção repetida..."
+  },
+  "The repeated collection is only used as justification; its billing status will not change.": {
+    "en-US": "The repeated collection is only used as justification; its billing status will not change.",
+    "pt-BR": "A coleção repetida serve apenas como justificativa; o status de cobrança dela não será alterado."
+  },
+  "Confirm cancellation": {
+    "en-US": "Confirm cancellation",
+    "pt-BR": "Confirmar cancelamento"
+  },
+  "Canceling billing...": {
+    "en-US": "Canceling billing...",
+    "pt-BR": "Cancelando cobrança..."
+  },
+  "Contract billing was canceled successfully.": {
+    "en-US": "Contract billing was canceled successfully.",
+    "pt-BR": "Cobrança do contrato cancelada com sucesso."
+  },
+  "Select professional": {
+    "en-US": "Select professional",
+    "pt-BR": "Selecionar profissional"
+  },
+  "Search professionals...": {
+    "en-US": "Search professionals...",
+    "pt-BR": "Buscar profissionais..."
+  },
+  "Loading professionals...": {
+    "en-US": "Loading professionals...",
+    "pt-BR": "Carregando profissionais..."
+  },
+  "No professionals found": {
+    "en-US": "No professionals found",
+    "pt-BR": "Nenhum profissional encontrado"
+  },
+  "Add your first professional to assign collections": {
+    "en-US": "Add your first professional to assign collections",
+    "pt-BR": "Adicione seu primeiro profissional para atribuir coleções"
+  },
+  "Remove": {
+    "en-US": "Remove",
+    "pt-BR": "Remover"
+  },
+  "Remove selected professional": {
+    "en-US": "Remove selected professional",
+    "pt-BR": "Remover profissional selecionado"
+  },
+  "Remove professional": {
+    "en-US": "Remove professional",
+    "pt-BR": "Remover profissional"
+  },
+  "Remove professional confirmation": {
+    "en-US": "Do you want to remove professional \"{0}\" from your company?\n\nThis action cannot be undone.",
+    "pt-BR": "Deseja remover o profissional \"{0}\" da sua empresa?\n\nEsta ação não pode ser desfeita."
+  },
+  "Professional removed successfully": {
+    "en-US": "Professional removed successfully.",
+    "pt-BR": "Profissional removido com sucesso."
+  },
+  "Could not remove professional.": {
+    "en-US": "Could not remove professional.",
+    "pt-BR": "Não foi possível remover o profissional."
+  },
+  "Error removing professional: {0}": {
+    "en-US": "Error removing professional: {0}",
+    "pt-BR": "Erro ao remover profissional: {0}"
+  },
+  "Success": {
+    "en-US": "Success",
+    "pt-BR": "Sucesso"
+  },
+  "Display name": {
+    "en-US": "Display name",
+    "pt-BR": "Nome de exibição"
+  },
+  "Friendly name shown in the app": {
+    "en-US": "Friendly name shown in the app",
+    "pt-BR": "Nome amigável exibido no sistema"
+  },
+  "Display name help": {
+    "en-US": "This name is shown in the app. The username below is used only for login and must be unique globally.",
+    "pt-BR": "Este nome é exibido no sistema. O nome de usuário abaixo é usado apenas para login e deve ser único globalmente."
+  },
+  "Username (login)": {
+    "en-US": "Username (login)",
+    "pt-BR": "Nome de usuário (login)"
+  },
+  "Username login help": {
+    "en-US": "Must contain only letters, numbers, dots, dashes and underscore. Used for authentication.",
+    "pt-BR": "Deve conter apenas letras, números, pontos, hífens e underscore. Usado para autenticação."
+  },
+  "1 professional available": {
+    "en-US": "1 professional available",
+    "pt-BR": "1 profissional disponível"
+  },
+  "{0} professionals available": {
+    "en-US": "{0} professionals available",
+    "pt-BR": "{0} profissionais disponíveis"
+  },
+  "Showing {0} of {1}": {
+    "en-US": "Showing {0} of {1}",
+    "pt-BR": "Exibindo {0} de {1}"
+  },
+  "Filtering professionals...": {
+    "en-US": "Filtering professionals...",
+    "pt-BR": "Filtrando profissionais..."
+  },
+  "Creating professional...": {
+    "en-US": "Creating professional...",
+    "pt-BR": "Criando profissional..."
   }
 }

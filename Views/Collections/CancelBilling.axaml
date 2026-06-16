@@ -3,16 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
              x:DataType="vm:CollectionsViewModel"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="LesserDashboardClient.Views.Collections.CancelBilling">
-  <Grid RowDefinitions="Auto, *">
-    <!-- Botão de voltar -->
-    <Button Grid.Row="0" 
-            Command="{Binding BackLasViewCommand}" 
-            HorizontalAlignment="Left" 
+  <Grid RowDefinitions="Auto, *" Margin="16">
+    <Button Grid.Row="0"
+            Command="{Binding BackLasViewCommand}"
+            HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Margin="10"
+            Margin="0,0,0,8"
             Padding="8,4"
             Background="Transparent"
             BorderThickness="0">
@@ -21,21 +21,81 @@
         <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
       </StackPanel>
     </Button>
-    
-    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="4">
-      <TextBlock>
-        <Run Text="{Tr 'Request cancellation of the contract:'}" />
-        <Run FontWeight="Bold" Foreground="Red" Text="{Binding SelectedCollection.classCode}" />
-      </TextBlock> 
-      <TextBlock Text="{Tr 'Select the contract below that repeats this one:'}" /> 
-      <ComboBox ItemsSource="{Binding CollectionsList}" SelectedItem="{Binding SelectedCollectionForCancelBilling}"  HorizontalAlignment="Stretch" >
-        <ComboBox.ItemTemplate>
-          <DataTemplate>
-            <TextBlock Text="{Binding classCode}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-      </ComboBox>
-      <Button Content="{Tr 'Send'}" Command="{Binding CancelBillingCommand}" IsEnabled="{Binding !CancelBillingIsRunning}" />
-    </StackPanel>
+
+    <Border Grid.Row="1"
+            MaxWidth="520"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Background="{DynamicResource CardBg}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            CornerRadius="12"
+            Padding="24"
+            BoxShadow="0 4 24 0 #22000000">
+      <StackPanel Spacing="16">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{Tr 'Cancel billing'}"
+                     FontSize="20"
+                     FontWeight="SemiBold"/>
+          <TextBlock Text="{Tr 'Request cancellation of billing for this collection on your invoice. You must select the repeated class as justification.'}"
+                     TextWrapping="Wrap"
+                     Opacity="0.85"
+                     FontSize="12"/>
+        </StackPanel>
+
+        <Border Background="#18DC2626"
+                BorderBrush="#55DC2626"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="12,10">
+          <StackPanel Spacing="4">
+            <TextBlock Text="{Tr 'Collection to cancel:'}"
+                       FontSize="11"
+                       Opacity="0.75"/>
+            <TextBlock Text="{Binding SelectedCollection.classCode}"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Foreground="#FFFF6B6B"/>
+          </StackPanel>
+        </Border>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="{Tr 'Select the contract below that repeats this one:'}"
+                     FontWeight="SemiBold"/>
+          <ComboBox ItemsSource="{Binding CollectionsList}"
+                    SelectedItem="{Binding SelectedCollectionForCancelBilling}"
+                    HorizontalAlignment="Stretch"
+                    PlaceholderText="{Tr 'Repeated collection...'}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding classCode}" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Text="{Tr 'The repeated collection is only used as justification; its billing status will not change.'}"
+                     FontSize="11"
+                     Opacity="0.7"
+                     TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <Button HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
+                Padding="12,10"
+                Command="{Binding CancelBillingCommand}"
+                IsEnabled="{Binding !CancelBillingIsRunning}">
+          <Panel>
+            <TextBlock Text="{Tr 'Confirm cancellation'}"
+                       IsVisible="{Binding !CancelBillingIsRunning}"/>
+            <StackPanel Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Center"
+                        IsVisible="{Binding CancelBillingIsRunning}">
+              <ui:ProgressRing Width="16" Height="16" IsIndeterminate="True"/>
+              <TextBlock Text="{Tr 'Canceling billing...'}" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Panel>
+        </Button>
+      </StackPanel>
+    </Border>
   </Grid>
 </UserControl>

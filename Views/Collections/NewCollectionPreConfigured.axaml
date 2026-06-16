@@ -90,7 +90,8 @@
                     VerticalAlignment="Center"
                     Padding="8,4"
                     MinHeight="32">
-              <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
+              <local:SeparatorProfessionalRepresentation LoginName="{Binding CurrentProfessionalName}"
+                                                         FriendlyName="{Binding CurrentProfessionalName, Converter={StaticResource ProfessionalLoginDisplayConverter}}" />
             </Button>
           </StackPanel>
         </Grid>

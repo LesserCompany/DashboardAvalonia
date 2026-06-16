@@ -41,6 +41,7 @@
         <PackageReference Include="EPPlus.System.Drawing" Version="6.0.0" />
         <PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
         <PackageReference Include="MessageBox.Avalonia" Version="3.2.0" />
+        <PackageReference Include="QRCoder" Version="1.6.0" />
         <PackageReference Include="Svg.Controls.Skia.Avalonia" Version="11.3.0.4" />
         <PackageReference Include="System.Reactive.Linq" Version="6.0.2" />
         <PackageReference Include="WebView.Avalonia" Version="11.0.0.1" />
