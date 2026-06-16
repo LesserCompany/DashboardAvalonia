@@ -1084,6 +1084,35 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         CbHDStorageFiveYears = true;
     }
+
+    /// <summary>Versão 1.0 do reconhecimento facial (padrão).</summary>
+    [ObservableProperty] public bool? cbRecognitionVersion10 = true;
+
+    /// <summary>Versão 2.0 do reconhecimento facial.</summary>
+    [ObservableProperty] public bool? cbRecognitionVersion20 = false;
+
+    partial void OnCbRecognitionVersion10Changed(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+            CbRecognitionVersion20 = false;
+        else if (CbRecognitionVersion20 != true)
+            CbRecognitionVersion10 = true;
+    }
+
+    partial void OnCbRecognitionVersion20Changed(bool? oldValue, bool? newValue)
+    {
+        if (newValue == true)
+            CbRecognitionVersion10 = false;
+        else if (CbRecognitionVersion10 != true)
+            CbRecognitionVersion20 = true;
+    }
+
+    [RelayCommand]
+    private void SelectRecognitionVersion10() => CbRecognitionVersion10 = true;
+
+    [RelayCommand]
+    private void SelectRecognitionVersion20() => CbRecognitionVersion20 = true;
+
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
     {
@@ -3373,6 +3402,8 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDStorageThreeMonths = false;
         CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
+        CbRecognitionVersion10 = true;
+        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -3419,6 +3450,8 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDStorageThreeMonths = false;
         CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
+        CbRecognitionVersion10 = true;
+        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -3464,6 +3497,8 @@ public partial class CollectionsViewModel : ViewModelBase
         // Resetar propriedades de armazenamento HD (serÃ¡ atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
         ApplyHdStoragePeriodFromComboOptions(options);
+        CbRecognitionVersion10 = true;
+        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -3619,6 +3654,8 @@ public partial class CollectionsViewModel : ViewModelBase
             TbProfessionalTaskDescription = SelectedCollection.Description ?? string.Empty;
             CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
             AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
+            CbRecognitionVersion20 = SelectedCollection.RecognitionVersion == "2.0";
+            CbRecognitionVersion10 = CbRecognitionVersion20 != true;
             CbOcr = SelectedCollection.OCR ?? false;
             CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
             
@@ -4221,6 +4258,8 @@ public partial class CollectionsViewModel : ViewModelBase
 
                  IsTreatmentOnly = IsTreatmentOnlyCombo,
             };
+            if (!IsTreatmentOnlyCombo)
+                pt.RecognitionVersion = CbRecognitionVersion20 == true ? "2.0" : "1.0";
             if (CbEnableAutoTreatment == true)
             {
                 pt.AutoTreatmentVersion = "2.0";

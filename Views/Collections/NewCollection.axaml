@@ -21,7 +21,7 @@
                 <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
             </StackPanel>
             <!-- form -->
-            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
+            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="0" Grid.Column="1">
                 <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
@@ -59,8 +59,54 @@
                 </Grid>
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="{Tr 'Recognition version:'}" VerticalAlignment="Center" IsVisible="{Binding RecFolderFieldIsVisible}" />
+              <StackPanel Grid.Row="3" Grid.Column="1" IsVisible="{Binding RecFolderFieldIsVisible}" Orientation="Horizontal" Spacing="8">
+                <ToggleButton IsChecked="{Binding CbRecognitionVersion10}"
+                             Command="{Binding SelectRecognitionVersion10Command}"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Padding="16,8"
+                             MinWidth="72"
+                             MinHeight="36"
+                             CornerRadius="8"
+                             BorderThickness="1">
+                  <ToggleButton.Styles>
+                    <Style Selector="ToggleButton:checked">
+                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderThickness" Value="2" />
+                    </Style>
+                    <Style Selector="ToggleButton:checked TextBlock">
+                      <Setter Property="Foreground" Value="White" />
+                    </Style>
+                  </ToggleButton.Styles>
+                  <TextBlock Text="1.0" FontWeight="SemiBold" />
+                </ToggleButton>
+                <ToggleButton IsChecked="{Binding CbRecognitionVersion20}"
+                             Command="{Binding SelectRecognitionVersion20Command}"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Padding="16,8"
+                             MinWidth="72"
+                             MinHeight="36"
+                             CornerRadius="8"
+                             BorderThickness="1">
+                  <ToggleButton.Styles>
+                    <Style Selector="ToggleButton:checked">
+                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderThickness" Value="2" />
+                    </Style>
+                    <Style Selector="ToggleButton:checked TextBlock">
+                      <Setter Property="Foreground" Value="White" />
+                    </Style>
+                  </ToggleButton.Styles>
+                  <TextBlock Text="2.0" FontWeight="SemiBold" />
+                </ToggleButton>
+              </StackPanel>
                 
-              <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'HD Storage in the cloud.'}" 
                            IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
                            IsEnabled="{Binding CbHDBackupToggleIsEnabled}"
@@ -71,7 +117,7 @@
               </StackPanel>
               
               <!-- Mensagem de erro para HD -->
-              <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+              <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
                         IsVisible="{Binding CbHDBackupIsDisabled}" 
                         Text="{Binding CbHDBackupErrorMessage}" 
                         Foreground="Red" 
@@ -81,7 +127,7 @@
                         TextWrapping="Wrap" />
               
               <!-- Opções de Armazenamento HD -->
-              <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
+              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" 
                          IsVisible="{Binding IsHDStorageOptionsVisible}" 
                          Margin="20,10,0,0"
                          Spacing="8">
@@ -184,7 +230,7 @@
                              IsVisible="{Binding IsHdStoragePriceTextVisible}" />
               </StackPanel>
                 
-              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
                            IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
                            IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
@@ -195,7 +241,7 @@
                 </Button>
               </StackPanel>
               <!-- Mensagem de erro para AutoTreatment -->
-              <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
+              <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"
                         IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
                         Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
                         Foreground="Red" 
@@ -204,7 +250,7 @@
                         Margin="0,5,0,0" 
                         TextWrapping="Wrap" />
 
-              <Grid Grid.Row="8"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
+              <Grid Grid.Row="9"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                   <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
