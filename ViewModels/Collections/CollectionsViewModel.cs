@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using ExCSS;
 using JavaScriptCore;
 using LesserDashboardClient.Models;
+using LesserDashboardClient.Helpers;
 using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using LesserDashboardClient.Views.Collections;
@@ -557,14 +558,14 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ExpanderAdvancedIsEnabled));
     }
 
-    /// <summary>Temporário: permitir Tag/Separar enquanto exibe "Aguardando upload...". Remover quando não for mais necessário.</summary>
-    private const bool TempAllowTagSortWhileAwaitingUpload = true;
+    /// <summary>Temporário: permitir Tag/Separar sem aguardar upload/reconhecimento no servidor. Remover quando não for mais necessário.</summary>
+    private const bool TempAllowTagSortWithoutRules = false;
 
-    private bool TagSortBypassForAwaitingUpload =>
-        TempAllowTagSortWhileAwaitingUpload
+    private bool TagSortRulesBypassActive =>
+        TempAllowTagSortWithoutRules
         && SelectedCollection != null
-        && !UploadComplete
-        && SelectedCollection.BillingCancelled != true;
+        && SelectedCollection.BillingCancelled != true
+        && !IsSelectedCollectionInDeletedList;
 
     private void NotifyTagSortBypassState()
     {
@@ -574,11 +575,11 @@ public partial class CollectionsViewModel : ViewModelBase
 
     /// <summary>Tag/Sort habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtTagSortIsEnabledForView =>
-        (BtTagSortIsEnabled || TagSortBypassForAwaitingUpload) && !IsSelectedCollectionInDeletedList;
+        (BtTagSortIsEnabled || TagSortRulesBypassActive) && !IsSelectedCollectionInDeletedList;
 
-    /// <summary>Visibilidade do botão Tag/Separar (inclui exceção temporária durante upload incompleto).</summary>
+    /// <summary>Visibilidade do botão Tag/Separar (inclui exceção temporária sem regras de progresso).</summary>
     public bool BtTagSortIsVisibleForView =>
-        ActionsButtonsIsVisible || (TagSortBypassForAwaitingUpload && !IsSelectedCollectionInDeletedList);
+        ActionsButtonsIsVisible || TagSortRulesBypassActive;
     /// <summary>Export habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
     public bool BtExportIsEnabledForView => BtExportIsEnabled && !IsSelectedCollectionInDeletedList;
     /// <summary>Download HD habilitado apenas quando a coleÃ§Ã£o selecionada nÃ£o Ã© da lista de deletadas.</summary>
@@ -645,6 +646,7 @@ public partial class CollectionsViewModel : ViewModelBase
         ValidateCollectionName();
     }
     public const int MinCollectionIdLength = 3;
+    public const double MinPhotoSalesPriceReais = 5.0;
     [ObservableProperty] public bool tbCollectionNameHasError = false;
     [ObservableProperty] public bool tbCollectionNameIsEmpty = false;
     [ObservableProperty] public bool tbCollectionNameIsTooShort = false;
@@ -1139,9 +1141,63 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CbHDBackup = true;
         }
+
+        SyncShowPhotosTreatmentDefaultsFromAutoTreatmentState();
+    }
+
+    private void SyncShowPhotosTreatmentDefaultsFromAutoTreatmentState()
+    {
+        if (CbEnableAutoTreatment == true)
+        {
+            if (CbShowPhotosWithFacialEnhancementByDefault == null)
+                CbShowPhotosWithFacialEnhancementByDefault = false;
+            if (CbShowPhotosWithColorCorrectionByDefault == null)
+                CbShowPhotosWithColorCorrectionByDefault = false;
+        }
+        else
+        {
+            CbShowPhotosWithFacialEnhancementByDefault = null;
+            CbShowPhotosWithColorCorrectionByDefault = null;
+        }
     }
     [ObservableProperty] public bool? cbEnableAutoExclusion = true;
     [ObservableProperty] public bool? cbEnablePhotoSales;
+    partial void OnCbEnablePhotoSalesChanged(bool? value)
+    {
+        if (value == true && (TbPricePerPhotoForSellingOnline ?? 0) < MinPhotoSalesPriceReais)
+            TbPricePerPhotoForSellingOnline = MinPhotoSalesPriceReais;
+        if (value != true)
+            CbGraduatesCanViewAllPhotosFromThisClassCode = null;
+        else if (CbGraduatesCanViewAllPhotosFromThisClassCode == null)
+            CbGraduatesCanViewAllPhotosFromThisClassCode = true;
+        SyncGraduatesCanViewAllPhotosFromPhotoSalesState();
+    }
+
+    private bool? DefaultGraduateCanViewAllPhotosFromThisClassCodeForNewGraduate()
+        => CbEnablePhotoSales == true ? true : null;
+
+    private void SyncGraduatesCanViewAllPhotosFromPhotoSalesState()
+    {
+        if (GraduatesData == null)
+            return;
+
+        foreach (var g in GraduatesData)
+        {
+            if (g == null)
+                continue;
+
+            if (CbEnablePhotoSales == true)
+            {
+                if (g.GraduateCanViewAllPhotosFromThisClassCode == null)
+                    g.GraduateCanViewAllPhotosFromThisClassCode = true;
+            }
+            else
+            {
+                g.GraduateCanViewAllPhotosFromThisClassCode = null;
+            }
+        }
+    }
+    [ObservableProperty] public bool? cbGraduatesCanViewAllPhotosFromThisClassCode;
     [ObservableProperty] public bool? cbPhotosCannotHaveWatermarks;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
     [ObservableProperty] public double? tbTotalPhotosForFreePerGraduate;
@@ -1157,6 +1213,8 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string? autoTreatmentVersion;
     [ObservableProperty] public bool isReupload = false;
     [ObservableProperty] public bool? cbOcr;
+    [ObservableProperty] public bool? cbShowPhotosWithFacialEnhancementByDefault;
+    [ObservableProperty] public bool? cbShowPhotosWithColorCorrectionByDefault;
 
     [ObservableProperty] public bool expanderAdvancedOptions;
     [ObservableProperty] public int scrollComponentNewCollection = 0;
@@ -1300,8 +1358,11 @@ public partial class CollectionsViewModel : ViewModelBase
                 PhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = SelectedCollection.PricePerPhotoForSellingOnlineInCents,
                 TotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate,
+                GraduatesCanViewAllPhotosFromThisClassCode = SelectedCollection.GraduatesCanViewAllPhotosFromThisClassCode,
                 OCR = SelectedCollection.OCR,
                 AllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone,
+                ShowPhotosWithFacialEnhancementByDefault = SelectedCollection.AutoTreatment == true ? SelectedCollection.ShowPhotosWithFacialEnhancementByDefault : null,
+                ShowPhotosWithColorCorrectionByDefault = SelectedCollection.AutoTreatment == true ? SelectedCollection.ShowPhotosWithColorCorrectionByDefault : null,
             };
             
             // Salvar o classCode antes de atualizar a lista (para evitar NullReferenceException)
@@ -2443,6 +2504,17 @@ public partial class CollectionsViewModel : ViewModelBase
             return 0;
         return (int)(decimalValue.Value * 100);
     }
+
+    private bool TryValidatePhotoSalesPrice()
+    {
+        if (CbEnablePhotoSales != true)
+            return true;
+        if ((TbPricePerPhotoForSellingOnline ?? 0) >= MinPhotoSalesPriceReais)
+            return true;
+        GlobalAppStateViewModel.Instance.ShowDialogOk(
+            Loc.Tr("Photo sales minimum price required", "Para habilitar a venda de fotos, o preço por foto deve ser de no mínimo R$ 5,00."));
+        return false;
+    }
     /// <summary>ID da coleÃ§Ã£o: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, nÃºmeros, _ / ' . -).</summary>
     public bool IsTextAllowed(string text)
     {
@@ -2914,7 +2986,7 @@ public partial class CollectionsViewModel : ViewModelBase
         if (IsTreatmentOnlyCombo)
             return null;
 
-        var err = ImportGraduatesFromExcel(f, GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage);
+        var err = ImportGraduatesFromExcel(f, GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage, CbEnablePhotoSales == true);
         if (err == null)
             SortGraduatesDataAlphabetically();
         return err;
@@ -2925,7 +2997,8 @@ public partial class CollectionsViewModel : ViewModelBase
         ObservableCollection<GraduateByCPF> graduates,
         string recFolder,
         bool canEditCpfs,
-        string cpfsErrorMessage)
+        string cpfsErrorMessage,
+        bool photoSalesEnabled = false)
     {
         if (!canEditCpfs)
             return cpfsErrorMessage;
@@ -3022,6 +3095,8 @@ public partial class CollectionsViewModel : ViewModelBase
         var colEmail = getCol("email", "e-mail", "e mail");
         var colMaxPhotos = getCol(TranslationHelper.Default.MAX_PHOTOS, "max photos", "max fotos");
         var colMaxTreatment = getCol(TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, "max photos for treatment", "max fotos p/ tratar", "max fotos para tratamento");
+        var colFreePhotosFromClass = getCol(TranslationHelper.Default.FREE_PHOTOS_FROM_THIS_CLASS_CODE, "free photos from this class", "fotos gratis desta turma", "fotos grátis desta turma");
+        var colGraduateCanViewAllPhotos = getCol(TranslationHelper.Default.GRADUATE_CAN_VIEW_ALL_PHOTOS_FROM_THIS_CLASS_CODE, "graduate can view all photos from this class", "formando pode ver todas as fotos desta turma");
         var colBlocked = getCol(TranslationHelper.Default.BLOCKED, "blocked", "bloqueado");
         var colBlockMode = getCol(TranslationHelper.Default.BLOCK_MODE, "block mode", "block type", "tipo de bloqueio");
 
@@ -3045,7 +3120,9 @@ public partial class CollectionsViewModel : ViewModelBase
         if (colEmail == -1) colEmail = headerToCol.ContainsKey(NormalizeHeader("nome")) || headerToCol.ContainsKey(NormalizeHeader("name")) ? 4 : 3;
         if (colMaxPhotos == -1) colMaxPhotos = colEmail + 1;
         if (colMaxTreatment == -1) colMaxTreatment = colMaxPhotos + 1;
-        if (colBlocked == -1) colBlocked = colMaxTreatment + 1;
+        if (colFreePhotosFromClass == -1) colFreePhotosFromClass = colMaxTreatment + 1;
+        if (colGraduateCanViewAllPhotos == -1) colGraduateCanViewAllPhotos = colFreePhotosFromClass + 1;
+        if (colBlocked == -1) colBlocked = colGraduateCanViewAllPhotos + 1;
         if (colBlockMode == -1) colBlockMode = colBlocked + 1;
 
         var hasHeader = LooksLikeHeaderRow();
@@ -3135,6 +3212,56 @@ public partial class CollectionsViewModel : ViewModelBase
                 gradByCPF.MaxPhotosForTreatmentRequest = parsed;
             }
 
+            var freePhotosCell = workSheet.Cells[i, colFreePhotosFromClass].Value;
+            if (freePhotosCell == null || string.IsNullOrWhiteSpace(freePhotosCell.ToString()))
+            {
+                gradByCPF.FreePhotosFromThisClassCode = null;
+            }
+            else
+            {
+                var raw = freePhotosCell.ToString();
+                var onlyDigits = StringHelper.RemoveAllCharactersButNumbers(raw);
+                if (string.IsNullOrWhiteSpace(onlyDigits) || !int.TryParse(onlyDigits, out var parsed))
+                {
+                    var header = hasHeader ? workSheet.Cells[1, colFreePhotosFromClass].Text : "(sem cabeçalho)";
+                    var colExcel = ExcelColumnName(colFreePhotosFromClass);
+                    return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                           $"Linha: {i}\n" +
+                           $"Campo: {TranslationHelper.Default.FREE_PHOTOS_FROM_THIS_CLASS_CODE}\n" +
+                           $"Coluna (Excel): {colExcel} (#{colFreePhotosFromClass})\n" +
+                           $"Cabeçalho: {header}\n" +
+                           $"Valor: {raw}\n\n" +
+                           "Corrija o Excel e tente novamente.";
+                }
+                gradByCPF.FreePhotosFromThisClassCode = parsed;
+            }
+
+            gradByCPF.GraduateCanViewAllPhotosFromThisClassCode = null;
+            if (photoSalesEnabled)
+            {
+                var graduateCanViewCellValue = workSheet.Cells[i, colGraduateCanViewAllPhotos].Value;
+                if (graduateCanViewCellValue == null || string.IsNullOrWhiteSpace(graduateCanViewCellValue.ToString()))
+                {
+                    gradByCPF.GraduateCanViewAllPhotosFromThisClassCode = true;
+                }
+                else
+                {
+                    var graduateCanViewCell = graduateCanViewCellValue.ToString()!.ToLower();
+                    var trueValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        "sim", "s", "v", "true", "t", "verdadeiro", "yes", "y", "si", "1"
+                    };
+                    var falseValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        "não", "nao", "no", "not", "n", "false", "f", "falso", "0"
+                    };
+                    if (trueValues.Contains(graduateCanViewCell))
+                        gradByCPF.GraduateCanViewAllPhotosFromThisClassCode = true;
+                    else if (falseValues.Contains(graduateCanViewCell))
+                        gradByCPF.GraduateCanViewAllPhotosFromThisClassCode = false;
+                }
+            }
+
             var blockedCellValue = workSheet.Cells[i, colBlocked].Value ?? false;
             if (blockedCellValue == null || string.IsNullOrWhiteSpace(blockedCellValue.ToString()))
             {
@@ -3193,6 +3320,11 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             graduates.Add(gradByCPF);
         }
+
+        var duplicateMessage = GraduateByCpfDuplicateChecker.ValidateOrGetMessage(graduates);
+        if (duplicateMessage != null)
+            return duplicateMessage;
+
         return null;
     }
 
@@ -3200,7 +3332,8 @@ public partial class CollectionsViewModel : ViewModelBase
         ObservableCollection<GraduateByCPF> graduates,
         string recFolder,
         bool canEditCpfs,
-        string cpfsErrorMessage)
+        string cpfsErrorMessage,
+        bool photoSalesEnabled = false)
     {
         if (!canEditCpfs)
         {
@@ -3221,7 +3354,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         List<string[]> cellsData = new List<string[]>()
         {
-            new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
+            new string[] { TranslationHelper.Default.PHOTO_NAME, TranslationHelper.Default.ID, Loc.Tr("Name"), "Email", TranslationHelper.Default.MAX_PHOTOS, TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT, TranslationHelper.Default.FREE_PHOTOS_FROM_THIS_CLASS_CODE, TranslationHelper.Default.GRADUATE_CAN_VIEW_ALL_PHOTOS_FROM_THIS_CLASS_CODE, TranslationHelper.Default.BLOCKED, TranslationHelper.Default.BLOCK_MODE }
         };
         string headerRange = "A1:" + Char.ConvertFromUtf32(cellsData[0].Length + 64) + "1";
         excelWorksheet.Cells[headerRange].Style.Font.Bold = true;
@@ -3231,8 +3364,10 @@ public partial class CollectionsViewModel : ViewModelBase
         excelWorksheet.Column(4).Width = 30;
         excelWorksheet.Column(5).Width = 30;
         excelWorksheet.Column(6).Width = 30;
-        excelWorksheet.Column(7).Width = 18;
-        excelWorksheet.Column(8).Width = 18;
+        excelWorksheet.Column(7).Width = 30;
+        excelWorksheet.Column(8).Width = 30;
+        excelWorksheet.Column(9).Width = 18;
+        excelWorksheet.Column(10).Width = 18;
 
         foreach (var g in graduates)
         {
@@ -3246,6 +3381,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 g.Email,
                 g.MaxPhotos.ToString(),
                 g.MaxPhotosForTreatmentRequest.ToString(),
+                g.FreePhotosFromThisClassCode.ToString(),
+                g.GraduateCanViewAllPhotosFromThisClassCode.ToString(),
                 g.Blocked.ToString(),
                 g.BlockType.ToString()
             });
@@ -3266,7 +3403,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         excel.SaveAs(excelFile);
 
-        var importError1 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage);
+        var importError1 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage, photoSalesEnabled);
         if (importError1 != null)
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(importError1, "Erro");
@@ -3283,7 +3420,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
         await Task.Run(() => WaitForProcess(p));
 
-        var importError2 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage);
+        var importError2 = ImportGraduatesFromExcel(excelFile, graduates, recFolder, canEditCpfs, cpfsErrorMessage, photoSalesEnabled);
         if (importError2 != null)
             GlobalAppStateViewModel.Instance.ShowDialogOk(importError2, "Erro");
     }
@@ -3378,12 +3515,15 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbGraduatesCanViewAllPhotosFromThisClassCode = null;
         CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
+        CbShowPhotosWithFacialEnhancementByDefault = null;
+        CbShowPhotosWithColorCorrectionByDefault = null;
         
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
@@ -3426,12 +3566,15 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = false;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = false;
+        CbGraduatesCanViewAllPhotosFromThisClassCode = null;
         CbPhotosCannotHaveWatermarks = false;
         TbPricePerPhotoForSellingOnline = 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = false;
         CbOcr = false;
+        CbShowPhotosWithFacialEnhancementByDefault = null;
+        CbShowPhotosWithColorCorrectionByDefault = null;
         
         // Resetar propriedade de combo apenas tratamento
         IsTreatmentOnlyCombo = false;
@@ -3475,13 +3618,15 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDBackup = options.BackupHd;
         CbEnableAutoExclusion = true;
         CbEnablePhotoSales = options.EnablePhotoSales;
+        CbGraduatesCanViewAllPhotosFromThisClassCode = options.EnablePhotoSales ? true : null;
         CbPhotosCannotHaveWatermarks = false;
-        TbPricePerPhotoForSellingOnline = 0;
+        TbPricePerPhotoForSellingOnline = options.EnablePhotoSales ? MinPhotoSalesPriceReais : 0;
         TbTotalPhotosForFreePerGraduate = 0;
         TbProfessionalTaskDescription = string.Empty;
         CbEnableAutoTreatment = options.AutoTreatment;
         CbOcr = options.Ocr;
         CbAllowDeletedProductionToBeFoundAnyone = options.AllowDeletedProductionToBeFoundAnyone;
+        SyncShowPhotosTreatmentDefaultsFromAutoTreatmentState();
         
         // Definir se Ã© um combo apenas tratamento
         IsTreatmentOnlyCombo = options.IsTreatmentOnly;
@@ -3648,12 +3793,25 @@ public partial class CollectionsViewModel : ViewModelBase
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
             CbEnablePhotoSales = SelectedCollection.EnablePhotosSales ?? false;
+            CbGraduatesCanViewAllPhotosFromThisClassCode = SelectedCollection.EnablePhotosSales == true
+                ? SelectedCollection.GraduatesCanViewAllPhotosFromThisClassCode
+                : null;
             CbPhotosCannotHaveWatermarks = SelectedCollection.PhotosCannotHaveWatermarks ?? false;
             TbPricePerPhotoForSellingOnline = ConvertCentsToDecimal(SelectedCollection.PricePerPhotoForSellingOnlineInCents);
             TbTotalPhotosForFreePerGraduate = SelectedCollection.TotalPhotosForFreePerGraduate ?? 0;
             TbProfessionalTaskDescription = SelectedCollection.Description ?? string.Empty;
             CbEnableAutoTreatment = SelectedCollection.AutoTreatment ?? false;
             AutoTreatmentVersion = SelectedCollection.AutoTreatmentVersion;
+            if (CbEnableAutoTreatment == true)
+            {
+                CbShowPhotosWithFacialEnhancementByDefault = SelectedCollection.ShowPhotosWithFacialEnhancementByDefault ?? false;
+                CbShowPhotosWithColorCorrectionByDefault = SelectedCollection.ShowPhotosWithColorCorrectionByDefault ?? false;
+            }
+            else
+            {
+                CbShowPhotosWithFacialEnhancementByDefault = null;
+                CbShowPhotosWithColorCorrectionByDefault = null;
+            }
             CbRecognitionVersion20 = SelectedCollection.RecognitionVersion == "2.0";
             CbRecognitionVersion10 = CbRecognitionVersion20 != true;
             CbOcr = SelectedCollection.OCR ?? false;
@@ -3824,6 +3982,7 @@ public partial class CollectionsViewModel : ViewModelBase
         target.PhotosCannotHaveWatermarks = source.PhotosCannotHaveWatermarks;
         target.PricePerPhotoForSellingOnlineInCents = source.PricePerPhotoForSellingOnlineInCents;
         target.TotalPhotosForFreePerGraduate = source.TotalPhotosForFreePerGraduate;
+        target.GraduatesCanViewAllPhotosFromThisClassCode = source.GraduatesCanViewAllPhotosFromThisClassCode;
         target.Status = source.Status;
         target.StorageLocation = source.StorageLocation;
         target.CreationDate = source.CreationDate;
@@ -4210,6 +4369,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Events folder not found"));
                 return;
             }
+            if (!TryValidatePhotoSalesPrice())
+                return;
             if (CheckIfClassAlreadyExists(TbCollectionName))
             {
                 var dialog = new ReuploadWarningDialog();
@@ -4253,8 +4414,11 @@ public partial class CollectionsViewModel : ViewModelBase
                 PhotosCannotHaveWatermarks = CbPhotosCannotHaveWatermarks,
                 PricePerPhotoForSellingOnlineInCents = ConvertDecimalToCents(TbPricePerPhotoForSellingOnline),
                 TotalPhotosForFreePerGraduate = (int)(TbTotalPhotosForFreePerGraduate ?? 0.0),
+                GraduatesCanViewAllPhotosFromThisClassCode = CbEnablePhotoSales == true ? (CbGraduatesCanViewAllPhotosFromThisClassCode ?? false) : null,
                 OCR = CbOcr,
                 AllowDeletedProductionToBeFoundAnyone = CbAllowDeletedProductionToBeFoundAnyone,
+                ShowPhotosWithFacialEnhancementByDefault = CbEnableAutoTreatment == true ? (CbShowPhotosWithFacialEnhancementByDefault ?? false) : null,
+                ShowPhotosWithColorCorrectionByDefault = CbEnableAutoTreatment == true ? (CbShowPhotosWithColorCorrectionByDefault ?? false) : null,
 
                  IsTreatmentOnly = IsTreatmentOnlyCombo,
             };
@@ -4301,6 +4465,16 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(checkIfClassCanBeCreated.message);
                 return;
+            }
+
+            if (!IsTreatmentOnlyCombo)
+            {
+                var graduateDuplicateMessage = GraduateByCpfDuplicateChecker.ValidateOrGetMessage(GraduatesData);
+                if (graduateDuplicateMessage != null)
+                {
+                    GlobalAppStateViewModel.Instance.ShowDialogOk(graduateDuplicateMessage, "Formandos duplicados");
+                    return;
+                }
             }
 
             var graduatesDataToUpload = GraduatesData.ToList();
@@ -4435,6 +4609,10 @@ public partial class CollectionsViewModel : ViewModelBase
                 {
                     g.ClassCode = pt.classCode;
                     g.Company = pt.companyUsername;
+                    if (pt.EnablePhotosSales != true)
+                        g.GraduateCanViewAllPhotosFromThisClassCode = null;
+                    else
+                        g.GraduateCanViewAllPhotosFromThisClassCode = g.GraduateCanViewAllPhotosFromThisClassCode ?? false;
                 }
                 if (graduatesDataToUpload.Count > 0)
                     await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
@@ -4633,7 +4811,7 @@ public partial class CollectionsViewModel : ViewModelBase
             BtTagSortIsRunning = true;
 
             // Verificar se o total de fotos da coleÃ§Ã£o corresponde ao total de fotos reconhecidas no servidor
-            if (!await VerifyAndUpdatePhotoCountIfNeeded())
+            if (!TempAllowTagSortWithoutRules && !await VerifyAndUpdatePhotoCountIfNeeded())
                 return;
 
             if (SelectedSeparationFile != null)
@@ -4857,7 +5035,8 @@ public partial class CollectionsViewModel : ViewModelBase
             GraduatesData.Add(new GraduateByCPF()
             {
                 ShortPath = shortPath,
-                Name = ""
+                Name = "",
+                GraduateCanViewAllPhotosFromThisClassCode = DefaultGraduateCanViewAllPhotosFromThisClassCodeForNewGraduate()
             });
 
         }
@@ -4882,7 +5061,7 @@ public partial class CollectionsViewModel : ViewModelBase
         try
         {
             ComponentNewCollectionIsEnabled = false;
-            await GenerateAndOpenExcelForGraduatesAsync(GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage);
+            await GenerateAndOpenExcelForGraduatesAsync(GraduatesData, TbRecFolder, CanAddCPFs, CPFsErrorMessage, CbEnablePhotoSales == true);
             SortGraduatesDataAlphabetically();
         }
         catch (Exception e)

@@ -161,6 +161,26 @@
                     </DataGridTextColumn.Header>
                   </DataGridTextColumn>
 
+                  <DataGridTextColumn Binding="{Binding FreePhotosFromThisClassCode}"
+                                      IsVisible="{Binding DataContext.IsPhotoSalesEnabled, ElementName=root}">
+                    <DataGridTextColumn.Header>
+                      <TextBlock Text="{Tr 'Free photos from this class'}"
+                                 TextWrapping="Wrap"
+                                 MaxWidth="100"
+                                 TextAlignment="Center" />
+                    </DataGridTextColumn.Header>
+                  </DataGridTextColumn>
+
+                  <DataGridCheckBoxColumn Binding="{Binding GraduateCanViewAllPhotosFromThisClassCode, TargetNullValue=False}"
+                                          IsVisible="{Binding DataContext.IsPhotoSalesEnabled, ElementName=root}">
+                    <DataGridCheckBoxColumn.Header>
+                      <TextBlock Text="{Tr 'Graduate can view all photos from this class'}"
+                                 TextWrapping="Wrap"
+                                 MaxWidth="100"
+                                 TextAlignment="Center" />
+                    </DataGridCheckBoxColumn.Header>
+                  </DataGridCheckBoxColumn>
+
                   <DataGridCheckBoxColumn Header="{Tr 'Blocked'}" Binding="{Binding Blocked, TargetNullValue=False}" />
                   <DataGridTemplateColumn Header="{Tr 'Block type'}">
                     <DataGridTemplateColumn.CellTemplate>

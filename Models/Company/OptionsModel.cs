@@ -26,50 +26,48 @@ namespace LesserDashboardClient.Models.Company
 
         public void Save()
         {
-            var json = JsonConvert.SerializeObject(this);
-            if (!Directory.Exists(AppConfigFolder))
-                Directory.CreateDirectory(AppConfigFolder);
-            File.WriteAllText(SettingsFilePath, json);
-            // Só loga em caso suspeito (ajuda a debugar corrupção)
+            AppSettingsLoader.MergeAndWriteSettings(this);
             if (string.IsNullOrWhiteSpace(Language) || string.IsNullOrWhiteSpace(AppTheme))
                 CorruptionDiagnostics.Log($"OptionsModel.Save (suspeito) | Language='{Language ?? "(null)"}' | AppTheme='{AppTheme ?? "(null)"}'");
         }
 
-        /// <summary>Idioma padrão: português.</summary>
-        public const string DefaultLanguage = "pt-BR";
-        /// <summary>Tema padrão: escuro (maioria dos programas de foto usa preto).</summary>
-        public const string DefaultAppTheme = "DarkMode";
+        public const string DefaultLanguage = AppSettingsLoader.DefaultLanguage;
+        public const string DefaultAppTheme = AppSettingsLoader.DefaultAppTheme;
 
         public static OptionsModel Load()
         {
-            if (File.Exists(SettingsFilePath))
+            return AppSettingsLoader.LoadWithRepair(
+                CreateDefault,
+                RepairDefaults,
+                model => model.Save(),
+                reason => CorruptionDiagnostics.Log($"OptionsModel.Load: {reason} -> recriando defaults"));
+        }
+
+        private static bool RepairDefaults(OptionsModel model)
+        {
+            bool repaired = false;
+
+            if (string.IsNullOrWhiteSpace(model.Language))
             {
-                var json = File.ReadAllText(SettingsFilePath);
-                var loaded = JsonConvert.DeserializeObject<OptionsModel>(json);
-                if (loaded != null)
-                {
-                    if (string.IsNullOrWhiteSpace(loaded.Language))
-                    {
-                        loaded.Language = DefaultLanguage;
-                        CorruptionDiagnostics.Log($"OptionsModel.Load: Language vazio -> fallback '{DefaultLanguage}'");
-                    }
-                    if (string.IsNullOrWhiteSpace(loaded.AppTheme))
-                    {
-                        loaded.AppTheme = DefaultAppTheme;
-                        CorruptionDiagnostics.Log($"OptionsModel.Load: AppTheme vazio -> fallback '{DefaultAppTheme}'");
-                    }
-                }
-                return loaded ?? CreateDefault();
+                model.Language = DefaultLanguage;
+                repaired = true;
+                CorruptionDiagnostics.Log($"OptionsModel.Load: Language vazio -> fallback '{DefaultLanguage}'");
             }
 
-            return CreateDefault();
+            if (string.IsNullOrWhiteSpace(model.AppTheme))
+            {
+                model.AppTheme = DefaultAppTheme;
+                repaired = true;
+                CorruptionDiagnostics.Log($"OptionsModel.Load: AppTheme vazio -> fallback '{DefaultAppTheme}'");
+            }
+
+            return repaired;
         }
 
         private static OptionsModel CreateDefault()
         {
             var om = new OptionsModel
             {
-                DefaultPathToDownloadProfessionalTaskFiles = SharedClientSide.Helpers.Constants.SeparationFolder.FullName,
                 Language = DefaultLanguage,
                 AppTheme = DefaultAppTheme
             };

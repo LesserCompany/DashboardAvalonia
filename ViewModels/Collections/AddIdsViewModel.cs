@@ -2,6 +2,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Graduate;
 using SharedClientSide.ServerInteraction.Users.Professionals;
@@ -87,7 +88,7 @@ public partial class AddIdsViewModel : ObservableObject
 
     public AddIdItemStatus GetItemStatus(string shortPath)
     {
-        var key = NormalizeShortPath(shortPath);
+        var key = GraduateByCpfDuplicateChecker.NormalizeShortPath(shortPath);
         if (string.IsNullOrEmpty(key)) return new AddIdItemStatus();
         if (!ItemStatuses.TryGetValue(key, out var status))
         {
@@ -187,7 +188,7 @@ public partial class AddIdsViewModel : ObservableObject
         foreach (var kvp in ItemStatuses.Where(x => x.Value.Status == AddIdRegistrationStatus.Failed))
         {
             var key = kvp.Key;
-            var cpf = GraduatesData.FirstOrDefault(g => string.Equals(NormalizeShortPath(g?.ShortPath), key, StringComparison.OrdinalIgnoreCase))?.CPF?.Trim();
+            var cpf = GraduatesData.FirstOrDefault(g => string.Equals(GraduateByCpfDuplicateChecker.NormalizeShortPath(g?.ShortPath), key, StringComparison.OrdinalIgnoreCase))?.CPF?.Trim();
             var cpfPart = string.IsNullOrWhiteSpace(cpf) ? "" : $" (CPF {cpf})";
             var reason = kvp.Value.FailureReason?.Trim();
             var detail = string.IsNullOrWhiteSpace(reason) ? "" : $" — {reason}";
@@ -212,6 +213,13 @@ public partial class AddIdsViewModel : ObservableObject
         if (!CanAddCPFs)
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(CPFsErrorMessage);
+            return;
+        }
+
+        var duplicateMessage = GraduateByCpfDuplicateChecker.ValidateOrGetMessage(GraduatesData);
+        if (duplicateMessage != null)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(duplicateMessage, "Formandos duplicados");
             return;
         }
 
@@ -245,14 +253,14 @@ public partial class AddIdsViewModel : ObservableObject
             await LoadGraduatesData();
             var existingByCpf = GraduatesData
                 .Where(g => g != null && !string.IsNullOrWhiteSpace(g.CPF))
-                .GroupBy(g => NormalizeCpf(g.CPF))
+                .GroupBy(g => GraduateByCpfDuplicateChecker.NormalizeCpf(g.CPF))
                 .Where(g => !string.IsNullOrWhiteSpace(g.Key))
                 .ToDictionary(g => g.Key, g => g.First());
 
             var existingShortPaths = new HashSet<string>(
                 GraduatesData
                     .Where(g => g != null && !string.IsNullOrWhiteSpace(g.ShortPath))
-                    .Select(g => NormalizeShortPath(g.ShortPath)),
+                    .Select(g => GraduateByCpfDuplicateChecker.NormalizeShortPath(g.ShortPath)),
                 StringComparer.OrdinalIgnoreCase);
 
             if (string.IsNullOrWhiteSpace(TbRecFolder) || !Directory.Exists(TbRecFolder))
@@ -287,8 +295,8 @@ public partial class AddIdsViewModel : ObservableObject
                 await sem.WaitAsync(ct);
                 try
                 {
-                    var cpfNorm = NormalizeCpf(cpf);
-                    var shortPathNorm = NormalizeShortPath(shortPathRaw);
+                    var cpfNorm = GraduateByCpfDuplicateChecker.NormalizeCpf(cpf);
+                    var shortPathNorm = GraduateByCpfDuplicateChecker.NormalizeShortPath(shortPathRaw);
                     var fileNameOnly = Path.GetFileName(shortPathRaw.Replace("/", "\\"));
                     if (string.IsNullOrWhiteSpace(fileNameOnly))
                     {
@@ -413,9 +421,9 @@ public partial class AddIdsViewModel : ObservableObject
         {
             var sp = GraduatesData[i]?.ShortPath;
             if (string.IsNullOrWhiteSpace(sp)) continue;
-            var n = NormalizeShortPath(sp);
-            if (string.Equals(n, NormalizeShortPath(okPath), StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(n, NormalizeShortPath(failPath), StringComparison.OrdinalIgnoreCase))
+            var n = GraduateByCpfDuplicateChecker.NormalizeShortPath(sp);
+            if (string.Equals(n, GraduateByCpfDuplicateChecker.NormalizeShortPath(okPath), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(n, GraduateByCpfDuplicateChecker.NormalizeShortPath(failPath), StringComparison.OrdinalIgnoreCase))
                 GraduatesData.RemoveAt(i);
         }
 
@@ -464,19 +472,5 @@ public partial class AddIdsViewModel : ObservableObject
     }
 
     public bool CanPickNewIdsFromRecFolder() => !string.IsNullOrWhiteSpace(TbRecFolder) && Directory.Exists(TbRecFolder);
-
-    private static string NormalizeCpf(string? cpf)
-    {
-        if (string.IsNullOrWhiteSpace(cpf))
-            return "";
-        return new string(cpf.Where(char.IsDigit).ToArray());
-    }
-
-    private static string NormalizeShortPath(string? shortPath)
-    {
-        if (string.IsNullOrWhiteSpace(shortPath))
-            return "";
-        return shortPath.Trim().TrimStart('\\', '/').Replace("\\", "/");
-    }
 }
 

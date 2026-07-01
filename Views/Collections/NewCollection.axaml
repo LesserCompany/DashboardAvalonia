@@ -230,27 +230,29 @@
                              IsVisible="{Binding IsHdStoragePriceTextVisible}" />
               </StackPanel>
                 
-              <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
                            IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
                            IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
                            VerticalAlignment="Center" />
 
-                <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
-                  <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
-                </Button>
-              </StackPanel>
-              <!-- Mensagem de erro para AutoTreatment -->
-              <TextBlock Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"
-                        IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
-                        Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
-                        Foreground="Red" 
-                        FontSize="12" 
-                        HorizontalAlignment="Center" 
-                        Margin="0,5,0,0" 
-                        TextWrapping="Wrap" />
+                  <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
+                    <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
+                  </Button>
+                </StackPanel>
 
-              <Grid Grid.Row="9"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
+                <local:AutoTreatmentPreferencesPanel Margin="16,0" />
+
+                <TextBlock IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
+                          Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
+                          Foreground="Red" 
+                          FontSize="12" 
+                          HorizontalAlignment="Center" 
+                          TextWrapping="Wrap" />
+              </StackPanel>
+
+              <Grid Grid.Row="8"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Center">
                   <TextBlock Text="{Tr 'Separator:'}" VerticalAlignment="Center" />
                   <Button Command="{Binding OpenSelectProfessionalViewCommand}" 
@@ -271,9 +273,13 @@
                   <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
                     <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
                     <StackPanel Grid.Row="1" Spacing="6">
+                      <TextBlock Margin="24 2 0 0"
+                                 FontSize="10"
+                                 Foreground="{DynamicResource TextSecondaryBrush}"
+                                 Text="{Tr 'Photo sales minimum price hint'}" />
                       <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}">
                         <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
-                        <NumericUpDown Minimum="0"
+                        <NumericUpDown Minimum="5"
                            Margin="4"
                            HorizontalAlignment="Left"
                            Maximum="99999"
@@ -281,6 +287,9 @@
                            FormatString="C"
                            Value="{Binding TbPricePerPhotoForSellingOnline}"
                            Width="150"/>
+                        <CheckBox Margin="4,8,0,0"
+                                  IsChecked="{Binding CbGraduatesCanViewAllPhotosFromThisClassCode, FallbackValue=True}"
+                                  Content="{Tr 'Graduate can view all photos from this class'}" />
                       </StackPanel>
                     </StackPanel>
                   </Grid>  
@@ -291,6 +300,16 @@
                            IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
                            Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
+                  <StackPanel Margin="10 2 0 0" IsVisible="{Binding IsTotalPhotosForFreePerGraduateVisible}">
+                    <TextBlock Text="{Tr 'TotalPhotosForFreePerGraduate'}"   />
+                    <NumericUpDown Minimum="0"
+                       Margin="4"
+                       HorizontalAlignment="Left"
+                       Maximum="9999"
+                       Increment="1"
+                       Value="{Binding TbTotalPhotosForFreePerGraduate}"
+                       Width="150"/>
+                  </StackPanel>
                   <StackPanel Margin="10 2 0 0" IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
                     <CheckBox IsChecked="{Binding CbPhotosCannotHaveWatermarks}"
                               Content="{Tr 'Photos cannot have watermarks'}" />
@@ -300,16 +319,6 @@
                     <TextBox Text="{Binding TbProfessionalTaskDescription, Mode=TwoWay}"
                              Width="250"
                              HorizontalAlignment="Left" />
-                  </StackPanel>
-                  <StackPanel Margin="10 2 0 0 " IsVisible="{Binding IsTotalPhotosForFreePerGraduateVisible}">
-                    <TextBlock Text="{Tr 'TotalPhotosForFreePerGraduate'}"   />
-                    <NumericUpDown Minimum="0"
-                       Margin="4"
-                       HorizontalAlignment="Left"
-                       Maximum="9999"
-                       Increment="1"
-                       Value="{Binding TbTotalPhotosForFreePerGraduate}"
-                       Width="150"/>
                   </StackPanel>
                   <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
@@ -362,6 +371,26 @@
                                              TextAlignment="Center"/>
                                 </DataGridTextColumn.Header>
                               </DataGridTextColumn>
+
+                              <DataGridTextColumn Binding="{Binding FreePhotosFromThisClassCode}"
+                                                  IsVisible="{Binding DataContext.CbEnablePhotoSales, ElementName=root, FallbackValue=False}">
+                                <DataGridTextColumn.Header>
+                                  <TextBlock Text="{Tr 'Free photos from this class'}"
+                                             TextWrapping="Wrap"
+                                             MaxWidth="100"
+                                             TextAlignment="Center"/>
+                                </DataGridTextColumn.Header>
+                              </DataGridTextColumn>
+
+                              <DataGridCheckBoxColumn Binding="{Binding GraduateCanViewAllPhotosFromThisClassCode, TargetNullValue=False}"
+                                                      IsVisible="{Binding DataContext.CbEnablePhotoSales, ElementName=root, FallbackValue=False}">
+                                <DataGridCheckBoxColumn.Header>
+                                  <TextBlock Text="{Tr 'Graduate can view all photos from this class'}"
+                                             TextWrapping="Wrap"
+                                             MaxWidth="100"
+                                             TextAlignment="Center"/>
+                                </DataGridCheckBoxColumn.Header>
+                              </DataGridCheckBoxColumn>
                               
                               
                                 <DataGridCheckBoxColumn Header="{Tr 'Blocked'}"  Binding="{Binding Blocked, TargetNullValue=False}" />

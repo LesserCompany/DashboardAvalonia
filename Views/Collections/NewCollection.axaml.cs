@@ -364,7 +364,8 @@ public partial class NewCollection : UserControl
                 ShortPath = shortPath,
                 Name = "",
                 Blocked = false,
-                BlockType = GraduateByCPF.BlockTypes.WATERMARK
+                BlockType = GraduateByCPF.BlockTypes.WATERMARK,
+                GraduateCanViewAllPhotosFromThisClassCode = vm.CbEnablePhotoSales == true ? true : null
             });
             added++;
         }

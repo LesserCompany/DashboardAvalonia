@@ -243,9 +243,25 @@
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
   },
+  "Photo sales minimum price hint": {
+    "en-US": "To enable photo sales, the minimum price per photo is R$ 5.00.",
+    "pt-BR": "Para habilitar a venda de fotos, o preço mínimo por foto é R$ 5,00."
+  },
+  "Photo sales minimum price required": {
+    "en-US": "To enable photo sales, the price per photo must be at least R$ 5.00.",
+    "pt-BR": "Para habilitar a venda de fotos, o preço por foto deve ser de no mínimo R$ 5,00."
+  },
   "TotalPhotosForFreePerGraduate": {
     "en-US": "Total free photos per graduate:",
     "pt-BR": "Total de fotos grátis por formando:"
+  },
+  "Graduate can view all photos from this class": {
+    "en-US": "Graduate can view all photos from this class",
+    "pt-BR": "Formando pode ver todas as fotos desta turma"
+  },
+  "Free photos from this class": {
+    "en-US": "Free photos from this class",
+    "pt-BR": "Fotos grátis desta turma"
   },
   "Price per photo:": {
     "en-US": "Price per photo:",
@@ -990,5 +1006,37 @@
   "Creating professional...": {
     "en-US": "Creating professional...",
     "pt-BR": "Criando profissional..."
+  },
+  "Show photos with facial enhancement by default": {
+    "en-US": "Show photos with facial enhancement by default",
+    "pt-BR": "Exibir fotos com realce facial por padrão"
+  },
+  "Show photos with color correction by default": {
+    "en-US": "Show photos with color correction by default",
+    "pt-BR": "Exibir fotos com correção de cor por padrão"
+  },
+  "Automatic color correction": {
+    "en-US": "Automatic color correction",
+    "pt-BR": "Correção automática de cor"
+  },
+  "Automatic color correction hint": {
+    "en-US": "Adjusts color balance, brightness and contrast.",
+    "pt-BR": "Ajusta equilíbrio de cores, brilho e contraste."
+  },
+  "Automatic color correction tooltip": {
+    "en-US": "Automatically adjusts color balance, brightness and contrast. Use this switch to set whether the option is on or off by default for each graduate — they can change it later if they want.",
+    "pt-BR": "Ajusta automaticamente o equilíbrio de cores, brilho e contraste. Aqui você define se essa opção já vem ligada ou desligada para o formando — ele poderá mudar depois, se quiser."
+  },
+  "Automatic facial enhancement": {
+    "en-US": "Automatic facial enhancement",
+    "pt-BR": "Melhoria facial automática"
+  },
+  "Automatic facial enhancement hint": {
+    "en-US": "Subtle skin smoothing and eye enhancement.",
+    "pt-BR": "Suavização de pele e realce dos olhos."
+  },
+  "Automatic facial enhancement tooltip": {
+    "en-US": "Applies subtle facial improvements such as skin smoothing and eye enhancement. Use this switch to set whether the option is on or off by default for each graduate — they can change it later if they want.",
+    "pt-BR": "Aplica melhorias sutis na aparência facial, como suavização de pele e realce dos olhos. Aqui você define se essa opção já vem ligada ou desligada para o formando — ele poderá mudar depois, se quiser."
   }
 }

@@ -36,16 +36,16 @@
     "pt-BR": "Credenciais incorretas. Por favor, tente novamente."
   },
   "Session expired": {
-    "en-US": "Session expired",
-    "pt-BR": "Sessão expirada"
+    "en-US": "Please sign in again",
+    "pt-BR": "Você precisa entrar de novo"
   },
   "Your session has expired. Please login again.": {
-    "en-US": "Your session has expired. Please login again.",
-    "pt-BR": "Sua sessão expirou. Por favor, faça login novamente."
+    "en-US": "You need to sign in again.\n\nClick OK, then enter your username and password on the login screen.",
+    "pt-BR": "Você precisa entrar de novo.\n\nClique em OK e digite seu usuário e senha na tela de login."
   },
   "Your session has expired or is invalid. Please login again.": {
-    "en-US": "Your session has expired or is invalid. Please login again.",
-    "pt-BR": "Sua sessão expirou ou está inválida. Por favor, faça login novamente."
+    "en-US": "For your security, you need to sign in again.\n\nClick OK — the login screen will open. Enter your username and password to continue.",
+    "pt-BR": "Por segurança, você precisa entrar de novo no programa.\n\nClique em OK. A tela de login vai abrir — digite seu usuário e senha para continuar."
   },
   "Error loading news. Please try again.": {
     "en-US": "Error loading news. Please try again.",

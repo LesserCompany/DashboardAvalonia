@@ -2,6 +2,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using SharedClientSide.Helpers;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Graduate;
@@ -83,13 +84,15 @@ public partial class EditIdsViewModel : ObservableObject
 
     public string RecFolderForExcel => _recFolder;
 
+    public bool IsPhotoSalesEnabled => _collection.EnablePhotosSales == true;
+
     public ObservableCollection<GraduateByCPFWithPhotos> GraduatesData { get; } = new();
 
     public Dictionary<string, EditIdItemStatus> ItemStatuses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     public EditIdItemStatus GetItemStatus(string shortPath)
     {
-        var key = NormalizeShortPath(shortPath);
+        var key = GraduateByCpfDuplicateChecker.NormalizeShortPath(shortPath);
         if (string.IsNullOrEmpty(key)) return new EditIdItemStatus();
         if (!ItemStatuses.TryGetValue(key, out var status))
         {
@@ -184,7 +187,7 @@ public partial class EditIdsViewModel : ObservableObject
         var existingShortPaths = new HashSet<string>(
             GraduatesData
                 .Where(g => g != null && !string.IsNullOrWhiteSpace(g.ShortPath))
-                .Select(g => NormalizeShortPath(g.ShortPath)),
+                .Select(g => GraduateByCpfDuplicateChecker.NormalizeShortPath(g.ShortPath)),
             StringComparer.OrdinalIgnoreCase);
 
         foreach (var file in gradPhotos)
@@ -202,7 +205,7 @@ public partial class EditIdsViewModel : ObservableObject
             if (string.IsNullOrWhiteSpace(shortPath))
                 continue;
 
-            var normalized = NormalizeShortPath(shortPath);
+            var normalized = GraduateByCpfDuplicateChecker.NormalizeShortPath(shortPath);
             if (existingShortPaths.Contains(normalized))
                 continue;
 
@@ -257,7 +260,7 @@ public partial class EditIdsViewModel : ObservableObject
         foreach (var kvp in ItemStatuses.Where(x => x.Value.Status == EditIdRegistrationStatus.Failed))
         {
             var key = kvp.Key;
-            var cpf = GraduatesData.FirstOrDefault(g => string.Equals(NormalizeShortPath(g?.ShortPath), key, StringComparison.OrdinalIgnoreCase))?.CPF?.Trim();
+            var cpf = GraduatesData.FirstOrDefault(g => string.Equals(GraduateByCpfDuplicateChecker.NormalizeShortPath(g?.ShortPath), key, StringComparison.OrdinalIgnoreCase))?.CPF?.Trim();
             var cpfPart = string.IsNullOrWhiteSpace(cpf) ? "" : $" (CPF {cpf})";
             var reason = kvp.Value.FailureReason?.Trim();
             var detail = string.IsNullOrWhiteSpace(reason) ? "" : $" — {reason}";
@@ -270,13 +273,17 @@ public partial class EditIdsViewModel : ObservableObject
         return header + "\n\n" + string.Join("\n", failedLines);
     }
 
-    private static GraduateByCPF PrepareGraduateForUpload(GraduateByCPFWithPhotos g, string classCode, string company)
+    private static GraduateByCPF PrepareGraduateForUpload(GraduateByCPFWithPhotos g, string classCode, string company, bool photoSalesEnabled)
     {
         g.ClassCode = classCode;
         g.Company = company;
         g.Blocked ??= false;
         g.BlockType = string.IsNullOrWhiteSpace(g.BlockType) ? GraduateByCPF.BlockTypes.WATERMARK : g.BlockType;
         g.RegistredBy ??= GraduateByCPF.RegistredByTypes.COMPANY;
+        if (!photoSalesEnabled)
+            g.GraduateCanViewAllPhotosFromThisClassCode = null;
+        else
+            g.GraduateCanViewAllPhotosFromThisClassCode = g.GraduateCanViewAllPhotosFromThisClassCode ?? false;
         return g;
     }
 
@@ -295,9 +302,16 @@ public partial class EditIdsViewModel : ObservableObject
             return;
         }
 
+        var duplicateMessage = GraduateByCpfDuplicateChecker.ValidateOrGetMessage(GraduatesData);
+        if (duplicateMessage != null)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(duplicateMessage, "Formandos duplicados");
+            return;
+        }
+
         var grads = GraduatesData
             .Where(g => g != null && !string.IsNullOrWhiteSpace(g.CPF))
-            .Select(g => PrepareGraduateForUpload(g, _collection.classCode, _collection.companyUsername))
+            .Select(g => PrepareGraduateForUpload(g, _collection.classCode, _collection.companyUsername, IsPhotoSalesEnabled))
             .Cast<GraduateByCPF>()
             .ToList();
 
@@ -391,7 +405,7 @@ public partial class EditIdsViewModel : ObservableObject
             return;
 
         var working = new ObservableCollection<GraduateByCPF>(GraduatesData.Cast<GraduateByCPF>());
-        await collectionsVm.GenerateAndOpenExcelForGraduatesAsync(working, _recFolder, CanEditCPFs, CPFsErrorMessage);
+        await collectionsVm.GenerateAndOpenExcelForGraduatesAsync(working, _recFolder, CanEditCPFs, CPFsErrorMessage, IsPhotoSalesEnabled);
         ApplyImportedGraduates(working);
     }
 
@@ -402,7 +416,7 @@ public partial class EditIdsViewModel : ObservableObject
             return "Erro interno.";
 
         var working = new ObservableCollection<GraduateByCPF>(GraduatesData.Cast<GraduateByCPF>());
-        var err = collectionsVm.ImportGraduatesFromExcel(f, working, _recFolder, CanEditCPFs, CPFsErrorMessage);
+        var err = collectionsVm.ImportGraduatesFromExcel(f, working, _recFolder, CanEditCPFs, CPFsErrorMessage, IsPhotoSalesEnabled);
         if (err != null)
             return err;
 
@@ -416,12 +430,5 @@ public partial class EditIdsViewModel : ObservableObject
         foreach (var g in source)
             GraduatesData.Add(g is GraduateByCPFWithPhotos wp ? wp : new GraduateByCPFWithPhotos(g));
         SortGraduatesDataAlphabetically();
-    }
-
-    private static string NormalizeShortPath(string? shortPath)
-    {
-        if (string.IsNullOrWhiteSpace(shortPath))
-            return "";
-        return shortPath.Trim().TrimStart('\\', '/').Replace("\\", "/");
     }
 }
