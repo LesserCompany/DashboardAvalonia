@@ -556,6 +556,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(BtExportIsEnabledForView));
         OnPropertyChanged(nameof(BtDownloadHdIsEnabledForView));
         OnPropertyChanged(nameof(ExpanderAdvancedIsEnabled));
+        OnPropertyChanged(nameof(ExpanderAdvancedIsVisible));
     }
 
     /// <summary>Temporário: permitir Tag/Separar sem aguardar upload/reconhecimento no servidor. Remover quando não for mais necessário.</summary>
@@ -586,6 +587,9 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool BtDownloadHdIsEnabledForView => BtDownloadHdIsEnabled && !IsSelectedCollectionInDeletedList;
     /// <summary>AvanÃ§ado expansÃ­vel apenas quando a coleÃ§Ã£o nÃ£o estÃ¡ cancelada e nÃ£o Ã© da lista de deletadas.</summary>
     public bool ExpanderAdvancedIsEnabled => SelectedCollection?.BillingCancelled != true && !IsSelectedCollectionInDeletedList;
+
+    /// <summary>Expander AvanÃ§ado oculto quando cobranÃ§a cancelada ou coleÃ§Ã£o deletada.</summary>
+    public bool ExpanderAdvancedIsVisible => ExpanderAdvancedIsEnabled;
 
     [ObservableProperty] private bool deletedCollectionsListIsLoading;
     partial void OnDeletedCollectionsListIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsListAreaLoading));

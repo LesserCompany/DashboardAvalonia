@@ -361,7 +361,7 @@
           <!-- Resume SeparationFile -->
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
-          <Grid Grid.Row="7">
+          <Grid Grid.Row="7" IsVisible="{Binding ExpanderAdvancedIsVisible}">
               <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}" >
                   <StackPanel Spacing="6">
                       <Button Width="325" Command="{Binding OpenAddIdsViewCommand}" IsVisible="False">
