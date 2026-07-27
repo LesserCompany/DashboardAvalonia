@@ -273,13 +273,9 @@
                   <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
                     <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
                     <StackPanel Grid.Row="1" Spacing="6">
-                      <TextBlock Margin="24 2 0 0"
-                                 FontSize="10"
-                                 Foreground="{DynamicResource TextSecondaryBrush}"
-                                 Text="{Tr 'Photo sales minimum price hint'}" />
-                      <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}">
+                      <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}" Spacing="4">
                         <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
-                        <NumericUpDown Minimum="5"
+                        <NumericUpDown Minimum="0"
                            Margin="4"
                            HorizontalAlignment="Left"
                            Maximum="99999"
@@ -287,6 +283,9 @@
                            FormatString="C"
                            Value="{Binding TbPricePerPhotoForSellingOnline}"
                            Width="150"/>
+                        <TextBlock FontSize="10"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{Tr 'Photo sales minimum price hint'}" />
                         <CheckBox Margin="4,8,0,0"
                                   IsChecked="{Binding CbGraduatesCanViewAllPhotosFromThisClassCode, FallbackValue=True}"
                                   Content="{Tr 'Graduate can view all photos from this class'}" />

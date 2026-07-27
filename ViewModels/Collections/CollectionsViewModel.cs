@@ -650,7 +650,6 @@ public partial class CollectionsViewModel : ViewModelBase
         ValidateCollectionName();
     }
     public const int MinCollectionIdLength = 3;
-    public const double MinPhotoSalesPriceReais = 5.0;
     [ObservableProperty] public bool tbCollectionNameHasError = false;
     [ObservableProperty] public bool tbCollectionNameIsEmpty = false;
     [ObservableProperty] public bool tbCollectionNameIsTooShort = false;
@@ -1203,7 +1202,49 @@ public partial class CollectionsViewModel : ViewModelBase
     }
     [ObservableProperty] public bool? cbGraduatesCanViewAllPhotosFromThisClassCode;
     [ObservableProperty] public bool? cbPhotosCannotHaveWatermarks;
+    /// <summary>Preço mínimo de venda (acima de zero). Valores válidos: 0 ou &gt;= 5.</summary>
+    public const double MinPhotoSalesPriceReais = 5.0;
+    private bool _isNormalizingPhotoSalesPrice;
+    private double _lastNormalizedPhotoSalesPrice;
     [ObservableProperty] public double? tbPricePerPhotoForSellingOnline;
+    /// <summary>
+    /// Aceita 0; de 0 sobe direto para 5 (não permite 0,01…4,99).
+    /// De 5 para baixo volta para 0.
+    /// </summary>
+    partial void OnTbPricePerPhotoForSellingOnlineChanged(double? value)
+    {
+        if (_isNormalizingPhotoSalesPrice)
+            return;
+
+        var raw = value ?? 0;
+        double normalized;
+        if (raw <= 0)
+            normalized = 0;
+        else if (raw < MinPhotoSalesPriceReais)
+        {
+            if (_lastNormalizedPhotoSalesPrice >= MinPhotoSalesPriceReais && raw < _lastNormalizedPhotoSalesPrice)
+                normalized = 0;
+            else
+                normalized = MinPhotoSalesPriceReais;
+        }
+        else
+            normalized = raw;
+
+        _lastNormalizedPhotoSalesPrice = normalized;
+
+        if (value is null || Math.Abs(normalized - raw) > 0.0001)
+        {
+            _isNormalizingPhotoSalesPrice = true;
+            try
+            {
+                TbPricePerPhotoForSellingOnline = normalized;
+            }
+            finally
+            {
+                _isNormalizingPhotoSalesPrice = false;
+            }
+        }
+    }
     [ObservableProperty] public double? tbTotalPhotosForFreePerGraduate;
     [ObservableProperty] public bool? cbAllowCPFsToSeeAllPhotos;
     partial void OnCbAllowCPFsToSeeAllPhotosChanged(bool? value)
@@ -2509,17 +2550,21 @@ public partial class CollectionsViewModel : ViewModelBase
         return (int)(decimalValue.Value * 100);
     }
 
+    /// <summary>Com venda ativa: preço pode ser 0 ou no mínimo R$ 5,00 (sem valores intermediários).</summary>
     private bool TryValidatePhotoSalesPrice()
     {
         if (CbEnablePhotoSales != true)
             return true;
-        if ((TbPricePerPhotoForSellingOnline ?? 0) >= MinPhotoSalesPriceReais)
+        var price = TbPricePerPhotoForSellingOnline ?? 0;
+        if (price <= 0 || price >= MinPhotoSalesPriceReais)
             return true;
         GlobalAppStateViewModel.Instance.ShowDialogOk(
-            Loc.Tr("Photo sales minimum price required", "Para habilitar a venda de fotos, o preço por foto deve ser de no mínimo R$ 5,00."));
+            Loc.Tr("Photo sales minimum price required",
+                "Para habilitar a venda de fotos, o preço por foto deve ser R$ 0,00 ou no mínimo R$ 5,00."));
         return false;
     }
-    /// <summary>ID da coleÃ§Ã£o: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, nÃºmeros, _ / ' . -).</summary>
+
+    /// <summary>ID da coleção: mesmo conjunto que <see cref="RegexHelper.RegexToClassCode"/> (letras, números, _ / ' . -).</summary>
     public bool IsTextAllowed(string text)
     {
         if (string.IsNullOrWhiteSpace(text))

@@ -72,7 +72,7 @@ namespace LesserDashboardClient.Views
                 }
                 else
                 {
-                    TooltipText = $"Ambiente ativo: {activeEnv} (Do build)\n\nPressione Ctrl+Shift+L para alterar o endpoint.";
+                    TooltipText = $"Ambiente ativo: {activeEnv} (Do build)";
                 }
             }
             catch (Exception ex)

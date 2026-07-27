@@ -24,13 +24,13 @@ namespace LesserDashboardClient.Helpers
             Action onUiDone = null,     // será chamado no fim, na UI
             Action<string> onUiError = null)
         {
-            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner.RunInBackground ENTRANDO appName='{appName}' args='{args}'");
+            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner.RunInBackground ENTRANDO appName='{appName}' args='{args}' channel={SharedClientSide.Helpers.PackagedAppHelper.GetInstallChannel()}");
 
             // Encapsula o "marshal" para a UI thread
             void ProgressFromBg(int p) => Dispatcher.UIThread.Post(() => onUiProgress?.Invoke(p));
 
             var ai = new SharedClientSide.Helpers.AppInstaller(appName, ProgressFromBg);
-            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner: AppInstaller criado, chamando startApp...");
+            SharedClientSide.Helpers.AppInstaller.MsixLog($"InstallerRunner: AppInstaller criado, chamando startApp (MSIX=sem blob)...");
 
             _ = Task.Run(async () =>
             {

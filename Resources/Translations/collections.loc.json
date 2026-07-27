@@ -244,12 +244,12 @@
     "pt-BR": "Preço por foto para venda online:"
   },
   "Photo sales minimum price hint": {
-    "en-US": "To enable photo sales, the minimum price per photo is R$ 5.00.",
-    "pt-BR": "Para habilitar a venda de fotos, o preço mínimo por foto é R$ 5,00."
+    "en-US": "Price can be R$ 0.00 or at least R$ 5.00 (values between 0 and 5 are not allowed).",
+    "pt-BR": "O valor pode ser R$ 0,00 ou a partir de R$ 5,00 (não são permitidos valores entre 0 e 5)."
   },
   "Photo sales minimum price required": {
-    "en-US": "To enable photo sales, the price per photo must be at least R$ 5.00.",
-    "pt-BR": "Para habilitar a venda de fotos, o preço por foto deve ser de no mínimo R$ 5,00."
+    "en-US": "To enable photo sales, the price per photo must be R$ 0.00 or at least R$ 5.00.",
+    "pt-BR": "Para habilitar a venda de fotos, o preço por foto deve ser R$ 0,00 ou no mínimo R$ 5,00."
   },
   "TotalPhotosForFreePerGraduate": {
     "en-US": "Total free photos per graduate:",
