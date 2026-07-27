@@ -376,6 +376,12 @@
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Edit IDs without reupload'}" />
                           </StackPanel>
                       </Button>
+                      <Button Width="325" Command="{Binding OpenViewCollectionConfigCommand}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'View collection configuration'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'View collection settings without reupload'}" />
+                          </StackPanel>
+                      </Button>
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Reupload'}" VerticalAlignment="Center" />

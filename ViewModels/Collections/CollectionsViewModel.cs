@@ -1098,6 +1098,9 @@ public partial class CollectionsViewModel : ViewModelBase
 
     partial void OnCbRecognitionVersion10Changed(bool? oldValue, bool? newValue)
     {
+        if (_isLoadingReuploadData)
+            return;
+
         if (newValue == true)
             CbRecognitionVersion20 = false;
         else if (CbRecognitionVersion20 != true)
@@ -1106,6 +1109,9 @@ public partial class CollectionsViewModel : ViewModelBase
 
     partial void OnCbRecognitionVersion20Changed(bool? oldValue, bool? newValue)
     {
+        if (_isLoadingReuploadData)
+            return;
+
         if (newValue == true)
             CbRecognitionVersion10 = false;
         else if (CbRecognitionVersion10 != true)
@@ -1117,6 +1123,23 @@ public partial class CollectionsViewModel : ViewModelBase
 
     [RelayCommand]
     private void SelectRecognitionVersion20() => CbRecognitionVersion20 = true;
+
+    /// <summary>
+    /// Aplica a versão de reconhecimento na UI. Só marca 2.0 se a prop existir e for exatamente "2.0";
+    /// null, vazio ou ausente cai em 1.0 (coleções anteriores ao versionamento).
+    /// </summary>
+    private void ApplyRecognitionVersionFromSource(string? recognitionVersion)
+    {
+        bool isV2 = string.Equals(recognitionVersion?.Trim(), "2.0", StringComparison.Ordinal);
+        // Sempre setar 1.0 primeiro: se setar 2.0=false com 1.0 ainda false, o handler mutual-exclusive força 2.0 de volta.
+        CbRecognitionVersion10 = true;
+        CbRecognitionVersion20 = false;
+        if (isV2)
+        {
+            CbRecognitionVersion20 = true;
+            CbRecognitionVersion10 = false;
+        }
+    }
 
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
@@ -1257,6 +1280,13 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public string tbProfessionalTaskDescription;
     [ObservableProperty] public string? autoTreatmentVersion;
     [ObservableProperty] public bool isReupload = false;
+    /// <summary>Modo somente leitura das configurações da coleção (sem reupload).</summary>
+    [ObservableProperty] public bool isViewingCollectionConfig = false;
+
+    public bool NewCollectionFormIsEnabled => !IsCreatingCollection && !IsViewingCollectionConfig;
+
+    partial void OnIsCreatingCollectionChanged(bool value) => OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
+    partial void OnIsViewingCollectionConfigChanged(bool value) => OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
     [ObservableProperty] public bool? cbOcr;
     [ObservableProperty] public bool? cbShowPhotosWithFacialEnhancementByDefault;
     [ObservableProperty] public bool? cbShowPhotosWithColorCorrectionByDefault;
@@ -3550,6 +3580,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         IsReupload = false;
+        IsViewingCollectionConfig = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova coleï¿½ï¿½o personalizada
@@ -3601,6 +3632,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         IsReupload = false;
+        IsViewingCollectionConfig = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
@@ -3654,6 +3686,7 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         SelectedCollection = null;
         IsReupload = false;
+        IsViewingCollectionConfig = false;
         CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
@@ -3733,6 +3766,7 @@ public partial class CollectionsViewModel : ViewModelBase
             return;
 
         IsReupload = false;
+        IsViewingCollectionConfig = false;
 
         CurrentProfessionalName = SelectedCollection.professionalLogin;
         ScrollComponentNewCollection = 0;
@@ -3778,6 +3812,7 @@ public partial class CollectionsViewModel : ViewModelBase
             return;
 
         IsReupload = false;
+        IsViewingCollectionConfig = false;
 
         CurrentProfessionalName = SelectedCollection.professionalLogin;
         ScrollComponentNewCollection = 0;
@@ -3813,7 +3848,22 @@ public partial class CollectionsViewModel : ViewModelBase
     public void SortGraduatesDataAlphabeticallyForUi() => SortGraduatesDataAlphabetically();
 
     [RelayCommand]
+    public void OpenViewCollectionConfigCommand()
+    {
+        LoadSelectedCollectionIntoNewCollectionForm(forReupload: false, forViewOnly: true);
+    }
+
+    [RelayCommand]
     public void OpenReuploadViewCommand()
+    {
+        LoadSelectedCollectionIntoNewCollectionForm(forReupload: true, forViewOnly: false);
+    }
+
+    /// <summary>
+    /// Carrega os dados da coleção selecionada no formulário de New Collection
+    /// (reupload editável ou visualização somente leitura).
+    /// </summary>
+    private void LoadSelectedCollectionIntoNewCollectionForm(bool forReupload, bool forViewOnly)
     {
         if (SelectedCollection == null)
             return;
@@ -3830,14 +3880,16 @@ public partial class CollectionsViewModel : ViewModelBase
             _preConfiguredComboAuthority = null;
 
             ExpanderAdvancedOptions = true;
-            ExpanderAdvancedOptionsIsEnabled = true; // Permitir alteraÃ§Ã£o de todas as configuraÃ§Ãµes no reupload
+            // No modo visualização, o formulário fica desabilitado; no reupload, permite editar opções.
+            ExpanderAdvancedOptionsIsEnabled = forReupload;
 
-            IsReupload = true;
+            IsReupload = forReupload;
+            IsViewingCollectionConfig = forViewOnly;
             TbCollectionName = SelectedCollection.classCode;
             TbEventFolder = SelectedCollection.originalEventsFolder;
             TbRecFolder = SelectedCollection.originalRecFolder;
             CbUploadedPhotosAreAlreadySorted = SelectedCollection.UploadPhotosAreAlreadySorted;
-            // Desabilitar a opÃ§Ã£o de "jÃ¡ estÃ£o separados" durante reupload
+            // Desabilitar a opção de "já estão separados" durante reupload/visualização
             CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             CbAllowCPFsToSeeAllPhotos = SelectedCollection.AllowCPFsToSeeAllPhotos;
             CbEnableAutoExclusion = SelectedCollection.EnableFaceRelevanceDetection;
@@ -3861,32 +3913,31 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbShowPhotosWithFacialEnhancementByDefault = null;
                 CbShowPhotosWithColorCorrectionByDefault = null;
             }
-            CbRecognitionVersion20 = SelectedCollection.RecognitionVersion == "2.0";
-            CbRecognitionVersion10 = CbRecognitionVersion20 != true;
+            ApplyRecognitionVersionFromSource(SelectedCollection.RecognitionVersion);
             CbOcr = SelectedCollection.OCR ?? false;
             CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
             
             // IMPORTANTE: Atribuir CbHDBackup ANTES de verificar as regras de CPF
             CbHDBackup = SelectedCollection.UploadHD ?? false;
             
-            // Verificar se o HD deve estar desabilitado devido ao perÃ­odo de faturamento
+            // Verificar se o HD deve estar desabilitado devido ao período de faturamento
             if (IsCollectionFromDifferentBillingPeriod(SelectedCollection))
             {
-                // Em reupload de outro perÃ­odo de faturamento:
-                // - NÃ£o permitir transformar turma NÃƒO-HD em HD (desabilita o toggle)
-                // - NÃ£o permitir habilitar AutoTreatment (estÃ¡ ligado ao HD)
-                // - Se a turma jÃ¡ Ã© HD, permitir adicionar/editar CPFs
+                // Em reupload de outro período de faturamento:
+                // - Não permitir transformar turma NÃO-HD em HD (desabilita o toggle)
+                // - Não permitir habilitar AutoTreatment (está ligado ao HD)
+                // - Se a turma já é HD, permitir adicionar/editar CPFs
                 CbHDBackupIsDisabled = true;
                 CbHDBackupErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to perform an HD backup.");
                 
-                // Bloquear AutoTreatment tambÃ©m (estÃ¡ ligado ao HD)
+                // Bloquear AutoTreatment também (está ligado ao HD)
                 CbEnableAutoTreatmentIsDisabled = true;
                 CbEnableAutoTreatmentErrorMessage = Loc.Tr("This collection is from another billing period, please create a new collection to enable automatic enhancement.");
 
-                // NÃ£o force desabilitar se jÃ¡ for HD; apenas impeÃ§a mudar o estado
-                // MantÃ©m CbHDBackup como estÃ¡ (true permanece true; false permanece false)
+                // Não force desabilitar se já for HD; apenas impeça mudar o estado
+                // Mantém CbHDBackup como está (true permanece true; false permanece false)
 
-                // Regras de CPF: turmas NÃƒO-HD nÃ£o podem adicionar/editar CPF; turmas HD podem
+                // Regras de CPF: turmas NÃO-HD não podem adicionar/editar CPF; turmas HD podem
                 if (CbHDBackup == true)
                 {
                     CanAddCPFs = true;
@@ -3906,7 +3957,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbEnableAutoTreatmentErrorMessage = string.Empty;
                 CanAddCPFs = true;
                 CPFsErrorMessage = string.Empty;
-                // Manter desabilitado durante reupload
+                // Manter desabilitado durante reupload/visualização
                 CbUploadedPhotosAreAlreadySortedIsDisabled = true;
             }
             
@@ -3914,7 +3965,7 @@ public partial class CollectionsViewModel : ViewModelBase
         }
         finally
         {
-            // Desativar flag apÃ³s carregar todos os dados
+            // Desativar flag após carregar todos os dados
             _isLoadingReuploadData = false;
         }
     }
@@ -4356,6 +4407,9 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task CreateCollectionCommand()
     {
+        if (IsViewingCollectionConfig)
+            return;
+
         string attempClassCode = TbCollectionName;
         try
         {

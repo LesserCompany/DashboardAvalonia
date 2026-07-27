@@ -95,6 +95,18 @@
     "en-US": "New Collection",
     "pt-BR": "Nova Coleção"
   },
+  "Collection configuration": {
+    "en-US": "Collection configuration",
+    "pt-BR": "Configuração da coleção"
+  },
+  "View collection configuration": {
+    "en-US": "View collection configuration",
+    "pt-BR": "Ver configuração da coleção"
+  },
+  "View collection settings without reupload": {
+    "en-US": "View collection settings without reupload",
+    "pt-BR": "Ver as configurações da coleção sem fazer reupload"
+  },
   "Event Folder:": {
     "en-US": "Event Folder:",
     "pt-BR": "Pasta de Eventos:"

@@ -14,11 +14,12 @@
     <Grid>
     <ScrollViewer x:Name="ScrollViewerNewCollection" Offset="{Binding ScrollComponentNewCollection}" Padding="0,0,0,20">
 
-      <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding !IsCreatingCollection}" Margin="0,0,0,30">
+      <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding NewCollectionFormIsEnabled}" Margin="0,0,0,30">
             <!-- Title -->
             <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
+                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding !IsViewingCollectionConfig}" />
+                <TextBlock Text="{Tr 'Collection configuration'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding IsViewingCollectionConfig}" />
             </StackPanel>
             <!-- form -->
             <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
@@ -439,7 +440,8 @@
                     VerticalContentAlignment="Center" 
                     HorizontalContentAlignment="Center" 
                     Command="{Binding CreateCollectionCommand}" 
-                    IsEnabled="{Binding !IsCreatingCollection}">
+                    IsEnabled="{Binding !IsCreatingCollection}"
+                    IsVisible="{Binding !IsViewingCollectionConfig}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />

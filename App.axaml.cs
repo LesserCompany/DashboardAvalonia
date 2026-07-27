@@ -32,7 +32,7 @@ public partial class App : Application
     private const string MsixStoreProductId = "9P5GDKBRXR16";
 
     /// <summary>Se true, mostra a janela de "atualização disponível" (fase 1 - só avisar) no startup para demo. Colocar false em produção.</summary>
-    private const bool ForceShowUpdateAvailableForDemo = true;
+    private const bool ForceShowUpdateAvailableForDemo = false;
     /// <summary>Se true, mostra a janela de "atualização obrigatória" (fase 2 - bloquear) no startup para demo. Colocar false em produção.</summary>
     private const bool ForceShowUpdateRequiredForDemo = false;
 
