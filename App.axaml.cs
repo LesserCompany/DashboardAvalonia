@@ -18,7 +18,6 @@ using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Login;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -143,7 +142,7 @@ public partial class App : Application
             {
                 if (MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
                     MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
-                ShowUpdateRequiredWindowAndShutdown(desktop, InstallChannel.StoreMsix);
+                ShowUpdateRequiredWindowAndShutdown(desktop);
                 base.OnFrameworkInitializationCompleted();
                 return;
             }
@@ -199,10 +198,10 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Check de update pós-UI:
-    /// - MSIX Required → troca para janela de bloqueio e shutdown
-    /// - MSIX/Web Available → aviso fase 1 por cima
-    /// - Sem update / erro / debug VS → segue normal (UI já aberta)
+    /// Check de update pós-UI (somente MSIX):
+    /// - Required → troca para janela de bloqueio e shutdown
+    /// - Available → aviso fase 1 por cima
+    /// - WebLegacy / sem update / erro → segue normal (UI já aberta)
     /// </summary>
     private static void ScheduleStartupUpdateCheck(IClassicDesktopStyleApplicationLifetime desktop)
     {
@@ -211,11 +210,7 @@ public partial class App : Application
             _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 await Task.Delay(500);
-                ShowUpdateAvailableNotice(new AppUpdateCheckOutcome
-                {
-                    Status = AppUpdateCheckStatus.Available,
-                    Channel = PackagedAppHelper.GetInstallChannel()
-                });
+                ShowUpdateAvailableNotice();
             });
         }
 
@@ -246,14 +241,13 @@ public partial class App : Application
             if (updateOutcome.Status == AppUpdateCheckStatus.Required)
             {
                 if (!updateOutcome.OpenedMicrosoftStore
-                    && updateOutcome.Channel != InstallChannel.WebLegacy
                     && MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
                 {
                     MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
                 }
 
                 var oldWindow = desktop.MainWindow;
-                ShowUpdateRequiredWindowAndShutdown(desktop, updateOutcome.Channel);
+                ShowUpdateRequiredWindowAndShutdown(desktop);
                 try
                 {
                     oldWindow?.Close();
@@ -264,43 +258,10 @@ public partial class App : Application
 
             if (updateOutcome.Status == AppUpdateCheckStatus.Available)
             {
-                // Em DEBUG/VS o exe está em bin/Debug — path ≠ pasta do servidor → falso positivo.
-                if (updateOutcome.Channel == InstallChannel.WebLegacy && ShouldSuppressWebLegacyUpdateNotice())
-                {
-                    SharedClientSide.Helpers.AppInstaller.MsixLog(
-                        "Startup update: Available (WebLegacy) ignorado — build de desenvolvimento/debug.");
-                    return;
-                }
-
                 await Task.Delay(500);
-                ShowUpdateAvailableNotice(updateOutcome);
+                ShowUpdateAvailableNotice();
             }
         });
-    }
-
-    /// <summary>
-    /// Evita aviso falso de "versão nova no servidor" ao correr F5 / bin\Debug|Release.
-    /// Instalação web real (Documents/Separacao/apps) continua a ver o aviso.
-    /// </summary>
-    private static bool ShouldSuppressWebLegacyUpdateNotice()
-    {
-#if DEBUG
-        return true;
-#else
-        if (Debugger.IsAttached)
-            return true;
-
-        try
-        {
-            string dir = Path.GetFullPath(AppContext.BaseDirectory);
-            return dir.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}Debug{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
-                   || dir.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}Release{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
-#endif
     }
 
     private static IBrush GetAccentBrush()
@@ -429,20 +390,13 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Fase 1 — Só avisar (docs Microsoft: update disponível, utilizador decide).
+    /// Fase 1 — Só avisar (MSIX): update disponível, utilizador decide.
     /// "Atualizar agora" abre a Store; "Mais tarde" continua a usar a app.
     /// </summary>
-    private static void ShowUpdateAvailableNotice(AppUpdateCheckOutcome? outcome)
+    private static void ShowUpdateAvailableNotice()
     {
-        InstallChannel channel = outcome?.Channel ?? PackagedAppHelper.GetInstallChannel();
-        bool isWeb = channel == InstallChannel.WebLegacy;
-        string message = isWeb
-            ? "Há uma versão mais recente do aplicativo no servidor. Pode continuar a usar esta versão ou atualizar quando quiser."
-            : "Há uma atualização disponível na Microsoft Store. Pode continuar a usar a aplicação agora e atualizar quando quiser.";
-
-        var btnUpdate = CreatePrimaryDialogButton(isWeb ? "Entendi" : "Atualizar agora");
+        var btnUpdate = CreatePrimaryDialogButton("Atualizar agora");
         var btnLater = CreateSecondaryDialogButton("Mais tarde");
-        btnLater.IsVisible = !isWeb;
 
         var buttons = new StackPanel
         {
@@ -454,14 +408,14 @@ public partial class App : Application
 
         var window = BuildUpdateDialogWindow(
             title: "Atualização disponível",
-            subtitle: isWeb ? "Nova versão no servidor" : "Atualização na Microsoft Store",
-            message: message,
+            subtitle: "Atualização na Microsoft Store",
+            message: "Há uma atualização disponível na Microsoft Store. Pode continuar a usar a aplicação agora e atualizar quando quiser.",
             buttons: buttons,
             topmost: true);
 
         btnUpdate.Click += (_, _) =>
         {
-            if (!isWeb && MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
+            if (MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
                 MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
             window.Close();
         };
@@ -470,21 +424,14 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Fase 2 — Bloquear (docs Microsoft: Mandatory / Required — app pode terminar se o utilizador não atualizar).
+    /// Fase 2 — Bloquear (MSIX Mandatory / Required).
     /// Não abre o dashboard; ao fechar encerra o processo.
     /// </summary>
     private static void ShowUpdateRequiredWindowAndShutdown(
-        IClassicDesktopStyleApplicationLifetime desktop,
-        InstallChannel channel)
+        IClassicDesktopStyleApplicationLifetime desktop)
     {
-        bool isWeb = channel == InstallChannel.WebLegacy;
-        string message = isWeb
-            ? "Existe uma atualização obrigatória. Atualize pelo instalador web e volte a abrir a aplicação."
-            : "Existe uma atualização obrigatória. A Microsoft Store foi aberta. Instale a atualização e volte a abrir a aplicação — esta versão não pode continuar.";
-
         var btnClose = CreateSecondaryDialogButton("Fechar aplicação", 148);
         var btnStore = CreatePrimaryDialogButton("Abrir Microsoft Store", 168);
-        btnStore.IsVisible = !isWeb;
 
         var buttons = new StackPanel
         {
@@ -497,7 +444,7 @@ public partial class App : Application
         var window = BuildUpdateDialogWindow(
             title: "Atualização obrigatória",
             subtitle: "É necessário atualizar para continuar",
-            message: message,
+            message: "Existe uma atualização obrigatória. A Microsoft Store foi aberta. Instale a atualização e volte a abrir a aplicação — esta versão não pode continuar.",
             buttons: buttons);
 
         window.Closed += (_, _) => desktop.Shutdown(0);
