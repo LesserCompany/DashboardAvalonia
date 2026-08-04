@@ -2,35 +2,40 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="120" d:DesignHeight="64"
              x:Name="self"
              x:Class="LesserDashboardClient.Views.Collections.SeparatorProfessionalRepresentation">
-  <Grid RowDefinitions="Auto, Auto" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="50">
+  <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="120" Spacing="4">
 
-    <!-- Avatar circular com iniciais -->
-    <Grid Grid.Row="0" Width="30" Height="30">
-      <Ellipse Fill="{Binding AvatarColor, ElementName=self}" />
+    <Border Width="36" Height="36" CornerRadius="18"
+            Background="{Binding AvatarColor, ElementName=self}"
+            HorizontalAlignment="Center">
       <TextBlock Text="{Binding Initials, ElementName=self}"
                  VerticalAlignment="Center"
                  HorizontalAlignment="Center"
                  FontWeight="Bold"
-                 FontSize="16"
+                 FontSize="14"
                  Foreground="White"/>
-    </Grid>
+    </Border>
 
-    <!-- Nome -->
-    <TextBlock Text="{Binding ProfessionalName, ElementName=self}"
-               ToolTip.Tip="{Binding ProfessionalName, ElementName=self}"
-               Grid.Row="1"
+    <TextBlock Text="{Binding PrimaryText, ElementName=self}"
+               ToolTip.Tip="{Binding ToolTipText, ElementName=self}"
                FontSize="11"
+               FontWeight="SemiBold"
                HorizontalAlignment="Center"
                TextAlignment="Center"
                TextTrimming="CharacterEllipsis"
-               MaxWidth="50" />
-  </Grid>
+               MaxWidth="120"
+               Foreground="{DynamicResource TextPrimaryBrush}"/>
+
+    <TextBlock Text="{Binding SecondaryText, ElementName=self}"
+               IsVisible="{Binding HasSecondaryText, ElementName=self}"
+               ToolTip.Tip="{Binding SecondaryText, ElementName=self}"
+               FontSize="9"
+               HorizontalAlignment="Center"
+               TextAlignment="Center"
+               TextTrimming="CharacterEllipsis"
+               MaxWidth="120"
+               Foreground="{DynamicResource MetaFg}"/>
+  </StackPanel>
 </UserControl>
-
-
-
-
-

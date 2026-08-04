@@ -14,14 +14,15 @@
     <Grid>
     <ScrollViewer x:Name="ScrollViewerNewCollection" Offset="{Binding ScrollComponentNewCollection}" Padding="0,0,0,20">
 
-      <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding !IsCreatingCollection}" Margin="0,0,0,30">
+      <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding NewCollectionFormIsEnabled}" Margin="0,0,0,30">
             <!-- Title -->
             <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" />
+                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding !IsViewingCollectionConfig}" />
+                <TextBlock Text="{Tr 'Collection configuration'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding IsViewingCollectionConfig}" />
             </StackPanel>
             <!-- form -->
-            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
+            <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Collection ID:'}" VerticalAlignment="Center"  />
               <StackPanel Grid.Row="0" Grid.Column="1">
                 <TextBox x:Name="tbCollectionName" Text="{Binding TbCollectionName}" VerticalAlignment="Center" TextInput="TextBox_TextInput">
@@ -37,7 +38,9 @@
                     </Style>
                   </TextBox.Styles>
                 </TextBox>
-                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasError}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
+                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameIsEmpty}" FontSize="10" Text="{Tr 'Collection ID is required'}" Foreground="Red" />
+                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameIsTooShort}" FontSize="10" Text="{Tr 'Collection ID must have at least 3 characters'}" Foreground="Red" />
+                <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbCollectionNameHasInvalidChars}" FontSize="10" Text="{Tr 'The class code can only contain letters and numbers'}" Foreground="Red" />
               </StackPanel>
                 
               <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Event Folder:'}" VerticalAlignment="Center" />
@@ -57,8 +60,54 @@
                 </Grid>
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="{Tr 'Recognition version:'}" VerticalAlignment="Center" IsVisible="{Binding RecFolderFieldIsVisible}" />
+              <StackPanel Grid.Row="3" Grid.Column="1" IsVisible="{Binding RecFolderFieldIsVisible}" Orientation="Horizontal" Spacing="8">
+                <ToggleButton IsChecked="{Binding CbRecognitionVersion10}"
+                             Command="{Binding SelectRecognitionVersion10Command}"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Padding="16,8"
+                             MinWidth="72"
+                             MinHeight="36"
+                             CornerRadius="8"
+                             BorderThickness="1">
+                  <ToggleButton.Styles>
+                    <Style Selector="ToggleButton:checked">
+                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderThickness" Value="2" />
+                    </Style>
+                    <Style Selector="ToggleButton:checked TextBlock">
+                      <Setter Property="Foreground" Value="White" />
+                    </Style>
+                  </ToggleButton.Styles>
+                  <TextBlock Text="1.0" FontWeight="SemiBold" />
+                </ToggleButton>
+                <ToggleButton IsChecked="{Binding CbRecognitionVersion20}"
+                             Command="{Binding SelectRecognitionVersion20Command}"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Padding="16,8"
+                             MinWidth="72"
+                             MinHeight="36"
+                             CornerRadius="8"
+                             BorderThickness="1">
+                  <ToggleButton.Styles>
+                    <Style Selector="ToggleButton:checked">
+                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                      <Setter Property="BorderThickness" Value="2" />
+                    </Style>
+                    <Style Selector="ToggleButton:checked TextBlock">
+                      <Setter Property="Foreground" Value="White" />
+                    </Style>
+                  </ToggleButton.Styles>
+                  <TextBlock Text="2.0" FontWeight="SemiBold" />
+                </ToggleButton>
+              </StackPanel>
                 
-              <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'HD Storage in the cloud.'}" 
                            IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
                            IsEnabled="{Binding CbHDBackupToggleIsEnabled}"
@@ -69,7 +118,7 @@
               </StackPanel>
               
               <!-- Mensagem de erro para HD -->
-              <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" 
+              <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
                         IsVisible="{Binding CbHDBackupIsDisabled}" 
                         Text="{Binding CbHDBackupErrorMessage}" 
                         Foreground="Red" 
@@ -79,7 +128,7 @@
                         TextWrapping="Wrap" />
               
               <!-- Opções de Armazenamento HD -->
-              <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
+              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" 
                          IsVisible="{Binding IsHDStorageOptionsVisible}" 
                          Margin="20,10,0,0"
                          Spacing="8">
@@ -182,25 +231,27 @@
                              IsVisible="{Binding IsHdStoragePriceTextVisible}" />
               </StackPanel>
                 
-              <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+              <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2" Spacing="8">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'Enable automatic enhancement.'}" 
                            IsChecked="{Binding CbEnableAutoTreatment, FallbackValue=False}" 
                            IsEnabled="{Binding !CbEnableAutoTreatmentIsDisabled}"
                            VerticalAlignment="Center" />
 
-                <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
-                  <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
-                </Button>
+                  <Button Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center" Command="{Binding OpenLinkToUpgradePlanCommand}">
+                    <TextBlock TextDecorations="Underline" Foreground="{DynamicResource SystemControlBackgroundAccentBrush}" Text="{Tr 'Prices and more information'}"  />
+                  </Button>
+                </StackPanel>
+
+                <local:AutoTreatmentPreferencesPanel Margin="16,0" />
+
+                <TextBlock IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
+                          Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
+                          Foreground="Red" 
+                          FontSize="12" 
+                          HorizontalAlignment="Center" 
+                          TextWrapping="Wrap" />
               </StackPanel>
-              <!-- Mensagem de erro para AutoTreatment -->
-              <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
-                        IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
-                        Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
-                        Foreground="Red" 
-                        FontSize="12" 
-                        HorizontalAlignment="Center" 
-                        Margin="0,5,0,0" 
-                        TextWrapping="Wrap" />
 
               <Grid Grid.Row="8"  Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Center" Margin="0,10,0,10">
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="8" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -209,7 +260,8 @@
                           VerticalAlignment="Center"
                           Padding="8,4"
                           MinHeight="32">
-                    <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding CurrentProfessionalName}" />
+                    <local:SeparatorProfessionalRepresentation LoginName="{Binding CurrentProfessionalName}"
+                                                               FriendlyName="{Binding CurrentProfessionalName, Converter={StaticResource ProfessionalLoginDisplayConverter}}" />
                   </Button>
                 </StackPanel>
               </Grid>
@@ -222,7 +274,7 @@
                   <Grid Grid.Row="0" RowDefinitions="Auto, Auto">
                     <CheckBox Grid.Row="0" IsChecked="{Binding CbEnablePhotoSales}" Content="{Tr 'Activate photo sales (in development)'}"   />
                     <StackPanel Grid.Row="1" Spacing="6">
-                      <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}">
+                      <StackPanel Margin="10 2 0 0 " IsVisible="{Binding CbEnablePhotoSales}" Spacing="4">
                         <TextBlock Text="{Tr 'Price per photo for online sale:'}"   />
                         <NumericUpDown Minimum="0"
                            Margin="4"
@@ -232,6 +284,12 @@
                            FormatString="C"
                            Value="{Binding TbPricePerPhotoForSellingOnline}"
                            Width="150"/>
+                        <TextBlock FontSize="10"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   Text="{Tr 'Photo sales minimum price hint'}" />
+                        <CheckBox Margin="4,8,0,0"
+                                  IsChecked="{Binding CbGraduatesCanViewAllPhotosFromThisClassCode, FallbackValue=True}"
+                                  Content="{Tr 'Graduate can view all photos from this class'}" />
                       </StackPanel>
                     </StackPanel>
                   </Grid>  
@@ -242,11 +300,7 @@
                            IsEnabled="{Binding !CbUploadedPhotosAreAlreadySortedIsDisabled}"
                            Content="{Tr 'The photos are already separated'}" />
                   <CheckBox IsChecked="{Binding CbAllowCPFsToSeeAllPhotos, FallbackValue=False}" Content="{Tr 'Allow photos to be found by anyone'}" />
-                  <StackPanel Margin="10 2 0 0" IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
-                    <CheckBox IsChecked="{Binding CbPhotosCannotHaveWatermarks}"
-                              Content="{Tr 'Photos cannot have watermarks'}" />
-                  </StackPanel>
-                  <StackPanel Margin="10 2 0 0 " IsVisible="{Binding IsTotalPhotosForFreePerGraduateVisible}">
+                  <StackPanel Margin="10 2 0 0" IsVisible="{Binding IsTotalPhotosForFreePerGraduateVisible}">
                     <TextBlock Text="{Tr 'TotalPhotosForFreePerGraduate'}"   />
                     <NumericUpDown Minimum="0"
                        Margin="4"
@@ -255,6 +309,16 @@
                        Increment="1"
                        Value="{Binding TbTotalPhotosForFreePerGraduate}"
                        Width="150"/>
+                  </StackPanel>
+                  <StackPanel Margin="10 2 0 0" IsVisible="{Binding CbAllowCPFsToSeeAllPhotos}">
+                    <CheckBox IsChecked="{Binding CbPhotosCannotHaveWatermarks}"
+                              Content="{Tr 'Photos cannot have watermarks'}" />
+                  </StackPanel>
+                  <StackPanel Margin="0 2 0 10" Spacing="4">
+                    <TextBlock Text="{Tr 'Collection description (e.g. Med USP 2024):'}" />
+                    <TextBox Text="{Binding TbProfessionalTaskDescription, Mode=TwoWay}"
+                             Width="250"
+                             HorizontalAlignment="Left" />
                   </StackPanel>
                   <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
@@ -307,6 +371,26 @@
                                              TextAlignment="Center"/>
                                 </DataGridTextColumn.Header>
                               </DataGridTextColumn>
+
+                              <DataGridTextColumn Binding="{Binding FreePhotosFromThisClassCode}"
+                                                  IsVisible="{Binding DataContext.CbEnablePhotoSales, ElementName=root, FallbackValue=False}">
+                                <DataGridTextColumn.Header>
+                                  <TextBlock Text="{Tr 'Free photos from this class'}"
+                                             TextWrapping="Wrap"
+                                             MaxWidth="100"
+                                             TextAlignment="Center"/>
+                                </DataGridTextColumn.Header>
+                              </DataGridTextColumn>
+
+                              <DataGridCheckBoxColumn Binding="{Binding GraduateCanViewAllPhotosFromThisClassCode, TargetNullValue=False}"
+                                                      IsVisible="{Binding DataContext.CbEnablePhotoSales, ElementName=root, FallbackValue=False}">
+                                <DataGridCheckBoxColumn.Header>
+                                  <TextBlock Text="{Tr 'Graduate can view all photos from this class'}"
+                                             TextWrapping="Wrap"
+                                             MaxWidth="100"
+                                             TextAlignment="Center"/>
+                                </DataGridCheckBoxColumn.Header>
+                              </DataGridCheckBoxColumn>
                               
                               
                                 <DataGridCheckBoxColumn Header="{Tr 'Blocked'}"  Binding="{Binding Blocked, TargetNullValue=False}" />
@@ -356,7 +440,8 @@
                     VerticalContentAlignment="Center" 
                     HorizontalContentAlignment="Center" 
                     Command="{Binding CreateCollectionCommand}" 
-                    IsEnabled="{Binding !IsCreatingCollection}">
+                    IsEnabled="{Binding !IsCreatingCollection}"
+                    IsVisible="{Binding !IsViewingCollectionConfig}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />

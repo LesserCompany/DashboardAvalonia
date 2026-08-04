@@ -95,6 +95,18 @@
     "en-US": "New Collection",
     "pt-BR": "Nova Coleção"
   },
+  "Collection configuration": {
+    "en-US": "Collection configuration",
+    "pt-BR": "Configuração da coleção"
+  },
+  "View collection configuration": {
+    "en-US": "View collection configuration",
+    "pt-BR": "Ver configuração da coleção"
+  },
+  "View collection settings without reupload": {
+    "en-US": "View collection settings without reupload",
+    "pt-BR": "Ver as configurações da coleção sem fazer reupload"
+  },
   "Event Folder:": {
     "en-US": "Event Folder:",
     "pt-BR": "Pasta de Eventos:"
@@ -134,6 +146,10 @@
   "Allow photos to be found by anyone": {
     "en-US": "Allow photos to be found by anyone",
     "pt-BR": "Permitir que as fotos sejam encontradas por qualquer pessoa"
+  },
+  "Collection description (e.g. Med USP 2024):": {
+    "en-US": "Collection description (e.g. Mary's marriage 2024):",
+    "pt-BR": "Descrição da coleção (exemplo Med USP 2024):"
   },
   "Photos cannot have watermarks": {
     "en-US": "Photos cannot have watermarks",
@@ -239,9 +255,25 @@
     "en-US": "Price per photo for online sale:",
     "pt-BR": "Preço por foto para venda online:"
   },
+  "Photo sales minimum price hint": {
+    "en-US": "Price can be R$ 0.00 or at least R$ 5.00 (values between 0 and 5 are not allowed).",
+    "pt-BR": "O valor pode ser R$ 0,00 ou a partir de R$ 5,00 (não são permitidos valores entre 0 e 5)."
+  },
+  "Photo sales minimum price required": {
+    "en-US": "To enable photo sales, the price per photo must be R$ 0.00 or at least R$ 5.00.",
+    "pt-BR": "Para habilitar a venda de fotos, o preço por foto deve ser R$ 0,00 ou no mínimo R$ 5,00."
+  },
   "TotalPhotosForFreePerGraduate": {
     "en-US": "Total free photos per graduate:",
     "pt-BR": "Total de fotos grátis por formando:"
+  },
+  "Graduate can view all photos from this class": {
+    "en-US": "Graduate can view all photos from this class",
+    "pt-BR": "Formando pode ver todas as fotos desta turma"
+  },
+  "Free photos from this class": {
+    "en-US": "Free photos from this class",
+    "pt-BR": "Fotos grátis desta turma"
   },
   "Price per photo:": {
     "en-US": "Price per photo:",
@@ -254,6 +286,14 @@
   "OCR on the server:": {
     "en-US": "OCR on the server:",
     "pt-BR": "OCR no servidor:"
+  },
+  "Collection ID is required": {
+    "en-US": "Collection ID is required",
+    "pt-BR": "O ID da coleção é obrigatório"
+  },
+  "Collection ID must have at least 3 characters": {
+    "en-US": "Collection ID must have at least 3 characters",
+    "pt-BR": "O ID da coleção deve ter no mínimo 3 caracteres"
   },
   "The class code can only contain letters and numbers": {
     "en-US": "The class code may only contain letters, numbers, and these characters: _ / ' . -",
@@ -326,6 +366,22 @@
   "Add ID": {
     "en-US": "Add ID",
     "pt-BR": "Adicionar ID"
+  },
+  "Edit IDs": {
+    "en-US": "Edit IDs",
+    "pt-BR": "Editar IDs"
+  },
+  "Edit IDs without reupload": {
+    "en-US": "Edit IDs without reupload",
+    "pt-BR": "Editar IDs sem reupload"
+  },
+  "Edit ID": {
+    "en-US": "Edit ID",
+    "pt-BR": "Editar ID"
+  },
+  "Loading graduates...": {
+    "en-US": "Loading graduates...",
+    "pt-BR": "Carregando formandos..."
   },
   "New ID": {
     "en-US": "New ID",
@@ -419,6 +475,58 @@
     "en-US": "Manage CPF",
     "pt-BR": "Gerenciar CPF"
   },
+  "Share": {
+    "en-US": "Share",
+    "pt-BR": "Compartilhar"
+  },
+  "Share collection": {
+    "en-US": "Share collection",
+    "pt-BR": "Compartilhar coleção"
+  },
+  "Share collection with your clients": {
+    "en-US": "Share this link or QR code so clients can view and buy photos.",
+    "pt-BR": "Compartilhe o link ou o QR code para seus clientes visualizarem e comprarem as fotos."
+  },
+  "Share collection dialog description": {
+    "en-US": "Clients who scan the QR code or open the link will go directly to this collection in the photo viewer.",
+    "pt-BR": "Ao escanear o QR code ou abrir o link, seus clientes acessam esta coleção no visualizador de fotos."
+  },
+  "Scan QR code": {
+    "en-US": "Scan QR code",
+    "pt-BR": "Escaneie o QR code"
+  },
+  "Share link base": {
+    "en-US": "Link base",
+    "pt-BR": "Base do link"
+  },
+  "Default viewer (visualizador.lesser.biz)": {
+    "en-US": "Viewer — visualizador.lesser.biz (default)",
+    "pt-BR": "Visualizador — visualizador.lesser.biz (padrão)"
+  },
+  "Collection link": {
+    "en-US": "Collection link",
+    "pt-BR": "Link da coleção"
+  },
+  "Copy link": {
+    "en-US": "Copy link",
+    "pt-BR": "Copiar link"
+  },
+  "Link copied!": {
+    "en-US": "Link copied!",
+    "pt-BR": "Link copiado!"
+  },
+  "Open in browser": {
+    "en-US": "Open in browser",
+    "pt-BR": "Abrir no navegador"
+  },
+  "Open share dialog for this collection": {
+    "en-US": "Open link and QR code to share this collection",
+    "pt-BR": "Abrir link e QR code para compartilhar esta coleção"
+  },
+  "Could not load company data to build the share link.": {
+    "en-US": "Could not load company data to build the share link.",
+    "pt-BR": "Não foi possível carregar os dados da empresa para montar o link de compartilhamento."
+  },
   "Open CPF protection for this collection filter": {
     "en-US": "Open CPF management → CPF protection and access control with this collection’s CPFs in the filter",
     "pt-BR": "Abrir Gerenciamento de CPF → Proteção e controle de CPFs com os CPFs desta coleção no filtro"
@@ -446,6 +554,10 @@
   "Back": {
     "en-US": "Back",
     "pt-BR": "Voltar"
+  },
+  "Close": {
+    "en-US": "Close",
+    "pt-BR": "Fechar"
   },
   "Enable automatic enhancement.": {
     "en-US": "Enable automatic enhancement.",
@@ -703,6 +815,10 @@
     "en-US": "Expired collections",
     "pt-BR": "Coleções vencidas"
   },
+  "Total expired collections:": {
+    "en-US": "Total expired collections:",
+    "pt-BR": "Total de coleções vencidas:"
+  },
   "Deleted collections": {
     "en-US": "Trash",
     "pt-BR": "Lixeira"
@@ -766,5 +882,173 @@
   "Your collection can be restored until {0}, after which it will be permanently removed.": {
     "en-US": "Your collection can be restored until {0}, after which it will be permanently removed.",
     "pt-BR": "Sua coleção pode ser restaurada até {0}, depois disso ela será removida permanentemente."
+  },
+  "Canceled": {
+    "en-US": "Canceled",
+    "pt-BR": "Cancelada"
+  },
+  "Billing canceled": {
+    "en-US": "Billing canceled",
+    "pt-BR": "Cobrança cancelada"
+  },
+  "Billing canceled — this collection is not charged.": {
+    "en-US": "Billing canceled — this collection is not charged.",
+    "pt-BR": "Cobrança cancelada — esta coleção não é cobrada."
+  },
+  "This collection is no longer billed on your invoice.": {
+    "en-US": "This collection is no longer billed on your invoice.",
+    "pt-BR": "Esta coleção não é mais cobrada na sua fatura."
+  },
+  "This collection will no longer be charged on your invoice. Advanced actions are disabled.": {
+    "en-US": "This collection will no longer be charged on your invoice. Advanced actions are disabled.",
+    "pt-BR": "Esta coleção não será mais cobrada na sua fatura. As ações avançadas ficam desabilitadas."
+  },
+  "Collection to cancel:": {
+    "en-US": "Collection to cancel:",
+    "pt-BR": "Coleção a cancelar:"
+  },
+  "Repeated collection...": {
+    "en-US": "Repeated collection...",
+    "pt-BR": "Coleção repetida..."
+  },
+  "The repeated collection is only used as justification; its billing status will not change.": {
+    "en-US": "The repeated collection is only used as justification; its billing status will not change.",
+    "pt-BR": "A coleção repetida serve apenas como justificativa; o status de cobrança dela não será alterado."
+  },
+  "Confirm cancellation": {
+    "en-US": "Confirm cancellation",
+    "pt-BR": "Confirmar cancelamento"
+  },
+  "Canceling billing...": {
+    "en-US": "Canceling billing...",
+    "pt-BR": "Cancelando cobrança..."
+  },
+  "Contract billing was canceled successfully.": {
+    "en-US": "Contract billing was canceled successfully.",
+    "pt-BR": "Cobrança do contrato cancelada com sucesso."
+  },
+  "Select professional": {
+    "en-US": "Select professional",
+    "pt-BR": "Selecionar profissional"
+  },
+  "Search professionals...": {
+    "en-US": "Search professionals...",
+    "pt-BR": "Buscar profissionais..."
+  },
+  "Loading professionals...": {
+    "en-US": "Loading professionals...",
+    "pt-BR": "Carregando profissionais..."
+  },
+  "No professionals found": {
+    "en-US": "No professionals found",
+    "pt-BR": "Nenhum profissional encontrado"
+  },
+  "Add your first professional to assign collections": {
+    "en-US": "Add your first professional to assign collections",
+    "pt-BR": "Adicione seu primeiro profissional para atribuir coleções"
+  },
+  "Remove": {
+    "en-US": "Remove",
+    "pt-BR": "Remover"
+  },
+  "Remove selected professional": {
+    "en-US": "Remove selected professional",
+    "pt-BR": "Remover profissional selecionado"
+  },
+  "Remove professional": {
+    "en-US": "Remove professional",
+    "pt-BR": "Remover profissional"
+  },
+  "Remove professional confirmation": {
+    "en-US": "Do you want to remove professional \"{0}\" from your company?\n\nThis action cannot be undone.",
+    "pt-BR": "Deseja remover o profissional \"{0}\" da sua empresa?\n\nEsta ação não pode ser desfeita."
+  },
+  "Professional removed successfully": {
+    "en-US": "Professional removed successfully.",
+    "pt-BR": "Profissional removido com sucesso."
+  },
+  "Could not remove professional.": {
+    "en-US": "Could not remove professional.",
+    "pt-BR": "Não foi possível remover o profissional."
+  },
+  "Error removing professional: {0}": {
+    "en-US": "Error removing professional: {0}",
+    "pt-BR": "Erro ao remover profissional: {0}"
+  },
+  "Success": {
+    "en-US": "Success",
+    "pt-BR": "Sucesso"
+  },
+  "Display name": {
+    "en-US": "Display name",
+    "pt-BR": "Nome de exibição"
+  },
+  "Friendly name shown in the app": {
+    "en-US": "Friendly name shown in the app",
+    "pt-BR": "Nome amigável exibido no sistema"
+  },
+  "Display name help": {
+    "en-US": "This name is shown in the app. The username below is used only for login and must be unique globally.",
+    "pt-BR": "Este nome é exibido no sistema. O nome de usuário abaixo é usado apenas para login e deve ser único globalmente."
+  },
+  "Username (login)": {
+    "en-US": "Username (login)",
+    "pt-BR": "Nome de usuário (login)"
+  },
+  "Username login help": {
+    "en-US": "Must contain only letters, numbers, dots, dashes and underscore. Used for authentication.",
+    "pt-BR": "Deve conter apenas letras, números, pontos, hífens e underscore. Usado para autenticação."
+  },
+  "1 professional available": {
+    "en-US": "1 professional available",
+    "pt-BR": "1 profissional disponível"
+  },
+  "{0} professionals available": {
+    "en-US": "{0} professionals available",
+    "pt-BR": "{0} profissionais disponíveis"
+  },
+  "Showing {0} of {1}": {
+    "en-US": "Showing {0} of {1}",
+    "pt-BR": "Exibindo {0} de {1}"
+  },
+  "Filtering professionals...": {
+    "en-US": "Filtering professionals...",
+    "pt-BR": "Filtrando profissionais..."
+  },
+  "Creating professional...": {
+    "en-US": "Creating professional...",
+    "pt-BR": "Criando profissional..."
+  },
+  "Show photos with facial enhancement by default": {
+    "en-US": "Show photos with facial enhancement by default",
+    "pt-BR": "Exibir fotos com realce facial por padrão"
+  },
+  "Show photos with color correction by default": {
+    "en-US": "Show photos with color correction by default",
+    "pt-BR": "Exibir fotos com correção de cor por padrão"
+  },
+  "Automatic color correction": {
+    "en-US": "Automatic color correction",
+    "pt-BR": "Correção automática de cor"
+  },
+  "Automatic color correction hint": {
+    "en-US": "Adjusts color balance, brightness and contrast.",
+    "pt-BR": "Ajusta equilíbrio de cores, brilho e contraste."
+  },
+  "Automatic color correction tooltip": {
+    "en-US": "Automatically adjusts color balance, brightness and contrast. Use this switch to set whether the option is on or off by default for each graduate — they can change it later if they want.",
+    "pt-BR": "Ajusta automaticamente o equilíbrio de cores, brilho e contraste. Aqui você define se essa opção já vem ligada ou desligada para o formando — ele poderá mudar depois, se quiser."
+  },
+  "Automatic facial enhancement": {
+    "en-US": "Automatic facial enhancement",
+    "pt-BR": "Melhoria facial automática"
+  },
+  "Automatic facial enhancement hint": {
+    "en-US": "Subtle skin smoothing and eye enhancement.",
+    "pt-BR": "Suavização de pele e realce dos olhos."
+  },
+  "Automatic facial enhancement tooltip": {
+    "en-US": "Applies subtle facial improvements such as skin smoothing and eye enhancement. Use this switch to set whether the option is on or off by default for each graduate — they can change it later if they want.",
+    "pt-BR": "Aplica melhorias sutis na aparência facial, como suavização de pele e realce dos olhos. Aqui você define se essa opção já vem ligada ou desligada para o formando — ele poderá mudar depois, se quiser."
   }
 }

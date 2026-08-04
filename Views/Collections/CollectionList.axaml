@@ -205,7 +205,8 @@
                                   IsVisible="{Binding UploadOnTestSystem, FallbackValue=False}">
                             <TextBlock Text="TEST" Foreground="{DynamicResource BadgeFg}" FontWeight="SemiBold" FontSize="9"/>
                           </Border>
-                          <local:ProfessionalRepresentation ProfessionalName="{Binding professionalLogin}" 
+                          <local:ProfessionalRepresentation ProfessionalName="{Binding professionalLogin}"
+                                                           IsCompact="True"
                                                            Margin="0,6,0,0"/>
                         </StackPanel>
 
@@ -223,6 +224,34 @@
                         <!-- Badges + botão três pontinhos alinhados à direita -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
                                     HorizontalAlignment="Right" VerticalAlignment="Center">
+                          <!-- Cobrança cancelada -->
+                          <Border BorderThickness="1"
+                                  CornerRadius="6" Padding="6,3"
+                                  ToolTip.Tip="{Tr 'This collection is no longer billed on your invoice.'}"
+                                  IsVisible="{Binding BillingCancelled, FallbackValue=False}">
+                            <Border.Background>
+                              <MultiBinding Converter="{StaticResource BillingCanceledListItemBrushConverter}" ConverterParameter="BadgeBackground">
+                                <Binding Path="."/>
+                                <Binding Path="SelectedCollection" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              </MultiBinding>
+                            </Border.Background>
+                            <Border.BorderBrush>
+                              <MultiBinding Converter="{StaticResource BillingCanceledListItemBrushConverter}" ConverterParameter="BadgeBorder">
+                                <Binding Path="."/>
+                                <Binding Path="SelectedCollection" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              </MultiBinding>
+                            </Border.BorderBrush>
+                            <TextBlock Text="{Tr 'Billing canceled'}"
+                                       FontWeight="SemiBold"
+                                       FontSize="10">
+                              <TextBlock.Foreground>
+                                <MultiBinding Converter="{StaticResource BillingCanceledListItemBrushConverter}">
+                                  <Binding Path="."/>
+                                  <Binding Path="SelectedCollection" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                                </MultiBinding>
+                              </TextBlock.Foreground>
+                            </TextBlock>
+                          </Border>
                           <!-- HD -->
                           <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3"
                                   IsVisible="{Binding UploadHD, FallbackValue=False}">
@@ -278,14 +307,28 @@
                                      TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"/>
                         </StackPanel>
 
-                        <!-- Status (upload/tratamento) -->
-                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="0,6,0,0">
+                        <!-- Status (upload/tratamento / cobrança) -->
+                        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Vertical" Spacing="4" Margin="0,6,0,0">
+                          <TextBlock Text="{Tr 'Billing canceled — this collection is not charged.'}"
+                                     FontSize="11"
+                                     FontWeight="SemiBold"
+                                     TextWrapping="Wrap"
+                                     IsVisible="{Binding BillingCancelled, FallbackValue=False}">
+                            <TextBlock.Foreground>
+                              <MultiBinding Converter="{StaticResource BillingCanceledListItemBrushConverter}">
+                                <Binding Path="."/>
+                                <Binding Path="SelectedCollection" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              </MultiBinding>
+                            </TextBlock.Foreground>
+                          </TextBlock>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
                           <TextBlock Text="{Tr 'Waiting for upload...'}" 
                                      Foreground="Red" 
                                      IsVisible="{Binding !UploadComplete, FallbackValue=False}"/>
                           <TextBlock Text="HD pronto" 
                                      Foreground="{DynamicResource MetaFg}"
                                      IsVisible="{Binding UploadHD, FallbackValue=False}"/>
+                        </StackPanel>
                         </StackPanel>
 
                         <!-- Prazo para restaurar (aba Deletadas + FinalScheduledDeletionDate) -->
@@ -332,5 +375,22 @@
                 </Button>
               </StackPanel>
             </ScrollViewer>
+
+        <!-- Total de coleções na aba Vencidas (canto inferior esquerdo) -->
+        <TextBlock Grid.Row="3"
+                   Margin="4,8,4,2"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   FontSize="13"
+                   IsVisible="{Binding ShowExpiredCollectionsCountFooter}">
+          <Run Text="{Tr 'Total expired collections:'}"
+               Foreground="{DynamicResource TextSecondaryBrush}"
+               FontWeight="SemiBold"/>
+          <Run Text=" "/>
+          <Run Text="{Binding ExpiredCollectionsCount}"
+               Foreground="{DynamicResource Accent}"
+               FontSize="15"
+               FontWeight="Bold"/>
+        </TextBlock>
     </Grid>
 </UserControl>

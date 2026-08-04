@@ -1,11 +1,14 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using LesserDashboardClient.ViewModels.Collections;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction.Users.Graduate;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 
@@ -13,9 +16,98 @@ namespace LesserDashboardClient.Views.Collections;
 
 public partial class AddIds : UserControl
 {
+    private static readonly IBrush SuccessBackground = new SolidColorBrush(Color.FromArgb(30, 0, 180, 0));
+    private static readonly IBrush FailedBackground = new SolidColorBrush(Color.FromArgb(30, 220, 0, 0));
+
     public AddIds()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private AddIdsViewModel? _currentVm;
+
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        if (_currentVm != null)
+            _currentVm.PropertyChanged -= OnVmPropertyChanged;
+
+        _currentVm = DataContext as AddIdsViewModel;
+
+        if (_currentVm != null)
+            _currentVm.PropertyChanged += OnVmPropertyChanged;
+
+        HideFailedItems();
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AddIdsViewModel.IsRegistering) && _currentVm != null && !_currentVm.IsRegistering)
+        {
+            RefreshRowStyles();
+            ShowFailedItemsSummary();
+        }
+    }
+
+    private void GraduatesDataGrid_LoadingRow(object? sender, DataGridRowEventArgs e)
+    {
+        if (_currentVm == null || _currentVm.ItemStatuses.Count == 0)
+        {
+            e.Row.Background = Brushes.Transparent;
+            return;
+        }
+
+        if (e.Row.DataContext is GraduateByCPFWithPhotos grad && !string.IsNullOrWhiteSpace(grad.ShortPath))
+        {
+            var status = _currentVm.GetItemStatus(grad.ShortPath);
+            e.Row.Background = status.Status switch
+            {
+                AddIdRegistrationStatus.Success => SuccessBackground,
+                AddIdRegistrationStatus.Failed => FailedBackground,
+                _ => Brushes.Transparent
+            };
+        }
+        else
+        {
+            e.Row.Background = Brushes.Transparent;
+        }
+    }
+
+    private void RefreshRowStyles()
+    {
+        var items = GraduatesDataGrid.ItemsSource;
+        GraduatesDataGrid.ItemsSource = null;
+        GraduatesDataGrid.ItemsSource = items;
+    }
+
+    private void ShowFailedItemsSummary()
+    {
+        if (_currentVm == null)
+            return;
+
+        var failedItems = _currentVm.ItemStatuses
+            .Where(kvp => kvp.Value.Status == AddIdRegistrationStatus.Failed)
+            .Select(kvp => $"{kvp.Key}: {kvp.Value.FailureReason}")
+            .ToList();
+
+        if (failedItems.Count > 0)
+        {
+            FailedItemsHeader.Text = $"{failedItems.Count} item(ns) falharam:";
+            FailedItemsList.ItemsSource = new ObservableCollection<string>(failedItems);
+            FailedItemsExpander.IsVisible = true;
+            FailedItemsExpander.IsExpanded = true;
+        }
+        else
+        {
+            HideFailedItems();
+        }
+    }
+
+    private void HideFailedItems()
+    {
+        FailedItemsExpander.IsVisible = false;
+        FailedItemsExpander.IsExpanded = false;
+        FailedItemsList.ItemsSource = null;
     }
 
     private async void NewId_Click(object? sender, RoutedEventArgs e)
@@ -38,6 +130,8 @@ public partial class AddIds : UserControl
             return;
         }
 
+        HideFailedItems();
+
         IStorageFolder? startFolder = null;
         try
         {
@@ -45,7 +139,6 @@ public partial class AddIds : UserControl
         }
         catch
         {
-            // Ignorar: abre o picker sem sugestão.
         }
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions

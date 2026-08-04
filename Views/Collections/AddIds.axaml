@@ -48,14 +48,16 @@
                 <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
 
-              <DataGrid Margin="20"
+              <DataGrid x:Name="GraduatesDataGrid"
+                        Margin="20"
                         ItemsSource="{Binding GraduatesData}"
                         Grid.Row="0"
                         GridLinesVisibility="All"
                         CanUserResizeColumns="True"
                         IsReadOnly="{Binding !CanAddCPFs}"
                         BorderThickness="1"
-                        BorderBrush="Gray">
+                        BorderBrush="Gray"
+                        LoadingRow="GraduatesDataGrid_LoadingRow">
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="{Tr 'Photo'}" Binding="{Binding ShortPath, Mode=OneWay}" FontSize="8" Width="100" />
                   <DataGridTextColumn Header="{Tr 'CPF'}" Binding="{Binding CPF, Mode=TwoWay}" FontSize="8" />
@@ -119,17 +121,27 @@
           </StackPanel>
         </Expander>
 
-        <!-- Botão final: Adicionar ID -->
+        <!-- Botão final: Adicionar ID + teste (simulação sem API) -->
         <StackPanel Grid.Row="3" HorizontalAlignment="Center" Margin="0,10,0,20" Spacing="10">
-          <Button Command="{Binding RegisterGraduatesIdsCommand}"
-                  IsEnabled="{Binding !IsRegistering}"
-                  HorizontalAlignment="Center"
-                  Height="46"
-                  Padding="26,10"
-                  VerticalContentAlignment="Center"
-                  HorizontalContentAlignment="Center">
-            <TextBlock Text="{Tr 'Add ID'}" VerticalAlignment="Center" />
-          </Button>
+          <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <Button Command="{Binding RegisterGraduatesIdsCommand}"
+                    IsEnabled="{Binding !IsRegistering}"
+                    Height="46"
+                    Padding="26,10"
+                    VerticalContentAlignment="Center"
+                    HorizontalContentAlignment="Center">
+              <TextBlock Text="{Tr 'Add ID'}" VerticalAlignment="Center" />
+            </Button>
+            <Button Command="{Binding TestAddIdsSimulationCommand}"
+                    IsEnabled="{Binding !IsRegistering}"
+                    Height="46"
+                    Padding="20,10"
+                    VerticalContentAlignment="Center"
+                    HorizontalContentAlignment="Center"
+                    ToolTip.Tip="Mesmo fluxo de registro na interface, sem enviar dados ao servidor.">
+              <TextBlock Text="teste" VerticalAlignment="Center" />
+            </Button>
+          </StackPanel>
 
           <!-- Loading/progresso -->
           <StackPanel IsVisible="{Binding IsRegistering}" Width="360" Spacing="6">
@@ -143,6 +155,28 @@
                        TextAlignment="Center"
                        Margin="0,2,0,0" />
           </StackPanel>
+
+          <!-- Lista de falhas (visível após registro com erros) -->
+          <Expander x:Name="FailedItemsExpander"
+                    IsVisible="False"
+                    Margin="0,6,0,0"
+                    HorizontalAlignment="Center"
+                    MaxWidth="500">
+            <Expander.Header>
+              <TextBlock x:Name="FailedItemsHeader" Foreground="Red" FontSize="12" />
+            </Expander.Header>
+            <ScrollViewer MaxHeight="180">
+              <ItemsControl x:Name="FailedItemsList">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border BorderBrush="Red" BorderThickness="0,0,0,0.5" Padding="4,3">
+                      <TextBlock Text="{Binding}" TextWrapping="Wrap" FontSize="11" Foreground="Red" Opacity="0.9" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Expander>
         </StackPanel>
       </Grid>
     </ScrollViewer>

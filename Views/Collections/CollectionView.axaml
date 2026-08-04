@@ -66,6 +66,22 @@
                 <ui:ProgressRing IsVisible="{Binding ManagingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
               </StackPanel>
             </Button>
+            <Button Command="{Binding OpenShareCollectionDialogCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                    CommandParameter="{Binding SelectedCollection}"
+                    IsVisible="{Binding IsSelectedCollectionPhotoSalesEnabled}"
+                    HorizontalAlignment="Center"
+                    Padding="12,8"
+                    MinHeight="36"
+                    CornerRadius="8"
+                    Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                    Foreground="White"
+                    BorderThickness="0"
+                    ToolTip.Tip="{Tr 'Open share dialog for this collection'}">
+              <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72D;" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="{Tr 'Share'}" VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
             </StackPanel>
             <TextBlock Text="{Tr 'Esta coleção está com solicitação de exclusão. Restaure para voltar a usá-la.'}" 
                        FontSize="14" 
@@ -103,7 +119,34 @@
 
           <!-- Conteúdo normal (oculto quando coleção é da lista de deletadas) -->
           <StackPanel IsVisible="{Binding !IsSelectedCollectionInDeletedList}" Spacing="{DynamicResource DefaultRowSpacing}">
-          <TextBlock Text="{Tr 'Canceled'}" FontSize="18" TextAlignment="Center" Foreground="Red" IsVisible="{Binding SelectedCollectionIsCanceled}" />
+          <Border Background="#22DC2626"
+                  BorderBrush="#99DC2626"
+                  BorderThickness="1"
+                  CornerRadius="10"
+                  Padding="14,12"
+                  Margin="0,0,0,4"
+                  IsVisible="{Binding SelectedCollectionIsCanceled}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+              <Border Width="36" Height="36" CornerRadius="18" Background="#33DC2626" VerticalAlignment="Center">
+                <TextBlock FontFamily="Segoe MDL2 Assets"
+                           Text="&#xE711;"
+                           Foreground="#FFFF6B6B"
+                           FontSize="18"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                <TextBlock Text="{Tr 'Billing canceled'}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFF8A8A"/>
+                <TextBlock Text="{Tr 'This collection will no longer be charged on your invoice. Advanced actions are disabled.'}"
+                           FontSize="12"
+                           Foreground="#FFCCCCCC"
+                           TextWrapping="Wrap"/>
+              </StackPanel>
+            </Grid>
+          </Border>
           <Grid RowDefinitions="80" ColumnDefinitions="Auto, *, Auto" Grid.Row="0">
                 <Grid Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">
                   <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -114,7 +157,8 @@
                             MinHeight="32"
                             IsEnabled="{Binding !IsChangingSeparator}">
                       <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <local:SeparatorProfessionalRepresentation ProfessionalName="{Binding SelectedCollection.professionalLogin}" />
+                        <local:SeparatorProfessionalRepresentation LoginName="{Binding SelectedCollection.professionalLogin}"
+                                                                   FriendlyName="{Binding SelectedCollection.professionalLogin, Converter={StaticResource ProfessionalLoginDisplayConverter}}" />
                         <ui:ProgressRing IsVisible="{Binding IsChangingSeparator}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="12" Height="12" />
                       </StackPanel>
                     </Button>
@@ -159,6 +203,22 @@
                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;" FontSize="14" VerticalAlignment="Center"/>
                     <TextBlock Text="{Tr 'Manage CPF'}" VerticalAlignment="Center"/>
                     <ui:ProgressRing IsVisible="{Binding ManagingCollectionCpfs}" VerticalAlignment="Center" BorderThickness="3" IsIndeterminate="True" Width="14" Height="14"/>
+                  </StackPanel>
+                </Button>
+                <Button Command="{Binding OpenShareCollectionDialogCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                        CommandParameter="{Binding SelectedCollection}"
+                        IsVisible="{Binding IsSelectedCollectionPhotoSalesEnabled}"
+                        HorizontalAlignment="Right"
+                        Padding="12,8"
+                        MinHeight="36"
+                        CornerRadius="8"
+                        Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                        Foreground="White"
+                        BorderThickness="0"
+                        ToolTip.Tip="{Tr 'Open share dialog for this collection'}">
+                  <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE72D;" FontSize="14" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Tr 'Share'}" VerticalAlignment="Center"/>
                   </StackPanel>
                 </Button>
                 </StackPanel>
@@ -249,7 +309,7 @@
             
           <!-- Buttons (desabilitados quando a coleção é da lista de deletadas) -->
           <Grid ColumnDefinitions="1*, 1*, 1*, 1*" Grid.Row="6" ColumnSpacing="5">
-            <Button IsEnabled="{Binding BtTagSortIsEnabledForView}" Command="{Binding TagSortCommand}" IsVisible="{Binding ActionsButtonsIsVisible}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
+            <Button IsEnabled="{Binding BtTagSortIsEnabledForView}" Command="{Binding TagSortCommand}" IsVisible="{Binding BtTagSortIsVisibleForView}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" >
               <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Text="{Tr 'Tag/Sort'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding BtTagSortIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
@@ -301,13 +361,25 @@
           <!-- Resume SeparationFile -->
           <local:ResumeSeparationFile IsVisible="{Binding ResumeSeparationFileComponentIsVisible}" />
             
-          <Grid Grid.Row="7">
+          <Grid Grid.Row="7" IsVisible="{Binding ExpanderAdvancedIsVisible}">
               <Expander Header="{Tr 'Advanced'}" HorizontalAlignment="Stretch" IsEnabled="{Binding ExpanderAdvancedIsEnabled}" >
                   <StackPanel Spacing="6">
                       <Button Width="325" Command="{Binding OpenAddIdsViewCommand}" IsVisible="False">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" />
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Add IDs without reupload'}" />
+                          </StackPanel>
+                      </Button>
+                      <Button Width="325" Command="{Binding OpenEditIdsViewCommand}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Edit IDs'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Edit IDs without reupload'}" />
+                          </StackPanel>
+                      </Button>
+                      <Button Width="325" Command="{Binding OpenViewCollectionConfigCommand}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'View collection configuration'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8F1;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'View collection settings without reupload'}" />
                           </StackPanel>
                       </Button>
                       <Button Width="325" Command="{Binding OpenReuploadViewCommand}">

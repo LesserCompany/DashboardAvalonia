@@ -13,6 +13,7 @@ using LesserDashboardClient.ViewModels.Options;
 using LesserDashboardClient.ViewModels.SearchGraduate;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
+using SharedClientSide.Helpers;
 using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
@@ -322,6 +323,14 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
+            // Em MSIX/Store a versão é a do pacote — não há "versão anterior" em Documents nem download do blob.
+            if (PackagedAppHelper.ShouldUsePackagedBinaries())
+            {
+                throw new InvalidOperationException(
+                    "Nesta instalação (Microsoft Store / MSIX) a versão do Dashboard é a do pacote. " +
+                    "Atualize ou restaure versões pela Microsoft Store.");
+            }
+
             // Caminho para as versões do LesserDashboard (WPF) conforme informado pelo usuário
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string appVersionsPath = Path.Combine(documentsPath, "Separacao", "apps", "LesserDashboard", "v");
@@ -354,8 +363,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
             else
             {
-                // Fallback: tentar usar AppInstaller se não encontrar versão específica
-                // Versão hardcoded: 188
+                // Fallback web: AppInstaller com versão hardcoded
                 SharedClientSide.Helpers.AppInstaller installer = new SharedClientSide.Helpers.AppInstaller("LesserDashboard", _ => { }, "188");
                 await installer.startApp();
             }

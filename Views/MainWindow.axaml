@@ -110,16 +110,10 @@
             <!-- Footer -->
             <Grid  Grid.Row="2" RowDefinitions="Auto, Auto" Background="{DynamicResource SystemControlBackgroundListMediumBrush}">
               <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto">
-                <!-- Coluna 0: Voltar para versão anterior e Badge de Ambiente -->
+                <!-- Coluna 0: Versão e Badge de Ambiente -->
                 <StackPanel Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="4" Orientation="Horizontal" Spacing="8">
                   <local:AppVersionControl  />
                   <local:EnvironmentBadgeControl />
-                  <Button Margin="4 0 0 0" Background="{DynamicResource SystemChromeBlackMediumLowColor}" Command="{Binding GoBackToPreviousVersionCommand}">
-                    <StackPanel Orientation="Horizontal" Spacing="4" >
-                      <Svg Path="/Assets/icons/arrow-back.svg" Width="12" Height="12" VerticalAlignment="Center" />
-                      <TextBlock FontSize="10" Foreground="White" Text="{Tr 'Go back to previous version'}" VerticalAlignment="Center" />
-                    </StackPanel>
-                  </Button>
                 </StackPanel>
                   
                 <!-- Coluna 1: CarregandoEndpoints (Centralizado) -->
