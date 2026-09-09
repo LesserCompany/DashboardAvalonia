@@ -218,5 +218,21 @@
   "Support close": {
     "en-US": "Close",
     "pt-BR": "Fechar"
+  },
+  "Session expires in": {
+    "en-US": "Session expires in",
+    "pt-BR": "A sessão expira em"
+  },
+  "Session expired": {
+    "en-US": "Session expired",
+    "pt-BR": "Sessão expirada"
+  },
+  "Session validity unknown": {
+    "en-US": "Session validity unknown",
+    "pt-BR": "Validade da sessão desconhecida"
+  },
+  "Session validity tooltip": {
+    "en-US": "Time left before your login session expires and you need to sign in again.",
+    "pt-BR": "Tempo restante até a sua sessão expirar e ser necessário fazer login novamente."
   }
 }

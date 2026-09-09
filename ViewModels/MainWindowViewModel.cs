@@ -49,6 +49,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     public string titleApp;
 
+    /// <summary>Texto de validade da sessão mostrado no topo do app (ex.: "A sessão expira em 3h 12min").</summary>
+    [ObservableProperty]
+    private string sessionValidityText = "";
+
+    /// <summary>true quando a sessão está perto de expirar (ou já expirou) — a View usa pra destacar.</summary>
+    [ObservableProperty]
+    private bool sessionExpiringSoon;
+
     [ObservableProperty]
     private int unreadMessagesCount = 0;
 
@@ -106,7 +114,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Carrega mensagens do usuário ao inicializar
         _ = LoadUserMessagesAsync();
-        
+
         // Atualiza periodicamente as mensagens (a cada 30 segundos)
         var timer = new DispatcherTimer
         {
@@ -114,6 +122,55 @@ public partial class MainWindowViewModel : ViewModelBase
         };
         timer.Tick += async (s, e) => await LoadUserMessagesAsync();
         timer.Start();
+
+        // Validade da sessão no topo do app — recalcula do claim "exp" do loginToken a cada 30s.
+        RefreshSessionValidity();
+        var sessionTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        sessionTimer.Tick += (s, e) => RefreshSessionValidity();
+        sessionTimer.Start();
+    }
+
+    /// <summary>
+    /// Recalcula <see cref="SessionValidityText"/> / <see cref="SessionExpiringSoon"/> a partir do
+    /// claim <c>exp</c> do loginToken atual (JWT). Não faz rede — só lê o token guardado.
+    /// </summary>
+    public void RefreshSessionValidity()
+    {
+        try
+        {
+            var token = GlobalAppStateViewModel.lfc?.loginResult?.User?.loginToken;
+            var exp = Helpers.JwtSessionInfo.GetExpiration(token);
+
+            if (exp == null)
+            {
+                SessionValidityText = Loc.Tr("Session validity unknown");
+                SessionExpiringSoon = false;
+                return;
+            }
+
+            var remaining = exp.Value - DateTimeOffset.UtcNow;
+            if (remaining <= TimeSpan.Zero)
+            {
+                SessionValidityText = Loc.Tr("Session expired");
+                SessionExpiringSoon = true;
+                return;
+            }
+
+            string human = remaining.TotalHours >= 1
+                ? $"{(int)remaining.TotalHours}h {remaining.Minutes}min"
+                : $"{remaining.Minutes}min";
+
+            SessionValidityText = $"{Loc.Tr("Session expires in")} {human}";
+            SessionExpiringSoon = remaining <= TimeSpan.FromMinutes(30);
+        }
+        catch
+        {
+            SessionValidityText = "";
+            SessionExpiringSoon = false;
+        }
     }
     
     partial void OnUnreadMessagesCountChanged(int value)

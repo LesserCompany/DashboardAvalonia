@@ -166,7 +166,11 @@ public partial class App : Application
         bool isValidToken = false;
         if (lr != null && lr.User != null)
         {
-            isValidToken = lr.loginFailed != true && lr.success && lr.User.loginTokenExpirationDate > DateTime.UtcNow;
+            // Além da data guardada, exige que o loginToken seja um JWT legível com exp no futuro —
+            // token opaco/legado ou malformado cai direto no fluxo de login (HandleInvalidToken).
+            isValidToken = lr.loginFailed != true && lr.success
+                && lr.User.loginTokenExpirationDate > DateTime.UtcNow
+                && JwtSessionInfo.IsValidJwt(lr.User.loginToken);
         }
 
         if (!isValidToken)
@@ -498,7 +502,9 @@ public partial class App : Application
             
             if (lr != null && lr.User != null)
             {
-                isStillValid = lr.loginFailed != true && lr.success && lr.User.loginTokenExpirationDate > DateTime.UtcNow;
+                isStillValid = lr.loginFailed != true && lr.success
+                    && lr.User.loginTokenExpirationDate > DateTime.UtcNow
+                    && JwtSessionInfo.IsValidJwt(lr.User.loginToken);
             }
 
             if (!isStillValid)
