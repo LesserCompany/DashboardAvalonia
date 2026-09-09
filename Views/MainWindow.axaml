@@ -31,18 +31,21 @@
     </Window.Resources>
 
     <Window.Styles>
-        <!-- Validade da sessão (topo): cinza normalmente, âmbar quando perto de expirar/expirada -->
+        <!-- Validade da sessão (topo): usa os brushes de tema do projeto (App.axaml ThemeDictionaries),
+             então adapta a dark/light. Normal = texto secundário; perto de expirar/expirada = WarningTextBrush. -->
         <Style Selector="TextBlock.sessionValidity">
-            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         </Style>
         <Style Selector="TextBlock.sessionValidity.expiring">
-            <Setter Property="Foreground" Value="#E67E22" />
+            <Setter Property="Foreground" Value="{DynamicResource WarningTextBrush}" />
         </Style>
+        <!-- Ponto de status: verde fixo = sessão saudável (legível em dark e light);
+             WarningTextBrush (do tema) quando perto de expirar/expirada. -->
         <Style Selector="Ellipse.sessionDot">
             <Setter Property="Fill" Value="#2ECC71" />
         </Style>
         <Style Selector="Ellipse.sessionDot.expiring">
-            <Setter Property="Fill" Value="#E67E22" />
+            <Setter Property="Fill" Value="{DynamicResource WarningTextBrush}" />
         </Style>
     </Window.Styles>
     
