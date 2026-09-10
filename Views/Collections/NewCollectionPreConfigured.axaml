@@ -237,10 +237,10 @@
                      IsEnabled="{Binding CbHDBackupToggleIsEnabled}"
                      VerticalAlignment="Center" />
             
-            <!-- Mensagem de erro para HD -->
+            <!-- Mensagem de aviso para HD -->
             <TextBlock IsVisible="{Binding CbHDBackupIsDisabled}" 
                       Text="{Binding CbHDBackupErrorMessage}" 
-                      Foreground="Red" 
+                      Foreground="#FFC107" 
                       FontSize="12" 
                       HorizontalAlignment="Center" 
                       Margin="0,5,0,0" 
@@ -356,7 +356,7 @@
                        VerticalAlignment="Center" />
               <local:AutoTreatmentPreferencesPanel Margin="8,0,0,0" />
               <TextBlock Text="{Binding CbEnableAutoTreatmentErrorMessage}"
-                        Foreground="Red"
+                        Foreground="#FFC107"
                         FontSize="12"
                         HorizontalAlignment="Left"
                         Margin="20,0,0,0"

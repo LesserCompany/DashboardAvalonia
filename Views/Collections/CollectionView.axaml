@@ -388,10 +388,14 @@
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Reupload the class to the server'}"  />
                           </StackPanel>
                       </Button>
-                      <Button Width="325" Command="{Binding ReEnqueueCommand}" IsEnabled="{Binding BtReEnqueueIsEnabled}" >
+                      <Button Width="325"
+                              Command="{Binding ReEnqueueCommand}"
+                              IsEnabled="{Binding BtReEnqueueIsEnabled}"
+                              IsVisible="{Binding IsReprocessButtonVisible}"
+                              ToolTip.Tip="{Tr 'The photos will be re-queued for facial recognition'}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="{Tr 'Recognize again'}" VerticalAlignment="Center" />
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'The photos will be re-queued for facial recognition'}"  />
+                            <TextBlock Text="{Tr 'Request reprocessing'}" VerticalAlignment="Center" />
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" />
                             <ui:ProgressRing IsVisible="{Binding BtReenqueueIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
                           </StackPanel>
                       </Button>

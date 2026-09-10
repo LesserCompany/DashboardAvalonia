@@ -61,52 +61,6 @@
                 <TextBlock Margin="10 0 0 0" IsVisible="{Binding TbRecFolderError}" FontSize="10" Text="{Tr 'Directory not found'}" Foreground="Red" />
               </StackPanel>
 
-              <TextBlock Grid.Row="3" Grid.Column="0" Text="{Tr 'Recognition version:'}" VerticalAlignment="Center" IsVisible="{Binding RecFolderFieldIsVisible}" />
-              <StackPanel Grid.Row="3" Grid.Column="1" IsVisible="{Binding RecFolderFieldIsVisible}" Orientation="Horizontal" Spacing="8">
-                <ToggleButton IsChecked="{Binding CbRecognitionVersion10}"
-                             Command="{Binding SelectRecognitionVersion10Command}"
-                             HorizontalContentAlignment="Center"
-                             VerticalContentAlignment="Center"
-                             Padding="16,8"
-                             MinWidth="72"
-                             MinHeight="36"
-                             CornerRadius="8"
-                             BorderThickness="1">
-                  <ToggleButton.Styles>
-                    <Style Selector="ToggleButton:checked">
-                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                      <Setter Property="BorderThickness" Value="2" />
-                    </Style>
-                    <Style Selector="ToggleButton:checked TextBlock">
-                      <Setter Property="Foreground" Value="White" />
-                    </Style>
-                  </ToggleButton.Styles>
-                  <TextBlock Text="1.0" FontWeight="SemiBold" />
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding CbRecognitionVersion20}"
-                             Command="{Binding SelectRecognitionVersion20Command}"
-                             HorizontalContentAlignment="Center"
-                             VerticalContentAlignment="Center"
-                             Padding="16,8"
-                             MinWidth="72"
-                             MinHeight="36"
-                             CornerRadius="8"
-                             BorderThickness="1">
-                  <ToggleButton.Styles>
-                    <Style Selector="ToggleButton:checked">
-                      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                      <Setter Property="BorderThickness" Value="2" />
-                    </Style>
-                    <Style Selector="ToggleButton:checked TextBlock">
-                      <Setter Property="Foreground" Value="White" />
-                    </Style>
-                  </ToggleButton.Styles>
-                  <TextBlock Text="2.0" FontWeight="SemiBold" />
-                </ToggleButton>
-              </StackPanel>
-                
               <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
                   <CheckBox Content="{Tr 'HD Storage in the cloud.'}" 
                            IsChecked="{Binding CbHDBackup, FallbackValue=False}" 
@@ -117,11 +71,11 @@
                   </Button>
               </StackPanel>
               
-              <!-- Mensagem de erro para HD -->
+              <!-- Mensagem de aviso para HD -->
               <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" 
                         IsVisible="{Binding CbHDBackupIsDisabled}" 
                         Text="{Binding CbHDBackupErrorMessage}" 
-                        Foreground="Red" 
+                        Foreground="#FFC107" 
                         FontSize="12" 
                         HorizontalAlignment="Center" 
                         Margin="0,5,0,0" 
@@ -247,7 +201,7 @@
 
                 <TextBlock IsVisible="{Binding CbEnableAutoTreatmentIsDisabled}" 
                           Text="{Binding CbEnableAutoTreatmentErrorMessage}" 
-                          Foreground="Red" 
+                          Foreground="#FFC107" 
                           FontSize="12" 
                           HorizontalAlignment="Center" 
                           TextWrapping="Wrap" />
@@ -441,12 +395,49 @@
                     HorizontalContentAlignment="Center" 
                     Command="{Binding CreateCollectionCommand}" 
                     IsEnabled="{Binding !IsCreatingCollection}"
-                    IsVisible="{Binding !IsViewingCollectionConfig}">
+                    IsVisible="{Binding IsCreateCollectionButtonVisible}">
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <TextBlock Text="{Tr 'Create Collection'}" VerticalAlignment="Center" />
                 <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4"  IsIndeterminate="True" />
               </StackPanel>
             </Button>
+            <StackPanel Grid.Row="3"
+                        Orientation="Horizontal"
+                        Spacing="12"
+                        HorizontalAlignment="Center"
+                        Margin="0,20,0,20"
+                        IsVisible="{Binding IsReuploadActionButtonsVisible}">
+              <Button Height="50"
+                      Padding="24,10"
+                      MinWidth="140"
+                      VerticalContentAlignment="Center"
+                      HorizontalContentAlignment="Center"
+                      Background="#6B6B6B"
+                      Foreground="White"
+                      Command="{Binding SaveCollectionSettingsCommand}"
+                      IsEnabled="{Binding !IsCreatingCollection}"
+                      ToolTip.Tip="{Tr 'Save collection settings without uploading photos'}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{Tr 'Save'}" VerticalAlignment="Center" Foreground="White" />
+                  <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4" IsIndeterminate="True" />
+                </StackPanel>
+              </Button>
+              <Button Height="50"
+                      Padding="24,10"
+                      MinWidth="140"
+                      VerticalContentAlignment="Center"
+                      HorizontalContentAlignment="Center"
+                      Background="#FF9800"
+                      Foreground="White"
+                      Command="{Binding CreateCollectionCommand}"
+                      IsEnabled="{Binding !IsCreatingCollection}"
+                      ToolTip.Tip="{Tr 'Save settings and reupload photos with the upload app'}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="{Tr 'Reupload'}" VerticalAlignment="Center" Foreground="White" />
+                  <ui:ProgressRing IsVisible="{Binding IsCreatingCollection}" VerticalAlignment="Center" BorderThickness="4" IsIndeterminate="True" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 

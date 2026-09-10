@@ -28,12 +28,16 @@
     "pt-BR": "Fazer upload novamente da turma para o servidor"
   },
   "Recognize again": {
-    "en-US": "Recognize again",
-    "pt-BR": "Reconhecer novamente"
+    "en-US": "Request reprocessing",
+    "pt-BR": "Solicitar Reprocessamento"
+  },
+  "Request reprocessing": {
+    "en-US": "Request reprocessing",
+    "pt-BR": "Solicitar Reprocessamento"
   },
   "The photos will be re-queued for facial recognition": {
-    "en-US": "Re-queues only the photos not yet marked as completed on the server: to the recognition queue, to the treatment queue (if treatment is enabled for the collection), and to the OCR queue (if OCR is enabled). Use when processing has stalled and you want to re-queue what is still pending.",
-    "pt-BR": "Recoloca na fila apenas as fotos que ainda não foram marcadas como concluídas no servidor: na fila de reconhecimento, na de tratamento (se a coleção tiver tratamento habilitado) e na de OCR (se tiver OCR habilitado). Use quando o processamento parou (por exemplo, há dias) e você quer reenfileirar o que ficou pendente."
+    "en-US": "Requests reprocessing of photos not yet marked as completed on the server: recognition queue, treatment queue (if treatment is enabled), and OCR queue (if OCR is enabled). Only available while the collection is not at 100%. Use when processing has stalled and you want to re-queue what is still pending.",
+    "pt-BR": "Solicita o reprocessamento das fotos que ainda não foram marcadas como concluídas no servidor: na fila de reconhecimento, na de tratamento (se a coleção tiver tratamento habilitado) e na de OCR (se tiver OCR habilitado). Só aparece enquanto a coleção não estiver 100%. Use quando o processamento parou (por exemplo, há dias) e você quer reenfileirar o que ficou pendente."
   },
   "Request treatment of the entire collection": {
     "en-US": "Request treatment of the entire collection",
@@ -130,6 +134,26 @@
   "Create Collection": {
     "en-US": "Create Collection",
     "pt-BR": "Criar Coleção"
+  },
+  "Save": {
+    "en-US": "Save",
+    "pt-BR": "Salvar"
+  },
+  "Reupload": {
+    "en-US": "Reupload",
+    "pt-BR": "Reupload"
+  },
+  "Save collection settings without uploading photos": {
+    "en-US": "Saves the collection settings on the server. Does not send photos and does not open the upload app.",
+    "pt-BR": "Salva as configurações da coleção no servidor. Não envia fotos e não abre o programa de upload."
+  },
+  "Save settings and reupload photos with the upload app": {
+    "en-US": "Saves the settings and sends the photos again, opening the upload app.",
+    "pt-BR": "Salva as configurações e envia as fotos novamente, abrindo o programa de upload."
+  },
+  "Collection settings saved": {
+    "en-US": "Collection settings saved.",
+    "pt-BR": "Configurações da coleção salvas."
   },
   "Activate photo sales (in development)": {
     "en-US": "Activate photo sales (in development)",

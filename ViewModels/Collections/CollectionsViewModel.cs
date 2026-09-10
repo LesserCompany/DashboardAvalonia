@@ -174,6 +174,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
                     OnPropertyChanged(nameof(IsDeleteCollectionButtonEnabled));
                     OnPropertyChanged(nameof(IsSelectedCollectionPhotoSalesEnabled));
+                    OnPropertyChanged(nameof(IsReprocessButtonVisible));
                     NotifyDeletedCollectionViewState();
                 });
             }
@@ -1090,56 +1091,6 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDStorageFiveYears = true;
     }
 
-    /// <summary>Versão 1.0 do reconhecimento facial (padrão).</summary>
-    [ObservableProperty] public bool? cbRecognitionVersion10 = true;
-
-    /// <summary>Versão 2.0 do reconhecimento facial.</summary>
-    [ObservableProperty] public bool? cbRecognitionVersion20 = false;
-
-    partial void OnCbRecognitionVersion10Changed(bool? oldValue, bool? newValue)
-    {
-        if (_isLoadingReuploadData)
-            return;
-
-        if (newValue == true)
-            CbRecognitionVersion20 = false;
-        else if (CbRecognitionVersion20 != true)
-            CbRecognitionVersion10 = true;
-    }
-
-    partial void OnCbRecognitionVersion20Changed(bool? oldValue, bool? newValue)
-    {
-        if (_isLoadingReuploadData)
-            return;
-
-        if (newValue == true)
-            CbRecognitionVersion10 = false;
-        else if (CbRecognitionVersion10 != true)
-            CbRecognitionVersion20 = true;
-    }
-
-    [RelayCommand]
-    private void SelectRecognitionVersion10() => CbRecognitionVersion10 = true;
-
-    [RelayCommand]
-    private void SelectRecognitionVersion20() => CbRecognitionVersion20 = true;
-
-    /// <summary>
-    /// Aplica a versão de reconhecimento na UI. Só marca 2.0 se a prop existir e for exatamente "2.0";
-    /// null, vazio ou ausente cai em 1.0 (coleções anteriores ao versionamento).
-    /// </summary>
-    private void ApplyRecognitionVersionFromSource(string? recognitionVersion)
-    {
-        bool isV2 = string.Equals(recognitionVersion?.Trim(), "2.0", StringComparison.Ordinal);
-        // Sempre setar 1.0 primeiro: se setar 2.0=false com 1.0 ainda false, o handler mutual-exclusive força 2.0 de volta.
-        CbRecognitionVersion10 = true;
-        CbRecognitionVersion20 = false;
-        if (isV2)
-        {
-            CbRecognitionVersion20 = true;
-            CbRecognitionVersion10 = false;
-        }
-    }
 
     [ObservableProperty] public bool? cbEnableAutoTreatment;
     partial void OnCbEnableAutoTreatmentChanged(bool? oldValue, bool? newValue)
@@ -1284,9 +1235,21 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public bool isViewingCollectionConfig = false;
 
     public bool NewCollectionFormIsEnabled => !IsCreatingCollection && !IsViewingCollectionConfig;
+    public bool IsCreateCollectionButtonVisible => !IsReupload && !IsViewingCollectionConfig;
+    public bool IsReuploadActionButtonsVisible => IsReupload && !IsViewingCollectionConfig;
 
     partial void OnIsCreatingCollectionChanged(bool value) => OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
-    partial void OnIsViewingCollectionConfigChanged(bool value) => OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
+    partial void OnIsReuploadChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsCreateCollectionButtonVisible));
+        OnPropertyChanged(nameof(IsReuploadActionButtonsVisible));
+    }
+    partial void OnIsViewingCollectionConfigChanged(bool value)
+    {
+        OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
+        OnPropertyChanged(nameof(IsCreateCollectionButtonVisible));
+        OnPropertyChanged(nameof(IsReuploadActionButtonsVisible));
+    }
     [ObservableProperty] public bool? cbOcr;
     [ObservableProperty] public bool? cbShowPhotosWithFacialEnhancementByDefault;
     [ObservableProperty] public bool? cbShowPhotosWithColorCorrectionByDefault;
@@ -1506,6 +1469,15 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] public double separatedRectHeight;
     [ObservableProperty] public double notSeparatedRectHeight;
     [ObservableProperty] public ServerProgress? serverProgressValues;
+    partial void OnServerProgressValuesChanged(ServerProgress? value) => OnPropertyChanged(nameof(IsReprocessButtonVisible));
+
+    /// <summary>
+    /// Botão "Solicitar Reprocessamento" só aparece quando o progresso da coleção ainda não está 100%.
+    /// </summary>
+    public bool IsReprocessButtonVisible =>
+        CollectionReprocessRules.ShouldShowReprocessButton(
+            ServerProgressValues != null && SelectedCollection != null,
+            IsServerProgressFullyComplete());
 
     public ObservableCollection<string> BlockTypeOptions { get; } =
     new ObservableCollection<string> { "WATERMARK", "ACCESS_DENIED" };
@@ -1672,6 +1644,14 @@ public partial class CollectionsViewModel : ViewModelBase
         };
 
         RefreshServerProgressPollingState();
+
+        _timerCollectionsListRefresh = new System.Timers.Timer
+        {
+            AutoReset = true,
+            Interval = CollectionsListRefreshSettings.Interval.TotalMilliseconds
+        };
+        _timerCollectionsListRefresh.Elapsed += (_, _) => _ = RefreshCollectionsListSilently();
+        _timerCollectionsListRefresh.Start();
     }
 
     private readonly HashSet<INotifyPropertyChanged> _graduatePropertyChangedSubscriptions = new();
@@ -1755,16 +1735,20 @@ public partial class CollectionsViewModel : ViewModelBase
     private const int SeparationProgressPollingIntervalMinMs = 60000;   // 1 min
     private const int SeparationProgressPollingIntervalMaxMs = 600000;   // 10 min
 
+    // --- Timer: lista de coleções ---
+    private System.Timers.Timer? _timerCollectionsListRefresh;
+
     /// <summary>Indica se rec + OCR + tratamento estÃ£o em 100%. Se true, nÃ£o faz polling; sÃ³ atualiza ao clicar na coleÃ§Ã£o.</summary>
     private bool IsServerProgressFullyComplete()
     {
         if (ServerProgressValues == null || SelectedCollection == null) return false;
-        int total = ServerProgressValues.total ?? 0;
-        if (total == 0) return true;
-        bool recognitionComplete = (ServerProgressValues.done >= total);
-        bool ocrComplete = !(SelectedCollection.OCR == true) || (ServerProgressValues.ocr >= total);
-        bool autoTreatmentComplete = !(SelectedCollection.AutoTreatment == true) || (ServerProgressValues.autoTreated >= total);
-        return recognitionComplete && ocrComplete && autoTreatmentComplete;
+        return CollectionReprocessRules.IsFullyComplete(
+            ServerProgressValues.total,
+            ServerProgressValues.done,
+            ServerProgressValues.ocr,
+            ServerProgressValues.autoTreated,
+            SelectedCollection.OCR == true,
+            SelectedCollection.AutoTreatment == true);
     }
 
     /// <summary>Indica se todas as fotos do arquivo de separaÃ§Ã£o estÃ£o tagadas. Se true, nÃ£o faz polling; sÃ³ atualiza ao clicar.</summary>
@@ -1823,6 +1807,7 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             IsUpdateProgressBars = false;
             NotifyTagSortBypassState();
+            OnPropertyChanged(nameof(IsReprocessButtonVisible));
         }
     }
 
@@ -2039,6 +2024,10 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         App.LanguageChanged -= OnLanguageChanged;
         ThemeManager.ThemeApplied -= OnApplicationThemeApplied;
+        _timerCollectionsListRefresh?.Stop();
+        _timerCollectionsListRefresh?.Dispose();
+        _timerServerProgress?.Stop();
+        _timerSeparationProgress?.Stop();
     }
 
     /// <summary>Conversores das sub-abas de coleÃ§Ãµes leem ThemeDictionaries via ActualThemeVariant; forÃ§a rebind ao mudar dark/light.</summary>
@@ -2072,6 +2061,53 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             CollectionsListIsLoading = false;
             IsEnabledFilters = true;
+        }
+    }
+
+    /// <summary>
+    /// Recarrega a lista de coleções sem skeleton, a cada 10 min, preservando a seleção atual.
+    /// </summary>
+    private async Task RefreshCollectionsListSilently()
+    {
+        if (IsCreatingCollection || CollectionsListIsLoading || IsLoadingMoreTasks)
+            return;
+        if (GlobalAppStateViewModel.lfc?.loginResult?.User == null)
+            return;
+
+        try
+        {
+            var r = HasLoadedAllTasks
+                ? await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks(365 * 5)
+                : await GlobalAppStateViewModel.lfc.getCompanyProfessionalTasks();
+            if (r == null)
+                return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var selectedCode = SelectedCollection?.classCode;
+                var wasCollectionView = ActiveComponent == ActiveViews.CollectionView;
+                _isUpdatingSelectedCollection = true;
+                try
+                {
+                    CollectionsList = new ObservableCollection<ProfessionalTask>(r);
+                    ApplyLocalFilterAllSources(FilterClassCode ?? string.Empty, FilterProfessionalText ?? string.Empty);
+                    if (string.IsNullOrEmpty(selectedCode))
+                        return;
+
+                    var match = FindCollectionInAnyList(selectedCode);
+                    SelectedCollection = match;
+                    if (match == null && wasCollectionView)
+                        ActiveComponent = ActiveViews.NewsView;
+                }
+                finally
+                {
+                    _isUpdatingSelectedCollection = false;
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 
@@ -3622,8 +3658,6 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDStorageThreeMonths = false;
         CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
-        CbRecognitionVersion10 = true;
-        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptionsIsEnabled = true;
     }
@@ -3674,8 +3708,6 @@ public partial class CollectionsViewModel : ViewModelBase
         CbHDStorageThreeMonths = false;
         CbHDStorageTwoYears = false;
         CbHDStorageFiveYears = false;
-        CbRecognitionVersion10 = true;
-        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptions = false;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -3724,8 +3756,6 @@ public partial class CollectionsViewModel : ViewModelBase
         // Resetar propriedades de armazenamento HD (serÃ¡ atualizado pelo OnCbHDBackupChanged se HD estiver marcado)
         IsHDStorageOptionsVisible = options.BackupHd == true;
         ApplyHdStoragePeriodFromComboOptions(options);
-        CbRecognitionVersion10 = true;
-        CbRecognitionVersion20 = false;
 
         ExpanderAdvancedOptions = true;
         ExpanderAdvancedOptionsIsEnabled = false;
@@ -3913,7 +3943,6 @@ public partial class CollectionsViewModel : ViewModelBase
                 CbShowPhotosWithFacialEnhancementByDefault = null;
                 CbShowPhotosWithColorCorrectionByDefault = null;
             }
-            ApplyRecognitionVersionFromSource(SelectedCollection.RecognitionVersion);
             CbOcr = SelectedCollection.OCR ?? false;
             CbAllowDeletedProductionToBeFoundAnyone = SelectedCollection.AllowDeletedProductionToBeFoundAnyone ?? false;
             
@@ -4404,8 +4433,88 @@ public partial class CollectionsViewModel : ViewModelBase
                 GlobalAppStateViewModel.Instance.ShowDialogOk(ex.Message, Loc.Tr("Error", "Erro")));
         }
     }
+
+    private async Task SaveCollectionSettingsWithoutUploadAsync(ProfessionalTask pt)
+    {
+        if (SelectedCollection != null)
+        {
+            if (string.IsNullOrWhiteSpace(pt.originalClassFolder))
+                pt.originalClassFolder = SelectedCollection.originalClassFolder?.TrimEnd('\\', '/');
+        }
+
+        if (!IsTreatmentOnlyCombo)
+        {
+            var graduateDuplicateMessage = GraduateByCpfDuplicateChecker.ValidateOrGetMessage(GraduatesData);
+            if (graduateDuplicateMessage != null)
+            {
+                GlobalAppStateViewModel.Instance.ShowDialogOk(graduateDuplicateMessage, "Formandos duplicados");
+                return;
+            }
+        }
+
+        var graduatesDataToUpload = GraduatesData.ToList();
+        graduatesDataToUpload.RemoveAll(x => x.CPF == "" || x.CPF == null);
+
+        if (graduatesDataToUpload.Count > 0)
+        {
+            pt.PhotosDistribution = true;
+            pt.UploadHD = true;
+        }
+        else
+        {
+            pt.PhotosDistribution = false;
+        }
+
+        if (_preConfiguredComboAuthority != null)
+            PreConfiguredComboProfessionalTaskAuthority.Apply(_preConfiguredComboAuthority, pt);
+
+        var r = await GlobalAppStateViewModel.lfc.UpdateOrCreateProfessionalTaskAsync(pt, new List<string>(), new List<string>());
+        if (r == null || !r.success)
+        {
+            await GlobalAppStateViewModel.Instance.ShowCollectionCreationSupportDialogAsync(r?.message);
+            return;
+        }
+
+        foreach (var g in graduatesDataToUpload)
+        {
+            g.ClassCode = pt.classCode;
+            g.Company = pt.companyUsername;
+            if (pt.EnablePhotosSales != true)
+                g.GraduateCanViewAllPhotosFromThisClassCode = null;
+            else
+                g.GraduateCanViewAllPhotosFromThisClassCode = g.GraduateCanViewAllPhotosFromThisClassCode ?? false;
+        }
+        if (graduatesDataToUpload.Count > 0)
+            await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
+
+        var updatedCollection = await GlobalAppStateViewModel.lfc.GetProfessionalTask(pt.classCode);
+        if (updatedCollection != null)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                UpdateCollectionInList(updatedCollection, pt.classCode);
+                var collectionInList = FindCollectionInAnyList(pt.classCode);
+                if (collectionInList != null)
+                    SelectedCollection = collectionInList;
+                ActiveComponent = ActiveViews.CollectionView;
+            });
+        }
+        else
+        {
+            ActiveComponent = ActiveViews.CollectionView;
+        }
+
+        GlobalAppStateViewModel.Instance.ShowDialogOk(
+            Loc.Tr("Collection settings saved", "Configurações da coleção salvas."));
+    }
+
     [RelayCommand]
-    public async Task CreateCollectionCommand()
+    public Task CreateCollectionCommand() => SubmitCollectionAsync(saveOnly: false);
+
+    [RelayCommand]
+    public Task SaveCollectionSettingsCommand() => SubmitCollectionAsync(saveOnly: true);
+
+    private async Task SubmitCollectionAsync(bool saveOnly)
     {
         if (IsViewingCollectionConfig)
             return;
@@ -4417,9 +4526,12 @@ public partial class CollectionsViewModel : ViewModelBase
 
 
             IsCreatingCollection = true;
+            bool requireFolders = CollectionSubmitRules.RequiresLocalPhotoFolders(saveOnly);
             
             // Valida o diretÃ³rio de downloads PRIMEIRO, antes de qualquer outra validaÃ§Ã£o
             // Esta validaÃ§Ã£o DEVE bloquear a criaÃ§Ã£o se o diretÃ³rio nÃ£o estiver vÃ¡lido
+            if (requireFolders)
+            {
             var (isValid, errorMessage) = GlobalAppStateViewModel.Instance.ValidateDownloadDirectory();
             if (!isValid)
             {
@@ -4435,6 +4547,7 @@ public partial class CollectionsViewModel : ViewModelBase
                     GlobalAppStateViewModel.Instance.ShowDialogOk(errorMessage + "\n\n" + "NÃ£o Ã© possÃ­vel criar a coleÃ§Ã£o sem um diretÃ³rio de downloads vÃ¡lido.");
                     return;
                 }
+            }
             }
             
             if (string.IsNullOrWhiteSpace(TbCollectionName))
@@ -4462,6 +4575,8 @@ public partial class CollectionsViewModel : ViewModelBase
 
             }
             // SÃ³ validar pasta de reconhecimento se nÃ£o for um combo apenas tratamento
+            if (requireFolders)
+            {
             if (!IsTreatmentOnlyCombo && !Directory.Exists(TbRecFolder))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Acknowledgments folder not found"));
@@ -4472,9 +4587,10 @@ public partial class CollectionsViewModel : ViewModelBase
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Events folder not found"));
                 return;
             }
+            }
             if (!TryValidatePhotoSalesPrice())
                 return;
-            if (CheckIfClassAlreadyExists(TbCollectionName))
+            if (CollectionSubmitRules.StartsUploadApp(saveOnly) && CheckIfClassAlreadyExists(TbCollectionName))
             {
                 var dialog = new ReuploadWarningDialog();
                 if (MainWindow.instance != null)
@@ -4496,6 +4612,13 @@ public partial class CollectionsViewModel : ViewModelBase
             // CORREÃ‡ÃƒO: Normalizar os paths removendo barras finais para evitar duplicaÃ§Ã£o no backend
             var normalizedEventFolder = TbEventFolder?.TrimEnd('\\', '/') ?? string.Empty;
             var normalizedRecFolder = IsTreatmentOnlyCombo ? string.Empty : (TbRecFolder?.TrimEnd('\\', '/') ?? string.Empty);
+            if (saveOnly)
+            {
+                if (string.IsNullOrWhiteSpace(normalizedEventFolder))
+                    normalizedEventFolder = SelectedCollection?.originalEventsFolder?.TrimEnd('\\', '/') ?? string.Empty;
+                if (!IsTreatmentOnlyCombo && string.IsNullOrWhiteSpace(normalizedRecFolder))
+                    normalizedRecFolder = SelectedCollection?.originalRecFolder?.TrimEnd('\\', '/') ?? string.Empty;
+            }
             
             ProfessionalTask pt = new ProfessionalTask()
             {
@@ -4511,7 +4634,7 @@ public partial class CollectionsViewModel : ViewModelBase
                 UploadPhotosAreAlreadySorted = CbUploadedPhotosAreAlreadySorted,
                 AllowCPFsToSeeAllPhotos = CbAllowCPFsToSeeAllPhotos,
                 UploadHD = CbHDBackup,
-                UploadComplete = false,
+                UploadComplete = saveOnly ? (SelectedCollection?.UploadComplete ?? true) : false,
                 Description = string.IsNullOrWhiteSpace(TbProfessionalTaskDescription) ? null : TbProfessionalTaskDescription.Trim(),
                 EnablePhotosSales = CbEnablePhotoSales,
                 PhotosCannotHaveWatermarks = CbPhotosCannotHaveWatermarks,
@@ -4525,8 +4648,7 @@ public partial class CollectionsViewModel : ViewModelBase
 
                  IsTreatmentOnly = IsTreatmentOnlyCombo,
             };
-            if (!IsTreatmentOnlyCombo)
-                pt.RecognitionVersion = CbRecognitionVersion20 == true ? "2.0" : "1.0";
+            pt.RecognitionVersion = CollectionRecognitionVersion.Current;
             if (CbEnableAutoTreatment == true)
             {
                 pt.AutoTreatmentVersion = "2.0";
@@ -4537,6 +4659,12 @@ public partial class CollectionsViewModel : ViewModelBase
             {
                 // Armazenar a data de deleÃ§Ã£o com 5 horas a mais, para manter 05:00 em vez de 00:00
                 pt.ScheduledDeletionDate = SelectedHdStorageDate.Value.ToUniversalTime().AddHours(5);
+            }
+
+            if (saveOnly)
+            {
+                await SaveCollectionSettingsWithoutUploadAsync(pt);
+                return;
             }
 
             if (!FileHelper.TryGetFilesWithExtensionsAndFilters(pt.originalEventsFolder, out var eventFiles, out var deniedEventsPath, out var eventsErr))
@@ -4720,10 +4848,13 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (graduatesDataToUpload.Count > 0)
                     await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
 
+            if (CollectionSubmitRules.StartsUploadApp(saveOnly))
+            {
                 Action<int> callback = MainWindowViewModel.Instance != null
                     ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent
                     : _ => { };
                 App.StartUploadConcurrentApp(pt, callback);
+            }
 
                 await UpdateProfessionalTasksList();
                 var currentPt = CollectionsListFiltered.FirstOrDefault(x => x.classCode == pt.classCode);

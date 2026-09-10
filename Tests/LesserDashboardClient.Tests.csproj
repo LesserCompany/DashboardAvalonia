@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>LesserDashboardClient.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Helpers\CollectionRecognitionVersion.cs" Link="Helpers\CollectionRecognitionVersion.cs" />
+    <Compile Include="..\Helpers\CollectionReprocessRules.cs" Link="Helpers\CollectionReprocessRules.cs" />
+    <Compile Include="..\Helpers\CollectionsListRefreshSettings.cs" Link="Helpers\CollectionsListRefreshSettings.cs" />
+    <Compile Include="..\Helpers\CollectionSubmitRules.cs" Link="Helpers\CollectionSubmitRules.cs" />
+  </ItemGroup>
+
+</Project>
