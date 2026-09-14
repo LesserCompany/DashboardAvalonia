@@ -3617,7 +3617,12 @@ public partial class CollectionsViewModel : ViewModelBase
         SelectedCollection = null;
         IsReupload = false;
         IsViewingCollectionConfig = false;
-        CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        // [BUG CORRIGIDO] SelectedProfessional.username (sem ?.) explodia com NullReferenceException
+        // antes do ?? ter chance de agir, pra company sem nenhum professional cadastrado (tudo feito a
+        // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
+        // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
+        // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
+        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova coleï¿½ï¿½o personalizada
         _preConfiguredComboAuthority = null;
@@ -3667,7 +3672,12 @@ public partial class CollectionsViewModel : ViewModelBase
         SelectedCollection = null;
         IsReupload = false;
         IsViewingCollectionConfig = false;
-        CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        // [BUG CORRIGIDO] SelectedProfessional.username (sem ?.) explodia com NullReferenceException
+        // antes do ?? ter chance de agir, pra company sem nenhum professional cadastrado (tudo feito a
+        // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
+        // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
+        // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
+        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
         _preConfiguredComboAuthority = null;
@@ -3719,7 +3729,12 @@ public partial class CollectionsViewModel : ViewModelBase
         SelectedCollection = null;
         IsReupload = false;
         IsViewingCollectionConfig = false;
-        CurrentProfessionalName = SelectedProfessional.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        // [BUG CORRIGIDO] SelectedProfessional.username (sem ?.) explodia com NullReferenceException
+        // antes do ?? ter chance de agir, pra company sem nenhum professional cadastrado (tudo feito a
+        // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
+        // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
+        // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
+        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
         _preConfiguredComboAuthority = options;
