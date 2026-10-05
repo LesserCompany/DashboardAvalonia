@@ -1178,5 +1178,13 @@
   "Canceled item": {
     "en-US": "Canceled",
     "pt-BR": "Cancelado"
+  },
+  "Last update of this preview": {
+    "en-US": "Last update of this preview",
+    "pt-BR": "Última atualização desta prévia"
+  },
+  "Date and time the item was registered": {
+    "en-US": "Date and time the item was registered",
+    "pt-BR": "Data e hora em que o item foi lançado"
   }
 }

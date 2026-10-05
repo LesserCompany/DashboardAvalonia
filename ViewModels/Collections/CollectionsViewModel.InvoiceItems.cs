@@ -108,6 +108,25 @@ public class CollectionInvoiceItemRow
 
     public string PeriodText => Dto.StartDate?.ToString("MM/yyyy", CultureInfo.InvariantCulture) ?? "-";
 
+    // Data/hora do lançamento (InvoiceItemCreationDate), no fuso local. Vem do servidor em UTC; se
+    // chegar sem Kind, trata como UTC. Na prévia é a última atualização (ela é regravada a cada
+    // mudança até o fechamento).
+    public string CreationDateTimeText
+    {
+        get
+        {
+            if (Dto.CreationDate is not DateTime dt)
+                return "";
+            if (dt.Kind == DateTimeKind.Unspecified)
+                dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            return dt.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+        }
+    }
+
+    public string CreationDateTimeTooltip => IsPreview
+        ? Loc.Tr("Last update of this preview")
+        : Loc.Tr("Date and time the item was registered");
+
     public string TypeText => Dto.InvoiceType switch
     {
         "NORMAL" => Loc.Tr("Collection services"),

@@ -64,7 +64,7 @@
             BorderThickness="1"
             CornerRadius="8,8,0,0"
             Padding="12,8">
-      <Grid ColumnDefinitions="90, 2*, 3*, 90, 120, 130" ColumnSpacing="8">
+      <Grid ColumnDefinitions="125, 2*, 3*, 90, 120, 130" ColumnSpacing="8">
         <TextBlock Grid.Column="0" Text="{Tr 'Period'}" FontWeight="SemiBold" FontSize="12" />
         <TextBlock Grid.Column="1" Text="{Tr 'Type'}" FontWeight="SemiBold" FontSize="12" />
         <TextBlock Grid.Column="2" Text="{Tr 'Description'}" FontWeight="SemiBold" FontSize="12" />
@@ -82,8 +82,12 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:CollectionInvoiceItemRow">
                 <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="12,9">
-                  <Grid ColumnDefinitions="90, 2*, 3*, 90, 120, 130" ColumnSpacing="8">
-                    <TextBlock Grid.Column="0" Text="{Binding PeriodText}" VerticalAlignment="Center" FontSize="13" />
+                  <Grid ColumnDefinitions="125, 2*, 3*, 90, 120, 130" ColumnSpacing="8">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="1">
+                      <TextBlock Text="{Binding PeriodText}" FontSize="13" />
+                      <TextBlock Text="{Binding CreationDateTimeText}" FontSize="11" Foreground="{DynamicResource MetaFg}"
+                                 ToolTip.Tip="{Binding CreationDateTimeTooltip}" />
+                    </StackPanel>
                     <TextBlock Grid.Column="1" Text="{Binding TypeText}" VerticalAlignment="Center" FontSize="13" TextTrimming="CharacterEllipsis" />
                     <TextBlock Grid.Column="2" Text="{Binding DescriptionText}" VerticalAlignment="Center" FontSize="13" TextTrimming="CharacterEllipsis"
                                Foreground="{DynamicResource MetaFg}" ToolTip.Tip="{Binding DescriptionText}" />
