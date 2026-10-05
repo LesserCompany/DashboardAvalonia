@@ -334,6 +334,19 @@
             </Button>
           </Grid>
 
+          <!-- Itens de cobrança da coleção (fora do "Avançado": precisa abrir mesmo com a cobrança cancelada) -->
+          <Button Command="{Binding OpenCollectionInvoiceItemsViewCommand}"
+                  Height="40"
+                  HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center"
+                  VerticalContentAlignment="Center"
+                  ToolTip.Tip="{Tr 'See the billing items of this collection, consolidated and in preview'}">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Center">
+              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8A5;" FontSize="14" VerticalAlignment="Center" />
+              <TextBlock Text="{Tr 'Billing items'}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
           <!-- REPORTS CONTAINER (desabilitado quando coleção é da lista de deletadas) -->
           <Grid ColumnDefinitions="1*, 1*" IsVisible="{Binding ReportsContainerIsVisible}" ColumnSpacing="4" IsEnabled="{Binding BtExportIsEnabledForView}">
             <Button Command="{Binding GeneralReportCommand}" Height="45" Grid.Column="0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">

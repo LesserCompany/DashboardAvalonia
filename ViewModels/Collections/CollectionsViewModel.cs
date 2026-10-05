@@ -363,7 +363,8 @@ public partial class CollectionsViewModel : ViewModelBase
         NewCollectionPreConfigured,
         CollectionView,
         SelectProfessional,
-        CancelBilling
+        CancelBilling,
+        CollectionInvoiceItems
     }
     [ObservableProperty]
     private ActiveViews activeComponent = ActiveViews.NewsView;
@@ -402,6 +403,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentSelectProfessionalIsIsVisible));
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
         OnPropertyChanged(nameof(ComponentCancelBillingIsVisible));
+        OnPropertyChanged(nameof(ComponentCollectionInvoiceItemsIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
         OnPropertyChanged(nameof(ComponentMessagesViewIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisibleAndSafe));
@@ -419,6 +421,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentEditIdsIsVisible => ActiveComponent == ActiveViews.EditIds;
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
+    public bool ComponentCollectionInvoiceItemsIsVisible => ActiveComponent == ActiveViews.CollectionInvoiceItems;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
     public bool ComponentMessagesViewIsVisible => ActiveComponent == ActiveViews.MessagesView;
 

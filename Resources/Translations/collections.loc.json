@@ -1074,5 +1074,109 @@
   "Automatic facial enhancement tooltip": {
     "en-US": "Applies subtle facial improvements such as skin smoothing and eye enhancement. Use this switch to set whether the option is on or off by default for each graduate — they can change it later if they want.",
     "pt-BR": "Aplica melhorias sutis na aparência facial, como suavização de pele e realce dos olhos. Aqui você define se essa opção já vem ligada ou desligada para o formando — ele poderá mudar depois, se quiser."
+  },
+  "Billing items": {
+    "en-US": "Billing items",
+    "pt-BR": "Itens de cobrança"
+  },
+  "See the billing items of this collection, consolidated and in preview": {
+    "en-US": "See the billing items of this collection, consolidated and in preview",
+    "pt-BR": "Veja os itens de cobrança desta coleção, consolidados e em prévia"
+  },
+  "Refresh": {
+    "en-US": "Refresh",
+    "pt-BR": "Atualizar"
+  },
+  "Items marked as Preview may still change until the monthly billing cycle closes. Consolidated items are already part of a closed invoice.": {
+    "en-US": "Items marked as Preview may still change until the monthly billing cycle closes. Consolidated items are already part of a closed invoice.",
+    "pt-BR": "Itens marcados como Prévia ainda podem sofrer alteração até o fechamento do ciclo mensal. Itens consolidados já fazem parte de uma fatura fechada."
+  },
+  "Period": {
+    "en-US": "Period",
+    "pt-BR": "Período"
+  },
+  "Type": {
+    "en-US": "Type",
+    "pt-BR": "Tipo"
+  },
+  "Description": {
+    "en-US": "Description",
+    "pt-BR": "Descrição"
+  },
+  "Photos": {
+    "en-US": "Photos",
+    "pt-BR": "Fotos"
+  },
+  "Amount": {
+    "en-US": "Amount",
+    "pt-BR": "Valor"
+  },
+  "Status": {
+    "en-US": "Status",
+    "pt-BR": "Situação"
+  },
+  "Loading billing items...": {
+    "en-US": "Loading billing items...",
+    "pt-BR": "Carregando itens de cobrança..."
+  },
+  "This collection has no billing items yet.": {
+    "en-US": "This collection has no billing items yet.",
+    "pt-BR": "Esta coleção ainda não tem itens de cobrança."
+  },
+  "Could not load the billing items of this collection.": {
+    "en-US": "Could not load the billing items of this collection.",
+    "pt-BR": "Não foi possível carregar os itens de cobrança desta coleção."
+  },
+  "Total consolidated (excluding canceled items)": {
+    "en-US": "Total consolidated (excluding canceled items)",
+    "pt-BR": "Total consolidado (sem itens cancelados)"
+  },
+  "Total in preview (may change)": {
+    "en-US": "Total in preview (may change)",
+    "pt-BR": "Total em prévia (pode mudar)"
+  },
+  "Amounts per item, before the free trial discount, which is applied to the invoice total.": {
+    "en-US": "Amounts per item, before the free trial discount, which is applied to the invoice total.",
+    "pt-BR": "Valores por item, antes do desconto do período de teste, que é aplicado no total da fatura."
+  },
+  "Collection services": {
+    "en-US": "Collection services",
+    "pt-BR": "Serviços da coleção"
+  },
+  "HD storage": {
+    "en-US": "HD storage",
+    "pt-BR": "Armazenamento HD"
+  },
+  "Deadline extension": {
+    "en-US": "Deadline extension",
+    "pt-BR": "Extensão de prazo"
+  },
+  "{0} extra days": {
+    "en-US": "{0} extra days",
+    "pt-BR": "{0} dias adicionais"
+  },
+  "Preview": {
+    "en-US": "Preview",
+    "pt-BR": "Prévia"
+  },
+  "Consolidated": {
+    "en-US": "Consolidated",
+    "pt-BR": "Consolidado"
+  },
+  "This item will not be charged.": {
+    "en-US": "This item will not be charged.",
+    "pt-BR": "Este item não será cobrado."
+  },
+  "Preview: the value may change until the monthly billing cycle closes.": {
+    "en-US": "Preview: the value may change until the monthly billing cycle closes.",
+    "pt-BR": "Prévia: o valor pode mudar até o fechamento do ciclo mensal."
+  },
+  "Consolidated: this item is already part of a closed invoice.": {
+    "en-US": "Consolidated: this item is already part of a closed invoice.",
+    "pt-BR": "Consolidado: este item já faz parte de uma fatura fechada."
+  },
+  "Canceled item": {
+    "en-US": "Canceled",
+    "pt-BR": "Cancelado"
   }
 }
