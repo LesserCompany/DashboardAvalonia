@@ -126,7 +126,10 @@ public class CollectionInvoiceItemRow
         }
     }
 
-    public string PhotosText => Dto.NumPhotos?.ToString("N0", CultureInfo.GetCultureInfo("pt-BR")) ?? "-";
+    // Na extensão de prazo, a base do valor são as fotos da coleção quando a extensão foi pedida, não
+    // as enviadas no mês (NumPhotos).
+    public string PhotosText => (Dto.InvoiceType == "EXTENSION_DELETE_DATE" ? Dto.PhotoCountAtExtensionGeneration : Dto.NumPhotos)
+        ?.ToString("N0", CultureInfo.GetCultureInfo("pt-BR")) ?? "-";
 
     public string ValueText => CollectionsViewModel.FormatCurrency(Dto.Value ?? 0);
 
