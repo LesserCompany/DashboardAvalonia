@@ -132,6 +132,7 @@ public class CollectionInvoiceItemRow
         "NORMAL" => Loc.Tr("Collection services"),
         "OLD_STORAGE" => Loc.Tr("HD storage"),
         "EXTENSION_DELETE_DATE" => Loc.Tr("Deadline extension"),
+        "PARTIAL_AUTO_TREATMENT" => Loc.Tr("Partial treatment"),
         _ => Dto.InvoiceType ?? "-"
     };
 
