@@ -29,10 +29,25 @@
     <ScrollViewer Padding="0,0,0,20">
       <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6" Margin="0,0,0,30">
 
-        <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10,0">
-          <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
-          <TextBlock Text="{Tr 'Edit IDs'}" VerticalAlignment="Center" FontSize="20" />
-        </StackPanel>
+        <!-- Voltar (pra coleção) + título. O botão usa o BackLasViewCommand do CollectionsViewModel (esta tela
+             tem DataContext próprio, EditIdsViewModel), mesmo padrão de Cancelar cobrança / Itens de cobrança. -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Margin="10,0">
+          <Button Grid.Column="0"
+                  Command="{Binding BackLasViewCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
+                  VerticalAlignment="Center"
+                  Padding="8,4"
+                  Background="Transparent"
+                  BorderThickness="0">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <TextBlock Text="←" FontSize="16" VerticalAlignment="Center" />
+              <TextBlock Text="{Tr 'Back'}" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <StackPanel Grid.Column="1" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
+            <TextBlock Text="{Tr 'Edit IDs'}" VerticalAlignment="Center" FontSize="20" />
+          </StackPanel>
+        </Grid>
 
         <Grid Grid.Row="1"
               Margin="10"
