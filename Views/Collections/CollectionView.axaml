@@ -292,7 +292,11 @@
                         IsEnabled="{Binding !SelectedCollectionIsCanceled}"
                         ToolTip.Tip="{Tr 'Choose folders or participants and request the treatment of their photos'}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
-                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE790;" FontSize="13" VerticalAlignment="Center" />
+                    <!-- Mesmo símbolo do ícone de tratamento parcial da lista (PartialAutoTreatmentIcon). -->
+                    <TextBlock VerticalAlignment="Center">
+                      <Run Text="✨" FontSize="12" />
+                      <Run Text="¹⁄∞" FontSize="10" FontWeight="SemiBold" />
+                    </TextBlock>
                     <TextBlock Text="{Tr 'Manage batches'}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
