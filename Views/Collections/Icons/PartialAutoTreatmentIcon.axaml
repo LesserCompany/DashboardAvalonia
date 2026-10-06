@@ -5,13 +5,13 @@
              mc:Ignorable="d" d:DesignWidth="60" d:DesignHeight="24"
              x:Class="LesserDashboardClient.Views.Collections.PartialAutoTreatmentIcon">
   <!-- Coleção com tratamento parcial (ao menos um lote pedido). Mesmo badge do AutoTreatmentIcon (✨), com
-       um "½" pra distinguir do auto tratamento completo. -->
+       um "¹⁄∞" (1/infinito, no formato de fração) pra distinguir do auto tratamento completo. -->
   <Border Background="{DynamicResource BadgeBg}" CornerRadius="6" Padding="6,3"
           Cursor="Help"
           ToolTip.Tip="{Tr 'This collection has partial treatment: batches of photos were requested for treatment.'}">
     <TextBlock Foreground="{DynamicResource BadgeFg}" VerticalAlignment="Center" HorizontalAlignment="Center">
       <Run Text="✨" FontSize="12" />
-      <Run Text="½" FontSize="10" FontWeight="SemiBold" />
+      <Run Text="¹⁄∞" FontSize="10" FontWeight="SemiBold" />
     </TextBlock>
   </Border>
 </UserControl>
