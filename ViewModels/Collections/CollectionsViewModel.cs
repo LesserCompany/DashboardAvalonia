@@ -364,7 +364,8 @@ public partial class CollectionsViewModel : ViewModelBase
         CollectionView,
         SelectProfessional,
         CancelBilling,
-        CollectionInvoiceItems
+        CollectionInvoiceItems,
+        PartialAutoTreatment
     }
     [ObservableProperty]
     private ActiveViews activeComponent = ActiveViews.NewsView;
@@ -404,6 +405,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ComponentQuickAccessIsVisible));
         OnPropertyChanged(nameof(ComponentCancelBillingIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionInvoiceItemsIsVisible));
+        OnPropertyChanged(nameof(ComponentPartialAutoTreatmentIsVisible));
         OnPropertyChanged(nameof(ComponentNewCollectionPreConfiguredIsVisible));
         OnPropertyChanged(nameof(ComponentMessagesViewIsVisible));
         OnPropertyChanged(nameof(ComponentCollectionViewIsVisibleAndSafe));
@@ -422,6 +424,7 @@ public partial class CollectionsViewModel : ViewModelBase
     public bool ComponentCollectionViewIsVisible => ActiveComponent == ActiveViews.CollectionView;
     public bool ComponentCancelBillingIsVisible => ActiveComponent == ActiveViews.CancelBilling;
     public bool ComponentCollectionInvoiceItemsIsVisible => ActiveComponent == ActiveViews.CollectionInvoiceItems;
+    public bool ComponentPartialAutoTreatmentIsVisible => ActiveComponent == ActiveViews.PartialAutoTreatment;
     public bool ComponentNewCollectionPreConfiguredIsVisible => ActiveComponent == ActiveViews.NewCollectionPreConfigured;
     public bool ComponentMessagesViewIsVisible => ActiveComponent == ActiveViews.MessagesView;
 
@@ -2478,6 +2481,9 @@ public partial class CollectionsViewModel : ViewModelBase
                 //    //UploadComplete = true;
                 //}
                 selected.UploadComplete = (ServerProgressValues.uploaded < ServerProgressValues.total || ServerProgressValues.total == null) ? false : true;
+
+                // Tratamento parcial: progresso detalhado (tratadas / na fila / disponíveis) — só em coleção HD sem auto tratamento completo.
+                await RefreshPartialAutoTreatmentOverviewAsync(selected);
                 //stopwatch.Stop();
                 //Console.WriteLine($"UpdateProgressBarAndButtons levou {stopwatch.ElapsedMilliseconds} ms");
             }

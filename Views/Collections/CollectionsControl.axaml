@@ -49,6 +49,7 @@
       <local:SelectProfessional Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentSelectProfessionalIsIsVisible}" />
       <local:CancelBilling Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCancelBillingIsVisible}" />
       <local:CollectionInvoiceItems Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentCollectionInvoiceItemsIsVisible}" />
+      <local:CollectionPartialAutoTreatment Grid.Row="1" Grid.Column="1" IsVisible="{Binding ComponentPartialAutoTreatmentIsVisible}" />
       <!--
       -->
     </Grid>

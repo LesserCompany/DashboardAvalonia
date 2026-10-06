@@ -1186,5 +1186,165 @@
   "Date and time the item was registered": {
     "en-US": "Date and time the item was registered",
     "pt-BR": "Data e hora em que o item foi lançado"
+  },
+  "Partial treatment": {
+    "en-US": "Partial treatment",
+    "pt-BR": "Tratamento parcial"
+  },
+  "Request treatment": {
+    "en-US": "Request treatment",
+    "pt-BR": "Solicitar tratamento"
+  },
+  "Choose folders or participants and request the treatment of their photos": {
+    "en-US": "Choose folders or participants and request the treatment of their photos",
+    "pt-BR": "Escolha pastas ou formandos e solicite o tratamento das fotos deles"
+  },
+  "Collection photos:": {
+    "en-US": "Collection photos:",
+    "pt-BR": "Fotos da coleção:"
+  },
+  "Treated:": {
+    "en-US": "Treated:",
+    "pt-BR": "Tratadas:"
+  },
+  "In the queue:": {
+    "en-US": "In the queue:",
+    "pt-BR": "Na fila:"
+  },
+  "Available to request:": {
+    "en-US": "Available to request:",
+    "pt-BR": "Disponíveis para solicitar:"
+  },
+  "Requested in batches:": {
+    "en-US": "Requested in batches:",
+    "pt-BR": "Solicitadas em lotes:"
+  },
+  "Requested in a batch and not treated yet (in the queue or being processed)": {
+    "en-US": "Requested in a batch and not treated yet (in the queue or being processed)",
+    "pt-BR": "Solicitadas num lote e ainda não tratadas (na fila ou em processamento)"
+  },
+  "Not treated and not requested yet: can go into a new batch": {
+    "en-US": "Not treated and not requested yet: can go into a new batch",
+    "pt-BR": "Ainda não tratadas nem solicitadas: podem entrar num novo lote"
+  },
+  "All photos already requested in some batch, treated or not": {
+    "en-US": "All photos already requested in some batch, treated or not",
+    "pt-BR": "Todas as fotos já solicitadas em algum lote, tratadas ou não"
+  },
+  "Choose folders and/or participants. Photos already treated or already in a batch are left out automatically. Once requested, the batch goes to the treatment queue and cannot be cancelled.": {
+    "en-US": "Choose folders and/or participants. Photos already treated or already in a batch are left out automatically. Once requested, the batch goes to the treatment queue and cannot be cancelled.",
+    "pt-BR": "Escolha pastas e/ou formandos. Fotos já tratadas ou que já estão em um lote ficam de fora automaticamente. Depois de solicitado, o lote vai para a fila de tratamento e não pode ser cancelado."
+  },
+  "By folder": {
+    "en-US": "By folder",
+    "pt-BR": "Por pasta"
+  },
+  "By participant": {
+    "en-US": "By participant",
+    "pt-BR": "Por formando"
+  },
+  "Folder": {
+    "en-US": "Folder",
+    "pt-BR": "Pasta"
+  },
+  "Treated": {
+    "en-US": "Treated",
+    "pt-BR": "Tratadas"
+  },
+  "In the queue": {
+    "en-US": "In the queue",
+    "pt-BR": "Na fila"
+  },
+  "Available": {
+    "en-US": "Available",
+    "pt-BR": "Disponíveis"
+  },
+  "Search by name or CPF": {
+    "en-US": "Search by name or CPF",
+    "pt-BR": "Buscar por nome ou CPF"
+  },
+  "Loading participants...": {
+    "en-US": "Loading participants...",
+    "pt-BR": "Carregando formandos..."
+  },
+  "Could not load the participants of this collection.": {
+    "en-US": "Could not load the participants of this collection.",
+    "pt-BR": "Não foi possível carregar os formandos desta coleção."
+  },
+  "Batch summary": {
+    "en-US": "Batch summary",
+    "pt-BR": "Resumo do lote"
+  },
+  "Selected photos": {
+    "en-US": "Selected photos",
+    "pt-BR": "Fotos selecionadas"
+  },
+  "Already treated (left out)": {
+    "en-US": "Already treated (left out)",
+    "pt-BR": "Já tratadas (ficam de fora)"
+  },
+  "Already in a batch (left out)": {
+    "en-US": "Already in a batch (left out)",
+    "pt-BR": "Já em um lote (ficam de fora)"
+  },
+  "Photos in this batch": {
+    "en-US": "Photos in this batch",
+    "pt-BR": "Fotos neste lote"
+  },
+  "Requested during the free trial: the free trial discount is applied on the invoice.": {
+    "en-US": "Requested during the free trial: the free trial discount is applied on the invoice.",
+    "pt-BR": "Solicitado durante o período de teste: o desconto do período de teste é aplicado na fatura."
+  },
+  "{0} selected participant(s) have no photos in this collection.": {
+    "en-US": "{0} selected participant(s) have no photos in this collection.",
+    "pt-BR": "{0} formando(s) selecionado(s) não têm fotos nesta coleção."
+  },
+  "Clear selection": {
+    "en-US": "Clear selection",
+    "pt-BR": "Limpar seleção"
+  },
+  "Sending to the queue...": {
+    "en-US": "Sending to the queue...",
+    "pt-BR": "Enviando para a fila..."
+  },
+  "Request the treatment of {0} photo(s) for {1}?\n\nThe photos go to the treatment queue right away and the request cannot be cancelled.": {
+    "en-US": "Request the treatment of {0} photo(s) for {1}?\n\nThe photos go to the treatment queue right away and the request cannot be cancelled.",
+    "pt-BR": "Solicitar o tratamento de {0} foto(s) por {1}?\n\nAs fotos vão para a fila de tratamento imediatamente e a solicitação não pode ser cancelada."
+  },
+  "{0} photo(s) were sent to the treatment queue.": {
+    "en-US": "{0} photo(s) were sent to the treatment queue.",
+    "pt-BR": "{0} foto(s) enviada(s) para a fila de tratamento."
+  },
+  "Could not request the treatment.": {
+    "en-US": "Could not request the treatment.",
+    "pt-BR": "Não foi possível solicitar o tratamento."
+  },
+  "Requested batches": {
+    "en-US": "Requested batches",
+    "pt-BR": "Lotes solicitados"
+  },
+  "Date": {
+    "en-US": "Date",
+    "pt-BR": "Data"
+  },
+  "Selection": {
+    "en-US": "Selection",
+    "pt-BR": "Seleção"
+  },
+  "Requested by": {
+    "en-US": "Requested by",
+    "pt-BR": "Solicitado por"
+  },
+  "Left out": {
+    "en-US": "Left out",
+    "pt-BR": "De fora"
+  },
+  "Failed to queue - will be reprocessed": {
+    "en-US": "Failed to queue - will be reprocessed",
+    "pt-BR": "Falha ao enfileirar - será reprocessado"
+  },
+  "{0} participant(s)": {
+    "en-US": "{0} participant(s)",
+    "pt-BR": "{0} formando(s)"
   }
 }

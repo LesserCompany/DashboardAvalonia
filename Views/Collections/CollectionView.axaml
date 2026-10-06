@@ -279,7 +279,30 @@
                 <ProgressBar  IsVisible="{Binding !IsUpdateProgressBars}" Grid.Row="0" Grid.Column="1" Maximum="{Binding TotalPhotosForOCR}" Value="{Binding TotalPhotosForOCRDone}" Height="35" ShowProgressText="True" ProgressTextFormat="{}{0}/{3} - ({1:0}%)" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
               </Grid>
           </Grid>
-            
+
+          <!-- Tratamento parcial (coleção HD sem auto tratamento completo): progresso detalhado + acesso aos lotes.
+               O auto tratamento completo continua com a barra "Enhancement on the server" acima. -->
+          <Border IsVisible="{Binding IsPartialAutoTreatmentMode}"
+                  Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
+                  CornerRadius="10" Padding="14,12">
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*, Auto">
+                <TextBlock Grid.Column="0" Text="{Tr 'Partial treatment'}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Command="{Binding OpenPartialAutoTreatmentViewCommand}" Padding="12,6"
+                        IsEnabled="{Binding !SelectedCollectionIsCanceled}"
+                        ToolTip.Tip="{Tr 'Choose folders or participants and request the treatment of their photos'}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE790;" FontSize="13" VerticalAlignment="Center" />
+                    <TextBlock Text="{Tr 'Request treatment'}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+              <local:PartialAutoTreatmentProgress />
+              <TextBlock IsVisible="{Binding PartialNotEligibleReason, Converter={x:Static ObjectConverters.IsNotNull}}"
+                         Text="{Binding PartialNotEligibleReason}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
             <!-- SeparationFiles -->
           <Grid Grid.Row="5" RowDefinitions="Auto, Auto" RowSpacing="6" Margin="4" IsVisible="{Binding ClassSeparationFilesIsVisible}">
             <TextBlock Grid.Row="0" Text="{Tr 'Choose the separation file you want to work with:'}" FontSize="12" />
