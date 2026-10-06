@@ -110,7 +110,19 @@
               </StackPanel>
               <TextBlock IsVisible="{Binding PartialParticipantsError, Converter={x:Static ObjectConverters.IsNotNull}}"
                          Text="{Binding PartialParticipantsError}" Foreground="#FFFF6B6B" TextWrapping="Wrap" />
-              <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" MaxHeight="360">
+              <!-- A lista inteira de formandos da coleção aparece aqui embaixo; a busca acima só filtra. -->
+              <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="6" IsVisible="{Binding PartialParticipantsHasRows}">
+                <TextBlock Grid.Column="0" Text="{Binding PartialParticipantsCountText}" FontSize="12" Foreground="{DynamicResource MetaFg}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Command="{Binding SelectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
+                  <TextBlock Text="{Tr 'Select all listed'}" />
+                </Button>
+                <Button Grid.Column="2" Command="{Binding UnselectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
+                  <TextBlock Text="{Tr 'Unselect listed'}" />
+                </Button>
+              </Grid>
+              <TextBlock IsVisible="{Binding PartialParticipantsEmpty}" Text="{Tr 'No participants registered in this collection.'}"
+                         Foreground="{DynamicResource MetaFg}" HorizontalAlignment="Center" />
+              <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" MaxHeight="360" IsVisible="{Binding PartialParticipantsHasRows}">
                 <ScrollViewer>
                   <ItemsControl ItemsSource="{Binding PartialParticipantsFiltered}">
                     <ItemsControl.ItemTemplate>
@@ -151,6 +163,25 @@
               <TextBlock Grid.Row="4" Grid.Column="0" Text="{Tr 'Amount'}" FontWeight="SemiBold" />
               <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PartialSimulationValueText}" HorizontalAlignment="Right" FontWeight="SemiBold" />
             </Grid>
+            <!-- Detalhamento: a qual pasta/formando o lote se destina, com as contas de cada um. -->
+            <StackPanel Spacing="4" IsVisible="{Binding PartialHasSimulation}">
+              <TextBlock Text="{Tr 'Per folder / participant'}" FontSize="12" FontWeight="SemiBold" Margin="0,4,0,0" />
+              <ItemsControl ItemsSource="{Binding PartialSimulationItems}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PartialSelectionItemRow">
+                    <Grid ColumnDefinitions="22, *" Margin="0,2">
+                      <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="{Binding Icon}" FontSize="13" VerticalAlignment="Top" Margin="0,2,0,0" />
+                      <StackPanel Grid.Column="1">
+                        <TextBlock Text="{Binding Title}" FontSize="12" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding DetailText}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Tr 'A photo that is both in a chosen folder and of a chosen participant appears in both lines, but enters the batch only once.'}"
+                         FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
+            </StackPanel>
             <TextBlock IsVisible="{Binding PartialSimulationFreeTrial}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap"
                        Text="{Tr 'Requested during the free trial: the free trial discount is applied on the invoice.'}" />
             <TextBlock IsVisible="{Binding PartialSimulationCpfsNotFoundText, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -196,8 +227,22 @@
                   <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,1,0,0" Padding="12,6">
                     <Grid ColumnDefinitions="125, *, 140, 80, 80, 110" ColumnSpacing="8">
                       <TextBlock Grid.Column="0" Text="{Binding DateText}" VerticalAlignment="Center" FontSize="12" />
-                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding SelectionText}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SelectionText}" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Text="{Binding SelectionText}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SelectionText}"
+                                   IsVisible="{Binding !HasItems}" />
+                        <ItemsControl ItemsSource="{Binding Items}" IsVisible="{Binding HasItems}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PartialSelectionItemRow">
+                              <Grid ColumnDefinitions="18, *">
+                                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="{Binding Icon}" FontSize="11" VerticalAlignment="Top" Margin="0,2,0,0" />
+                                <StackPanel Grid.Column="1">
+                                  <TextBlock Text="{Binding Title}" FontSize="12" TextWrapping="Wrap" />
+                                  <TextBlock Text="{Binding DetailText}" FontSize="10" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
+                                </StackPanel>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <TextBlock IsVisible="{Binding EnqueueFailed}" Text="{Tr 'Failed to queue - will be reprocessed'}" FontSize="11" Foreground="#FFFF6B6B" />
                       </StackPanel>
                       <TextBlock Grid.Column="2" Text="{Binding RequestedByText}" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis" />

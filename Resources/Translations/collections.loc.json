@@ -1346,5 +1346,41 @@
   "{0} participant(s)": {
     "en-US": "{0} participant(s)",
     "pt-BR": "{0} formando(s)"
+  },
+  "{0} participant(s) in this collection": {
+    "en-US": "{0} participant(s) in this collection",
+    "pt-BR": "{0} formando(s) nesta coleção"
+  },
+  "Select all listed": {
+    "en-US": "Select all listed",
+    "pt-BR": "Marcar todos da lista"
+  },
+  "Unselect listed": {
+    "en-US": "Unselect listed",
+    "pt-BR": "Desmarcar os da lista"
+  },
+  "No participants registered in this collection.": {
+    "en-US": "No participants registered in this collection.",
+    "pt-BR": "Nenhum formando cadastrado nesta coleção."
+  },
+  "Per folder / participant": {
+    "en-US": "Per folder / participant",
+    "pt-BR": "Por pasta / formando"
+  },
+  "A photo that is both in a chosen folder and of a chosen participant appears in both lines, but enters the batch only once.": {
+    "en-US": "A photo that is both in a chosen folder and of a chosen participant appears in both lines, but enters the batch only once.",
+    "pt-BR": "Uma foto que está numa pasta escolhida e também é de um formando escolhido aparece nas duas linhas, mas entra no lote só uma vez."
+  },
+  "Participant": {
+    "en-US": "Participant",
+    "pt-BR": "Formando"
+  },
+  "no photos in this collection": {
+    "en-US": "no photos in this collection",
+    "pt-BR": "sem fotos nesta coleção"
+  },
+  "{0} photo(s) · {1} already treated · {2} already in a batch → {3} in this batch": {
+    "en-US": "{0} photo(s) · {1} already treated · {2} already in a batch → {3} in this batch",
+    "pt-BR": "{0} foto(s) · {1} já tratada(s) · {2} já em lote → {3} neste lote"
   }
 }

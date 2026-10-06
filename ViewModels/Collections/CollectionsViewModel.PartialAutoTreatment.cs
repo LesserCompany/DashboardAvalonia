@@ -96,6 +96,24 @@ public partial class CollectionsViewModel
     [ObservableProperty] private bool partialRequesting;
     [ObservableProperty] private string? partialMessage;
 
+    // Aba "Por formando": a lista inteira aparece logo abaixo da busca (a busca só filtra).
+    public string PartialParticipantsCountText => string.Format(Loc.Tr("{0} participant(s) in this collection"), PartialParticipants.Count.ToString("N0", PtBr));
+    public bool PartialParticipantsEmpty => !PartialParticipantsLoading && PartialParticipantsError == null && PartialParticipants.Count == 0;
+    public bool PartialParticipantsHasRows => PartialParticipants.Count > 0;
+    partial void OnPartialParticipantsChanged(ObservableCollection<PartialParticipantRow> value) => NotifyPartialParticipantsState();
+    partial void OnPartialParticipantsLoadingChanged(bool value) => NotifyPartialParticipantsState();
+    partial void OnPartialParticipantsErrorChanged(string? value) => NotifyPartialParticipantsState();
+    private void NotifyPartialParticipantsState()
+    {
+        OnPropertyChanged(nameof(PartialParticipantsCountText));
+        OnPropertyChanged(nameof(PartialParticipantsEmpty));
+        OnPropertyChanged(nameof(PartialParticipantsHasRows));
+    }
+
+    // Detalhamento do lote simulado: 1 linha por pasta/formando escolhido.
+    public ObservableCollection<PartialSelectionItemRow> PartialSimulationItems =>
+        new((PartialSimulation?.Selection ?? new List<PartialAutoTreatmentSelectionItemDTO>()).Select(x => new PartialSelectionItemRow(x)));
+
     public int PartialSelectedFoldersCount => PartialFolders.Count(x => x.IsSelected);
     public int PartialSelectedParticipantsCount => PartialParticipants.Count(x => x.IsSelected);
     public bool PartialHasSelection => PartialSelectedFoldersCount + PartialSelectedParticipantsCount > 0;
@@ -131,6 +149,7 @@ public partial class CollectionsViewModel
             nameof(PartialCanRequest), nameof(PartialHasSimulation), nameof(PartialSimulationSelectedText),
             nameof(PartialSimulationTreatedText), nameof(PartialSimulationRequestedText), nameof(PartialSimulationBillableText),
             nameof(PartialSimulationValueText), nameof(PartialSimulationFreeTrial), nameof(PartialSimulationCpfsNotFoundText),
+            nameof(PartialSimulationItems),
         })
             OnPropertyChanged(name);
     }
@@ -188,6 +207,20 @@ public partial class CollectionsViewModel
         PartialSimulation = null;
         PartialMessage = null;
         NotifyPartialSelectionState();
+    }
+
+    // Marca/desmarca de uma vez os formandos visíveis (respeita o filtro da busca) — 1 simulação só no fim.
+    [RelayCommand]
+    public void SelectAllVisiblePartialParticipantsCommand() => SetVisiblePartialParticipants(true);
+
+    [RelayCommand]
+    public void UnselectAllVisiblePartialParticipantsCommand() => SetVisiblePartialParticipants(false);
+
+    private void SetVisiblePartialParticipants(bool selected)
+    {
+        foreach (var p in PartialParticipantsFiltered)
+            p.SetSelectedSilently(selected);
+        OnPartialSelectionChanged();
     }
 
     private async Task LoadPartialParticipantsAsync()
@@ -410,8 +443,39 @@ public class PartialBatchRow
             return parts.Count == 0 ? "-" : string.Join(" + ", parts);
         }
     }
+    // Detalhamento gravado no lote (a qual pasta/formando ele se destina).
+    public List<PartialSelectionItemRow> Items => (Dto.Selection ?? new List<PartialAutoTreatmentSelectionItemDTO>()).Select(x => new PartialSelectionItemRow(x)).ToList();
+    public bool HasItems => Dto.Selection?.Count > 0;
     public string BillableText => Dto.BillablePhotoCount.ToString("N0", PtBr);
     public string SkippedText => Dto.SkippedPhotoCount.ToString("N0", PtBr);
     public string ValueText => CollectionsViewModel.FormatCurrency((Dto.TotalValueCents ?? 0) / 100);
     public bool EnqueueFailed => Dto.Status == "EnqueueFailed";
+}
+
+// Um item do detalhamento da seleção (pasta ou formando) — usado no resumo do lote e no histórico.
+public class PartialSelectionItemRow
+{
+    private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");
+
+    public PartialSelectionItemRow(PartialAutoTreatmentSelectionItemDTO dto) => Dto = dto;
+    public PartialAutoTreatmentSelectionItemDTO Dto { get; }
+
+    public bool IsFolder => Dto.Type == "Folder";
+    // Ícone Segoe MDL2: pasta / pessoa.
+    public string Icon => IsFolder ? "" : "";
+    public string Title => IsFolder
+        ? Dto.Folder ?? "-"
+        : $"{(string.IsNullOrWhiteSpace(Dto.ParticipantName) ? Loc.Tr("Participant") : Dto.ParticipantName)} ({MaskCpf(Dto.Cpf)})";
+
+    // "N fotos · Z já tratadas · W já em lote → Y no lote" (ou "sem fotos nesta coleção").
+    public string DetailText => Dto.NotFound
+        ? Loc.Tr("no photos in this collection")
+        : string.Format(Loc.Tr("{0} photo(s) · {1} already treated · {2} already in a batch → {3} in this batch"),
+            Dto.SelectedPhotoCount.ToString("N0", PtBr),
+            Dto.AlreadyTreatedPhotoCount.ToString("N0", PtBr),
+            Dto.AlreadyRequestedPhotoCount.ToString("N0", PtBr),
+            Dto.BillablePhotoCount.ToString("N0", PtBr));
+
+    private static string MaskCpf(string? cpf) =>
+        cpf?.Length == 11 ? $"***.{cpf.Substring(3, 3)}.{cpf.Substring(6, 3)}-**" : cpf ?? "";
 }
