@@ -502,6 +502,7 @@ public partial class CollectionsViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<ProfessionalTask> expiredCollectionsList = new();
     partial void OnExpiredCollectionsListChanged(ObservableCollection<ProfessionalTask> value)
     {
+        RequestPartialAutoTreatmentClassCodesRefresh();
         OnPropertyChanged(nameof(VisibleCollectionsList));
         OnPropertyChanged(nameof(IsSelectedCollectionInExpiredList));
         OnPropertyChanged(nameof(IsDeleteCollectionButtonVisible));
@@ -516,7 +517,11 @@ public partial class CollectionsViewModel : ViewModelBase
 
     /// <summary>Lista de coleÃ§Ãµes com solicitaÃ§Ã£o de exclusÃ£o pendente (exibida na aba Deletadas).</summary>
     [ObservableProperty] private ObservableCollection<ProfessionalTask> deletedCollectionsList = new();
-    partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => OnPropertyChanged(nameof(VisibleCollectionsList));
+    partial void OnDeletedCollectionsListChanged(ObservableCollection<ProfessionalTask> value)
+    {
+        RequestPartialAutoTreatmentClassCodesRefresh();
+        OnPropertyChanged(nameof(VisibleCollectionsList));
+    }
 
     /// <summary>Lista que a view deve exibir conforme a aba ativa (sempre a variante filtrada da sub-aba).</summary>
     public IEnumerable<ProfessionalTask> VisibleCollectionsList =>
@@ -2143,9 +2148,6 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                 }
             }
-
-            // Ícone de tratamento parcial na lista — em paralelo, não segura o carregamento da lista.
-            _ = RefreshPartialAutoTreatmentClassCodesAsync();
             
             // CORREÃ‡ÃƒO: Se havia uma coleÃ§Ã£o selecionada, verificar se ela ainda existe na lista
             // Se nÃ£o existir mais (foi deletada), limpar a seleÃ§Ã£o (vai voltar para home automaticamente)

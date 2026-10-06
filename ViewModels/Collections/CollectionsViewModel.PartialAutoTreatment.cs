@@ -116,6 +116,30 @@ public partial class CollectionsViewModel
     // MultiBinding das linhas.
     [ObservableProperty] private ISet<string> partialAutoTreatmentClassCodes = new HashSet<string>();
 
+    // Toda vez que alguma das listas de coleções é trocada (carga inicial, "carregar mais", atualização,
+    // abas de vencidas/deletadas), busca de novo quais têm lote — 1 chamada pra company inteira. Chamadas
+    // em sequência rápida (várias listas trocadas juntas) viram uma só.
+    partial void OnCollectionsListChanged(ObservableCollection<ProfessionalTask> value) => RequestPartialAutoTreatmentClassCodesRefresh();
+
+    private int _partialCodesRefreshRunning;
+    private void RequestPartialAutoTreatmentClassCodesRefresh()
+    {
+        if (Interlocked.Exchange(ref _partialCodesRefreshRunning, 1) == 1)
+            return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(300);
+                await RefreshPartialAutoTreatmentClassCodesAsync();
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _partialCodesRefreshRunning, 0);
+            }
+        });
+    }
+
     private async Task RefreshPartialAutoTreatmentClassCodesAsync()
     {
         try
