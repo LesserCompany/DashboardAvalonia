@@ -6,15 +6,15 @@
              x:DataType="vm:CollectionsViewModel"
              mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="90"
              x:Class="LesserDashboardClient.Views.Collections.PartialAutoTreatmentProgress">
-  <!-- Progresso do tratamento parcial: barra empilhada (verde = tratadas, âmbar = na fila, trilho =
-       disponíveis) + legenda. Duas ProgressBars sobrepostas: a de baixo vai até tratadas+na fila, a de
+  <!-- Progresso do tratamento parcial: barra empilhada (laranja do projeto = tratadas, cinza neutro = na
+       fila, trilho = disponíveis) + legenda. Duas ProgressBars sobrepostas: a de baixo vai até tratadas+na fila, a de
        cima (fundo transparente) até as tratadas. -->
   <StackPanel Spacing="6">
     <Panel Height="22">
       <ProgressBar Minimum="0" Maximum="{Binding PartialBarMaximum}" Value="{Binding PartialTreatedPlusPending}"
-                   Height="22" Foreground="#FFF59E0B" CornerRadius="6" />
+                   Height="22" Foreground="#FF9CA3AF" CornerRadius="6" />
       <ProgressBar Minimum="0" Maximum="{Binding PartialBarMaximum}" Value="{Binding PartialTreated}"
-                   Height="22" Foreground="#FF22C55E" Background="Transparent" CornerRadius="6" />
+                   Height="22" Foreground="{DynamicResource Accent}" Background="Transparent" CornerRadius="6" />
       <TextBlock Text="{Binding PartialPercentText}" FontSize="11" FontWeight="SemiBold"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Panel>
@@ -24,19 +24,19 @@
         <TextBlock Text="{Binding PartialTotal}" FontSize="12" FontWeight="SemiBold" />
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,4">
-        <Ellipse Width="10" Height="10" Fill="#FF22C55E" VerticalAlignment="Center" />
+        <Ellipse Width="10" Height="10" Fill="{DynamicResource Accent}" VerticalAlignment="Center" />
         <TextBlock Text="{Tr 'Treated:'}" FontSize="12" Foreground="{DynamicResource MetaFg}" />
         <TextBlock Text="{Binding PartialTreated}" FontSize="12" FontWeight="SemiBold" />
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,4"
                   ToolTip.Tip="{Tr 'Requested in a batch and not treated yet (in the queue or being processed)'}">
-        <Ellipse Width="10" Height="10" Fill="#FFF59E0B" VerticalAlignment="Center" />
+        <Ellipse Width="10" Height="10" Fill="#FF9CA3AF" VerticalAlignment="Center" />
         <TextBlock Text="{Tr 'In the queue:'}" FontSize="12" Foreground="{DynamicResource MetaFg}" />
         <TextBlock Text="{Binding PartialPending}" FontSize="12" FontWeight="SemiBold" />
       </StackPanel>
       <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,4"
                   ToolTip.Tip="{Tr 'Not treated and not requested yet: can go into a new batch'}">
-        <Ellipse Width="10" Height="10" Fill="#80808080" VerticalAlignment="Center" />
+        <Ellipse Width="10" Height="10" Fill="Transparent" Stroke="{DynamicResource MetaFg}" StrokeThickness="1" VerticalAlignment="Center" />
         <TextBlock Text="{Tr 'Available to request:'}" FontSize="12" Foreground="{DynamicResource MetaFg}" />
         <TextBlock Text="{Binding PartialAvailable}" FontSize="12" FontWeight="SemiBold" />
       </StackPanel>

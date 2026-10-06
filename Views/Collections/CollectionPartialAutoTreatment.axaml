@@ -96,8 +96,8 @@
                           <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" IsEnabled="{Binding CanSelect}" VerticalAlignment="Center" />
                           <TextBlock Grid.Column="1" Text="{Binding Folder}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Folder}" />
                           <TextBlock Grid.Column="2" Text="{Binding TotalText}" VerticalAlignment="Center" HorizontalAlignment="Right" />
-                          <TextBlock Grid.Column="3" Text="{Binding TreatedText}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#FF22C55E" />
-                          <TextBlock Grid.Column="4" Text="{Binding PendingText}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#FFF59E0B" />
+                          <TextBlock Grid.Column="3" Text="{Binding TreatedText}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="{DynamicResource Accent}" />
+                          <TextBlock Grid.Column="4" Text="{Binding PendingText}" VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="#FF9CA3AF" />
                           <TextBlock Grid.Column="5" Text="{Binding AvailableText}" VerticalAlignment="Center" HorizontalAlignment="Right" FontWeight="SemiBold" />
                         </Grid>
                       </Border>
@@ -169,10 +169,10 @@
             <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto, Auto, Auto" RowSpacing="4" IsVisible="{Binding PartialHasSimulation}">
               <TextBlock Grid.Row="0" Grid.Column="0" Text="{Tr 'Selected photos'}" />
               <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PartialSimulationSelectedText}" HorizontalAlignment="Right" />
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Already treated (left out)'}" Foreground="#FF22C55E" />
-              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PartialSimulationTreatedText}" HorizontalAlignment="Right" Foreground="#FF22C55E" />
-              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Already in a batch (left out)'}" Foreground="#FFF59E0B" />
-              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PartialSimulationRequestedText}" HorizontalAlignment="Right" Foreground="#FFF59E0B" />
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{Tr 'Already treated (left out)'}" Foreground="{DynamicResource Accent}" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding PartialSimulationTreatedText}" HorizontalAlignment="Right" Foreground="{DynamicResource Accent}" />
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="{Tr 'Already in a batch (left out)'}" Foreground="#FF9CA3AF" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PartialSimulationRequestedText}" HorizontalAlignment="Right" Foreground="#FF9CA3AF" />
               <TextBlock Grid.Row="3" Grid.Column="0" Text="{Tr 'Photos in this batch'}" FontWeight="SemiBold" />
               <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PartialSimulationBillableText}" HorizontalAlignment="Right" FontWeight="SemiBold" />
               <TextBlock Grid.Row="4" Grid.Column="0" Text="{Tr 'Amount'}" FontWeight="SemiBold" />
