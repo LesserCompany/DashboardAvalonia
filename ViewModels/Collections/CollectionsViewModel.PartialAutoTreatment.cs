@@ -170,6 +170,8 @@ public partial class CollectionsViewModel
     public bool PartialHasSelectedParticipants => PartialSelectedParticipantsCount > 0;
     public bool PartialCanRequest => PartialHasSelection && !PartialSimulating && !PartialRequesting && PartialSimulation?.BillablePhotoCount > 0 && PartialIsEligible;
     public bool PartialHasSimulation => PartialSimulation != null && PartialHasSelection;
+    // Seleção válida, mas nenhuma foto nova: tudo já tratado ou já pedido num lote anterior.
+    public bool PartialSimulationNothingToTreat => PartialHasSimulation && !PartialSimulating && PartialSimulation!.BillablePhotoCount == 0;
 
     public string PartialSimulationSelectedText => (PartialSimulation?.SelectedPhotoCount ?? 0).ToString("N0", PtBr);
     public string PartialSimulationTreatedText => (PartialSimulation?.AlreadyTreatedPhotoCount ?? 0).ToString("N0", PtBr);
@@ -198,7 +200,7 @@ public partial class CollectionsViewModel
             nameof(PartialCanRequest), nameof(PartialHasSimulation), nameof(PartialSimulationSelectedText),
             nameof(PartialSimulationTreatedText), nameof(PartialSimulationRequestedText), nameof(PartialSimulationBillableText),
             nameof(PartialSimulationValueText), nameof(PartialSimulationFreeTrial), nameof(PartialSimulationCpfsNotFoundText),
-            nameof(PartialSimulationItems),
+            nameof(PartialSimulationItems), nameof(PartialSimulationNothingToTreat),
         })
             OnPropertyChanged(name);
     }
@@ -302,9 +304,15 @@ public partial class CollectionsViewModel
         }
     }
 
-    // Toda mudança de seleção re-simula (com um pequeno atraso pra juntar cliques seguidos).
+    // Toda mudança de seleção re-simula (com um pequeno atraso pra juntar cliques seguidos). O resultado da
+    // seleção anterior é descartado NA HORA: sem isso, durante o atraso o botão "Solicitar" ficava habilitado
+    // com as contas de outra seleção. O botão só habilita com uma simulação da seleção atual que tenha foto
+    // nova (nem tratada nem já pedida) — e o servidor recalcula tudo de novo no pedido real.
     private void OnPartialSelectionChanged()
     {
+        PartialSimulation = null;
+        PartialMessage = null;
+        PartialSimulating = PartialHasSelection;
         NotifyPartialSelectionState();
         _partialSimulationCts?.Cancel();
         _partialSimulationCts = new CancellationTokenSource();
@@ -331,6 +339,7 @@ public partial class CollectionsViewModel
         if (!PartialHasSelection)
         {
             PartialSimulation = null;
+            PartialSimulating = false;
             return;
         }
         PartialSimulating = true;

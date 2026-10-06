@@ -293,7 +293,7 @@
                         ToolTip.Tip="{Tr 'Choose folders or participants and request the treatment of their photos'}">
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE790;" FontSize="13" VerticalAlignment="Center" />
-                    <TextBlock Text="{Tr 'Request treatment'}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Tr 'Manage batches'}" VerticalAlignment="Center" />
                   </StackPanel>
                 </Button>
               </Grid>

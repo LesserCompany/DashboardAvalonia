@@ -1398,5 +1398,13 @@
   "This collection has partial treatment: batches of photos were requested for treatment.": {
     "en-US": "This collection has partial treatment: batches of photos were requested for treatment.",
     "pt-BR": "Esta coleção tem tratamento parcial: lotes de fotos foram solicitados para tratamento."
+  },
+  "No new photos in this selection: they were all already treated or are already in a batch. Each photo can only be requested once.": {
+    "en-US": "No new photos in this selection: they were all already treated or are already in a batch. Each photo can only be requested once.",
+    "pt-BR": "Nenhuma foto nova nesta seleção: todas já foram tratadas ou já estão em um lote. Cada foto só pode ser solicitada uma vez."
+  },
+  "Manage batches": {
+    "en-US": "Manage batches",
+    "pt-BR": "Gerenciar lotes"
   }
 }

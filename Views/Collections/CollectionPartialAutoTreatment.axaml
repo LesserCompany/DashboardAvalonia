@@ -201,6 +201,11 @@
                        Text="{Tr 'Requested during the free trial: the free trial discount is applied on the invoice.'}" />
             <TextBlock IsVisible="{Binding PartialSimulationCpfsNotFoundText, Converter={x:Static ObjectConverters.IsNotNull}}"
                        Text="{Binding PartialSimulationCpfsNotFoundText}" FontSize="11" Foreground="{DynamicResource WarningTextBrush}" TextWrapping="Wrap" />
+            <Border IsVisible="{Binding PartialSimulationNothingToTreat}" Background="#1FF59E0B" BorderBrush="#80F59E0B"
+                    BorderThickness="1" CornerRadius="6" Padding="10,8">
+              <TextBlock TextWrapping="Wrap" FontSize="12"
+                         Text="{Tr 'No new photos in this selection: they were all already treated or are already in a batch. Each photo can only be requested once.'}" />
+            </Border>
             <TextBlock IsVisible="{Binding PartialMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
                        Text="{Binding PartialMessage}" Foreground="#FFFF6B6B" TextWrapping="Wrap" />
             <Grid ColumnDefinitions="Auto, *" ColumnSpacing="8" Margin="0,4,0,0">
