@@ -1394,5 +1394,9 @@
   "Try again": {
     "en-US": "Try again",
     "pt-BR": "Tentar de novo"
+  },
+  "This collection has partial treatment: batches of photos were requested for treatment.": {
+    "en-US": "This collection has partial treatment: batches of photos were requested for treatment.",
+    "pt-BR": "Esta coleção tem tratamento parcial: lotes de fotos foram solicitados para tratamento."
   }
 }

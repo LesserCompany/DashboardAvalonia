@@ -109,6 +109,27 @@ public partial class CollectionsViewModel
         }
     }
 
+    // ---- Ícone da lista ----
+
+    // classCodes das coleções com ao menos um lote (ícone PartialAutoTreatmentIcon em CollectionList, via
+    // CollectionHasPartialAutoTreatmentConverter). Trocado por um conjunto novo a cada carga pra disparar o
+    // MultiBinding das linhas.
+    [ObservableProperty] private ISet<string> partialAutoTreatmentClassCodes = new HashSet<string>();
+
+    private async Task RefreshPartialAutoTreatmentClassCodesAsync()
+    {
+        try
+        {
+            var r = await GlobalAppStateViewModel.lfc.GetCollectionsWithPartialAutoTreatment();
+            if (r?.success == true && r.Content != null)
+                await Dispatcher.UIThread.InvokeAsync(() => PartialAutoTreatmentClassCodes = new HashSet<string>(r.Content));
+        }
+        catch
+        {
+            // Ícone é informativo — falha aqui não afeta a lista.
+        }
+    }
+
     // ---- Tela de pedido ----
 
     [ObservableProperty] private ObservableCollection<PartialFolderRow> partialFolders = new();
@@ -359,6 +380,8 @@ public partial class CollectionsViewModel
                     Loc.Tr("{0} photo(s) were sent to the treatment queue."),
                     (r.Content?.BillablePhotoCount ?? 0).ToString("N0", PtBr)));
                 ClearPartialSelectionCommand();
+                // A coleção pode ter acabado de ganhar o 1º lote — atualiza o ícone da lista.
+                _ = RefreshPartialAutoTreatmentClassCodesAsync();
             }
             else
             {

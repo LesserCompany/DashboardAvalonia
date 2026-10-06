@@ -2143,6 +2143,9 @@ public partial class CollectionsViewModel : ViewModelBase
                     }
                 }
             }
+
+            // Ícone de tratamento parcial na lista — em paralelo, não segura o carregamento da lista.
+            _ = RefreshPartialAutoTreatmentClassCodesAsync();
             
             // CORREÃ‡ÃƒO: Se havia uma coleÃ§Ã£o selecionada, verificar se ela ainda existe na lista
             // Se nÃ£o existir mais (foi deletada), limpar a seleÃ§Ã£o (vai voltar para home automaticamente)

@@ -259,6 +259,15 @@
                           </Border>
                           <!-- AutoTreatment -->
                           <local:AutoTreatmentIcon IsVisible="{Binding AutoTreatment, FallbackValue=False}"/>
+                          <!-- Tratamento parcial: coleção com ao menos um lote pedido -->
+                          <local:PartialAutoTreatmentIcon>
+                            <local:PartialAutoTreatmentIcon.IsVisible>
+                              <MultiBinding Converter="{StaticResource CollectionHasPartialAutoTreatmentConverter}" FallbackValue="False">
+                                <Binding Path="."/>
+                                <Binding Path="PartialAutoTreatmentClassCodes" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              </MultiBinding>
+                            </local:PartialAutoTreatmentIcon.IsVisible>
+                          </local:PartialAutoTreatmentIcon>
                           <!-- Vendas habilitadas -->
                           <local:PhotoSalesIcon IsVisible="{Binding EnablePhotosSales, FallbackValue=False}"/>
                           <!-- OCR -->

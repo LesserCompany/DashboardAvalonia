@@ -31,6 +31,7 @@
             <converters:DeletedTabAndDateToVisibleConverter x:Key="DeletedTabAndDateToVisibleConverter" />
             <converters:FinalDeletionDateToStringConverter x:Key="FinalDeletionDateToStringConverter" />
             <converters:BillingCanceledListItemBrushConverter x:Key="BillingCanceledListItemBrushConverter" />
+            <converters:CollectionHasPartialAutoTreatmentConverter x:Key="CollectionHasPartialAutoTreatmentConverter" />
             <converters:ProfessionalLoginDisplayConverter x:Key="ProfessionalLoginDisplayConverter" />
             <converters:ProfessionalSelectionStateConverter x:Key="ProfessionalSelectionStateConverter" />
           </ResourceDictionary>
