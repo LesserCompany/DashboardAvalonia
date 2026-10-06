@@ -24,6 +24,13 @@ public partial class CollectionsViewModel
 
     [ObservableProperty] private PartialAutoTreatmentOverviewDTO? partialOverview;
     private string? _partialOverviewClassCode;
+    // Carregando a visão geral pela 1ª vez (sem números ainda) e erro da última tentativa — a tela mostra
+    // um ou outro em vez de ficar em branco quando o endpoint falha.
+    [ObservableProperty] private bool partialOverviewLoading;
+    [ObservableProperty] private string? partialOverviewError;
+    public bool PartialOverviewLoadingFirstTime => PartialOverviewLoading && PartialOverview == null;
+    public bool PartialHasOverview => PartialOverview != null;
+    partial void OnPartialOverviewLoadingChanged(bool value) => OnPropertyChanged(nameof(PartialOverviewLoadingFirstTime));
 
     // Modo parcial: coleção HD sem auto tratamento completo (o completo segue com a barra antiga).
     public bool IsPartialAutoTreatmentMode =>
@@ -50,6 +57,7 @@ public partial class CollectionsViewModel
             nameof(PartialTotal), nameof(PartialTreated), nameof(PartialRequested), nameof(PartialPending),
             nameof(PartialAvailable), nameof(PartialTreatedPlusPending), nameof(PartialBarMaximum),
             nameof(PartialHasBatches), nameof(PartialIsEligible), nameof(PartialNotEligibleReason), nameof(PartialPercentText),
+            nameof(PartialOverviewLoadingFirstTime), nameof(PartialHasOverview),
         })
             OnPropertyChanged(name);
         RebuildPartialFolders();
@@ -62,22 +70,42 @@ public partial class CollectionsViewModel
         OnPropertyChanged(nameof(IsPartialAutoTreatmentMode));
         // Trocou de coleção: não mostra os números da anterior enquanto carrega.
         if (_partialOverviewClassCode != selected.classCode)
+        {
             PartialOverview = null;
+            PartialOverviewError = null;
+        }
         _partialOverviewClassCode = selected.classCode;
         if (selected.UploadHD != true || selected.AutoTreatment == true)
         {
             PartialOverview = null;
+            PartialOverviewError = null;
             return;
         }
+        PartialOverviewLoading = true;
         try
         {
             var r = await GlobalAppStateViewModel.lfc.GetPartialAutoTreatmentOverview(selected.classCode);
-            if (SelectedCollection?.classCode == selected.classCode && r?.success == true)
+            if (SelectedCollection?.classCode != selected.classCode)
+                return;
+            if (r?.success == true && r.Content != null)
+            {
                 PartialOverview = r.Content;
+                PartialOverviewError = null;
+            }
+            else
+            {
+                PartialOverviewError = r?.message ?? Loc.Tr("Could not load the partial treatment of this collection.");
+            }
         }
-        catch
+        catch (Exception e)
         {
-            // Progresso é informativo — falha aqui não pode travar o resto da tela.
+            // Não trava o resto da tela — mas mostra o erro no bloco do tratamento parcial.
+            if (SelectedCollection?.classCode == selected.classCode)
+                PartialOverviewError = Loc.Tr("Could not load the partial treatment of this collection.") + " " + e.Message;
+        }
+        finally
+        {
+            PartialOverviewLoading = false;
         }
     }
 

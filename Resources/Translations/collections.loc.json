@@ -1382,5 +1382,17 @@
   "{0} photo(s) · {1} already treated · {2} already in a batch → {3} in this batch": {
     "en-US": "{0} photo(s) · {1} already treated · {2} already in a batch → {3} in this batch",
     "pt-BR": "{0} foto(s) · {1} já tratada(s) · {2} já em lote → {3} neste lote"
+  },
+  "Could not load the partial treatment of this collection.": {
+    "en-US": "Could not load the partial treatment of this collection.",
+    "pt-BR": "Não foi possível carregar o tratamento parcial desta coleção."
+  },
+  "Loading partial treatment...": {
+    "en-US": "Loading partial treatment...",
+    "pt-BR": "Carregando tratamento parcial..."
+  },
+  "Try again": {
+    "en-US": "Try again",
+    "pt-BR": "Tentar de novo"
   }
 }

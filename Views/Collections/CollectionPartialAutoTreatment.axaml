@@ -31,9 +31,24 @@
         </Button>
       </Grid>
 
+      <!-- Carregando / erro ao carregar a visão geral (sem ela a seleção não aparece) -->
+      <StackPanel IsVisible="{Binding PartialOverviewLoadingFirstTime}" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+        <ui:ProgressRing IsIndeterminate="True" BorderThickness="3" Width="18" Height="18" />
+        <TextBlock Text="{Tr 'Loading partial treatment...'}" VerticalAlignment="Center" />
+      </StackPanel>
+      <Border IsVisible="{Binding PartialOverviewError, Converter={x:Static ObjectConverters.IsNotNull}}"
+              Background="#22DC2626" BorderBrush="#99DC2626" BorderThickness="1" CornerRadius="8" Padding="12,10">
+        <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+          <TextBlock Grid.Column="0" Text="{Binding PartialOverviewError}" TextWrapping="Wrap" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Command="{Binding RefreshPartialAutoTreatmentCommand}" Padding="10,6" VerticalAlignment="Center">
+            <TextBlock Text="{Tr 'Try again'}" />
+          </Button>
+        </Grid>
+      </Border>
+
       <!-- Progresso -->
       <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
-              CornerRadius="10" Padding="14,12">
+              CornerRadius="10" Padding="14,12" IsVisible="{Binding PartialHasOverview}">
         <local:PartialAutoTreatmentProgress />
       </Border>
 

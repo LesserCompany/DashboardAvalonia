@@ -297,7 +297,9 @@
                   </StackPanel>
                 </Button>
               </Grid>
-              <local:PartialAutoTreatmentProgress />
+              <local:PartialAutoTreatmentProgress IsVisible="{Binding PartialHasOverview}" />
+              <TextBlock IsVisible="{Binding PartialOverviewError, Converter={x:Static ObjectConverters.IsNotNull}}"
+                         Text="{Binding PartialOverviewError}" FontSize="11" Foreground="#FFFF6B6B" TextWrapping="Wrap" />
               <TextBlock IsVisible="{Binding PartialNotEligibleReason, Converter={x:Static ObjectConverters.IsNotNull}}"
                          Text="{Binding PartialNotEligibleReason}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
             </StackPanel>
