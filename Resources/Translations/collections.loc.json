@@ -1197,7 +1197,7 @@
   },
   "Choose folders or participants and request the treatment of their photos": {
     "en-US": "Choose folders or participants and request the treatment of their photos",
-    "pt-BR": "Escolha pastas ou formandos e solicite o tratamento das fotos deles"
+    "pt-BR": "Escolha pastas ou participantes e solicite o tratamento das fotos deles"
   },
   "Collection photos:": {
     "en-US": "Collection photos:",
@@ -1233,7 +1233,7 @@
   },
   "Choose folders and/or participants. Photos already treated or already in a batch are left out automatically. Once requested, the batch goes to the treatment queue and cannot be cancelled.": {
     "en-US": "Choose folders and/or participants. Photos already treated or already in a batch are left out automatically. Once requested, the batch goes to the treatment queue and cannot be cancelled.",
-    "pt-BR": "Escolha pastas e/ou formandos. Fotos já tratadas ou que já estão em um lote ficam de fora automaticamente. Depois de solicitado, o lote vai para a fila de tratamento e não pode ser cancelado."
+    "pt-BR": "Escolha pastas e/ou participantes. Fotos já tratadas ou que já estão em um lote ficam de fora automaticamente. Depois de solicitado, o lote vai para a fila de tratamento e não pode ser cancelado."
   },
   "By folder": {
     "en-US": "By folder",
@@ -1241,7 +1241,7 @@
   },
   "By participant": {
     "en-US": "By participant",
-    "pt-BR": "Por formando"
+    "pt-BR": "Por participante"
   },
   "Folder": {
     "en-US": "Folder",
@@ -1265,11 +1265,11 @@
   },
   "Loading participants...": {
     "en-US": "Loading participants...",
-    "pt-BR": "Carregando formandos..."
+    "pt-BR": "Carregando participantes..."
   },
   "Could not load the participants of this collection.": {
     "en-US": "Could not load the participants of this collection.",
-    "pt-BR": "Não foi possível carregar os formandos desta coleção."
+    "pt-BR": "Não foi possível carregar os participantes desta coleção."
   },
   "Batch summary": {
     "en-US": "Batch summary",
@@ -1297,7 +1297,7 @@
   },
   "{0} selected participant(s) have no photos in this collection.": {
     "en-US": "{0} selected participant(s) have no photos in this collection.",
-    "pt-BR": "{0} formando(s) selecionado(s) não têm fotos nesta coleção."
+    "pt-BR": "{0} participante(s) selecionado(s) não têm fotos nesta coleção."
   },
   "Clear selection": {
     "en-US": "Clear selection",
@@ -1345,11 +1345,11 @@
   },
   "{0} participant(s)": {
     "en-US": "{0} participant(s)",
-    "pt-BR": "{0} formando(s)"
+    "pt-BR": "{0} participante(s)"
   },
   "{0} participant(s) in this collection": {
     "en-US": "{0} participant(s) in this collection",
-    "pt-BR": "{0} formando(s) nesta coleção"
+    "pt-BR": "{0} participante(s) nesta coleção"
   },
   "Select all listed": {
     "en-US": "Select all listed",
@@ -1361,19 +1361,19 @@
   },
   "No participants registered in this collection.": {
     "en-US": "No participants registered in this collection.",
-    "pt-BR": "Nenhum formando cadastrado nesta coleção."
+    "pt-BR": "Nenhum participante cadastrado nesta coleção."
   },
   "Per folder / participant": {
     "en-US": "Per folder / participant",
-    "pt-BR": "Por pasta / formando"
+    "pt-BR": "Por pasta / participante"
   },
   "A photo that is both in a chosen folder and of a chosen participant appears in both lines, but enters the batch only once.": {
     "en-US": "A photo that is both in a chosen folder and of a chosen participant appears in both lines, but enters the batch only once.",
-    "pt-BR": "Uma foto que está numa pasta escolhida e também é de um formando escolhido aparece nas duas linhas, mas entra no lote só uma vez."
+    "pt-BR": "Uma foto que está numa pasta escolhida e também é de um participante escolhido aparece nas duas linhas, mas entra no lote só uma vez."
   },
   "Participant": {
     "en-US": "Participant",
-    "pt-BR": "Formando"
+    "pt-BR": "Participante"
   },
   "no photos in this collection": {
     "en-US": "no photos in this collection",

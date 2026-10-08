@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace LesserDashboardClient.ViewModels.Collections;
 
 // Tratamento parcial (Views/Collections/CollectionPartialAutoTreatment.axaml + bloco de progresso em
-// CollectionView): coleções HD sem auto tratamento completo pedem lotes por pasta e/ou por formando.
+// CollectionView): coleções HD sem auto tratamento completo pedem lotes por participante e/ou por pasta.
 // O servidor calcula o lote (tira as já tratadas e as já pedidas) — a tela só escolhe, simula
 // (DryRun) e confirma. Pedido não pode ser desfeito: as fotos vão pra fila na hora.
 public partial class CollectionsViewModel
@@ -169,7 +169,7 @@ public partial class CollectionsViewModel
     [ObservableProperty] private bool partialRequesting;
     [ObservableProperty] private string? partialMessage;
 
-    // Aba "Por formando": a lista inteira aparece logo abaixo da busca (a busca só filtra).
+    // Aba "Por participante": a lista inteira aparece logo abaixo da busca (a busca só filtra).
     public string PartialParticipantsCountText => string.Format(Loc.Tr("{0} participant(s) in this collection"), PartialParticipants.Count.ToString("N0", PtBr));
     public bool PartialParticipantsEmpty => !PartialParticipantsLoading && PartialParticipantsError == null && PartialParticipants.Count == 0;
     public bool PartialParticipantsHasRows => PartialParticipants.Count > 0;
@@ -183,7 +183,7 @@ public partial class CollectionsViewModel
         OnPropertyChanged(nameof(PartialParticipantsHasRows));
     }
 
-    // Detalhamento do lote simulado: 1 linha por pasta/formando escolhido.
+    // Detalhamento do lote simulado: 1 linha por participante/pasta escolhido.
     public ObservableCollection<PartialSelectionItemRow> PartialSimulationItems =>
         new((PartialSimulation?.Selection ?? new List<PartialAutoTreatmentSelectionItemDTO>()).Select(x => new PartialSelectionItemRow(x)));
 
@@ -284,7 +284,7 @@ public partial class CollectionsViewModel
         NotifyPartialSelectionState();
     }
 
-    // Marca/desmarca de uma vez os formandos visíveis (respeita o filtro da busca) — 1 simulação só no fim.
+    // Marca/desmarca de uma vez os participantes visíveis (respeita o filtro da busca) — 1 simulação só no fim.
     [RelayCommand]
     public void SelectAllVisiblePartialParticipantsCommand() => SetVisiblePartialParticipants(true);
 
@@ -527,7 +527,7 @@ public class PartialBatchRow
             return parts.Count == 0 ? "-" : string.Join(" + ", parts);
         }
     }
-    // Detalhamento gravado no lote (a qual pasta/formando ele se destina).
+    // Detalhamento gravado no lote (a qual participante/pasta ele se destina).
     public List<PartialSelectionItemRow> Items => (Dto.Selection ?? new List<PartialAutoTreatmentSelectionItemDTO>()).Select(x => new PartialSelectionItemRow(x)).ToList();
     public bool HasItems => Dto.Selection?.Count > 0;
     public string BillableText => Dto.BillablePhotoCount.ToString("N0", PtBr);
@@ -536,7 +536,7 @@ public class PartialBatchRow
     public bool EnqueueFailed => Dto.Status == "EnqueueFailed";
 }
 
-// Um item do detalhamento da seleção (pasta ou formando) — usado no resumo do lote e no histórico.
+// Um item do detalhamento da seleção (participante ou pasta) — usado no resumo do lote e no histórico.
 public class PartialSelectionItemRow
 {
     private static readonly CultureInfo PtBr = CultureInfo.GetCultureInfo("pt-BR");

@@ -8,7 +8,7 @@
              x:DataType="vm:CollectionsViewModel"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="750"
              x:Class="LesserDashboardClient.Views.Collections.CollectionPartialAutoTreatment">
-  <!-- Pedido de lote de tratamento parcial: escolhe pastas e/ou formandos, o servidor calcula o lote
+  <!-- Pedido de lote de tratamento parcial: escolhe participantes e/ou pastas, o servidor calcula o lote
        (sem as já tratadas / já pedidas) e a confirmação manda as fotos pra fila — sem volta. -->
   <ScrollViewer>
     <StackPanel Margin="16" Spacing="12">
@@ -70,6 +70,56 @@
 
         <!-- Seleção -->
         <TabControl>
+          <!-- "Por participante" vem primeiro: é o jeito mais comum de escolher o lote. -->
+          <TabItem>
+            <TabItem.Header>
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Tr 'By participant'}" VerticalAlignment="Center" />
+                <Border Background="{DynamicResource BadgeBg}" CornerRadius="8" Padding="6,0" IsVisible="{Binding PartialHasSelectedParticipants}">
+                  <TextBlock Text="{Binding PartialSelectedParticipantsCount}" FontSize="11" Foreground="{DynamicResource BadgeFg}" />
+                </Border>
+              </StackPanel>
+            </TabItem.Header>
+            <StackPanel Spacing="8" Margin="0,8,0,0">
+              <TextBox Text="{Binding PartialParticipantSearch}" Watermark="{Tr 'Search by name or CPF'}" />
+              <StackPanel IsVisible="{Binding PartialParticipantsLoading}" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                <ui:ProgressRing IsIndeterminate="True" BorderThickness="3" Width="16" Height="16" />
+                <TextBlock Text="{Tr 'Loading participants...'}" />
+              </StackPanel>
+              <TextBlock IsVisible="{Binding PartialParticipantsError, Converter={x:Static ObjectConverters.IsNotNull}}"
+                         Text="{Binding PartialParticipantsError}" Foreground="#FFFF6B6B" TextWrapping="Wrap" />
+              <!-- A lista inteira de participantes da coleção aparece aqui embaixo; a busca acima só filtra. -->
+              <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="6" IsVisible="{Binding PartialParticipantsHasRows}">
+                <TextBlock Grid.Column="0" Text="{Binding PartialParticipantsCountText}" FontSize="12" Foreground="{DynamicResource MetaFg}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Command="{Binding SelectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
+                  <TextBlock Text="{Tr 'Select all listed'}" />
+                </Button>
+                <Button Grid.Column="2" Command="{Binding UnselectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
+                  <TextBlock Text="{Tr 'Unselect listed'}" />
+                </Button>
+              </Grid>
+              <TextBlock IsVisible="{Binding PartialParticipantsEmpty}" Text="{Tr 'No participants registered in this collection.'}"
+                         Foreground="{DynamicResource MetaFg}" HorizontalAlignment="Center" />
+              <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" MaxHeight="360" IsVisible="{Binding PartialParticipantsHasRows}">
+                <ScrollViewer>
+                  <ItemsControl ItemsSource="{Binding PartialParticipantsFiltered}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PartialParticipantRow">
+                        <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="12,6">
+                          <Grid ColumnDefinitions="40, *, 140" ColumnSpacing="8">
+                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" Text="{Binding CpfMasked}" VerticalAlignment="Center" Foreground="{DynamicResource MetaFg}" HorizontalAlignment="Right" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+          </TabItem>
+
           <TabItem>
             <TabItem.Header>
               <StackPanel Orientation="Horizontal" Spacing="6">
@@ -107,55 +157,6 @@
               </StackPanel>
             </Border>
           </TabItem>
-
-          <TabItem>
-            <TabItem.Header>
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <TextBlock Text="{Tr 'By participant'}" VerticalAlignment="Center" />
-                <Border Background="{DynamicResource BadgeBg}" CornerRadius="8" Padding="6,0" IsVisible="{Binding PartialHasSelectedParticipants}">
-                  <TextBlock Text="{Binding PartialSelectedParticipantsCount}" FontSize="11" Foreground="{DynamicResource BadgeFg}" />
-                </Border>
-              </StackPanel>
-            </TabItem.Header>
-            <StackPanel Spacing="8" Margin="0,8,0,0">
-              <TextBox Text="{Binding PartialParticipantSearch}" Watermark="{Tr 'Search by name or CPF'}" />
-              <StackPanel IsVisible="{Binding PartialParticipantsLoading}" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                <ui:ProgressRing IsIndeterminate="True" BorderThickness="3" Width="16" Height="16" />
-                <TextBlock Text="{Tr 'Loading participants...'}" />
-              </StackPanel>
-              <TextBlock IsVisible="{Binding PartialParticipantsError, Converter={x:Static ObjectConverters.IsNotNull}}"
-                         Text="{Binding PartialParticipantsError}" Foreground="#FFFF6B6B" TextWrapping="Wrap" />
-              <!-- A lista inteira de formandos da coleção aparece aqui embaixo; a busca acima só filtra. -->
-              <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="6" IsVisible="{Binding PartialParticipantsHasRows}">
-                <TextBlock Grid.Column="0" Text="{Binding PartialParticipantsCountText}" FontSize="12" Foreground="{DynamicResource MetaFg}" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Command="{Binding SelectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
-                  <TextBlock Text="{Tr 'Select all listed'}" />
-                </Button>
-                <Button Grid.Column="2" Command="{Binding UnselectAllVisiblePartialParticipantsCommand}" Padding="10,4" FontSize="12">
-                  <TextBlock Text="{Tr 'Unselect listed'}" />
-                </Button>
-              </Grid>
-              <TextBlock IsVisible="{Binding PartialParticipantsEmpty}" Text="{Tr 'No participants registered in this collection.'}"
-                         Foreground="{DynamicResource MetaFg}" HorizontalAlignment="Center" />
-              <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" MaxHeight="360" IsVisible="{Binding PartialParticipantsHasRows}">
-                <ScrollViewer>
-                  <ItemsControl ItemsSource="{Binding PartialParticipantsFiltered}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="vm:PartialParticipantRow">
-                        <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="12,6">
-                          <Grid ColumnDefinitions="40, *, 140" ColumnSpacing="8">
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                            <TextBlock Grid.Column="2" Text="{Binding CpfMasked}" VerticalAlignment="Center" Foreground="{DynamicResource MetaFg}" HorizontalAlignment="Right" />
-                          </Grid>
-                        </Border>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ScrollViewer>
-              </Border>
-            </StackPanel>
-          </TabItem>
         </TabControl>
 
         <!-- Resumo do lote (simulação) -->
@@ -178,7 +179,7 @@
               <TextBlock Grid.Row="4" Grid.Column="0" Text="{Tr 'Amount'}" FontWeight="SemiBold" />
               <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PartialSimulationValueText}" HorizontalAlignment="Right" FontWeight="SemiBold" />
             </Grid>
-            <!-- Detalhamento: a qual pasta/formando o lote se destina, com as contas de cada um. -->
+            <!-- Detalhamento: a qual participante/pasta o lote se destina, com as contas de cada um. -->
             <StackPanel Spacing="4" IsVisible="{Binding PartialHasSimulation}">
               <TextBlock Text="{Tr 'Per folder / participant'}" FontSize="12" FontWeight="SemiBold" Margin="0,4,0,0" />
               <ItemsControl ItemsSource="{Binding PartialSimulationItems}">
