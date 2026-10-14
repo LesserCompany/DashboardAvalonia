@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="4.3.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +20,9 @@
     <Compile Include="..\Helpers\CollectionReprocessRules.cs" Link="Helpers\CollectionReprocessRules.cs" />
     <Compile Include="..\Helpers\CollectionsListRefreshSettings.cs" Link="Helpers\CollectionsListRefreshSettings.cs" />
     <Compile Include="..\Helpers\CollectionSubmitRules.cs" Link="Helpers\CollectionSubmitRules.cs" />
+    <Compile Include="..\Helpers\PartialAutoTreatmentFeature.cs" Link="Helpers\PartialAutoTreatmentFeature.cs" />
+    <Compile Include="..\..\..\SharedClientSide\SharedClientSide\DataStructure\CoreApp\TargetEnvironment\TargetEnvironmentResponse.cs" Link="TargetEnvironmentResponse.cs" />
+    <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\Login\LoginEnvironmentResolver.cs" Link="LoginEnvironmentResolver.cs" />
   </ItemGroup>
 
 </Project>
