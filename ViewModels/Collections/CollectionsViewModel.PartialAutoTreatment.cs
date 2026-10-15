@@ -436,6 +436,44 @@ public partial class CollectionsViewModel
     }
 }
 
+public partial class CollectionsViewModel
+{
+    // Botão "Reenfileirar" de um lote do histórico: liberado pelo servidor (CanReenqueue) quando o lote tem foto
+    // ainda não tratada e foi pra fila há mais de 2h.
+    [RelayCommand]
+    public async Task ReenqueuePartialBatchCommand(PartialBatchRow row)
+    {
+        var selected = SelectedCollection;
+        if (row == null || !row.CanReenqueue || selected == null)
+            return;
+
+        var msg = string.Format(
+            Loc.Tr("Send the {0} photo(s) of this batch that were not treated yet back to the treatment queue?"),
+            row.Dto.PendingPhotoCount.ToString("N0", CultureInfo.GetCultureInfo("pt-BR")));
+        if (!await GlobalAppStateViewModel.Instance.ShowDialogYesNo(msg, Loc.Tr("Partial treatment")))
+            return;
+
+        try
+        {
+            var r = await GlobalAppStateViewModel.lfc.ReenqueuePartialAutoTreatmentBatch(selected.classCode, row.Dto.Id);
+            if (r?.success == true)
+                GlobalAppStateViewModel.Instance.ShowDialogOk(string.Format(
+                    Loc.Tr("{0} photo(s) were sent to the treatment queue."),
+                    r.Content.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"))));
+            else
+                GlobalAppStateViewModel.Instance.ShowDialogOk(r?.message ?? Loc.Tr("Could not requeue the batch."));
+        }
+        catch (Exception e)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Could not requeue the batch.") + " " + e.Message);
+        }
+        finally
+        {
+            await RefreshPartialAutoTreatmentOverviewAsync(selected);
+        }
+    }
+}
+
 // Uma pasta selecionável. Sem fotos disponíveis (tudo tratado/pedido) não dá pra marcar.
 public partial class PartialFolderRow : ObservableObject
 {
@@ -534,6 +572,12 @@ public class PartialBatchRow
     public string SkippedText => Dto.SkippedPhotoCount.ToString("N0", PtBr);
     public string ValueText => CollectionsViewModel.FormatCurrency((Dto.TotalValueCents ?? 0) / 100);
     public bool EnqueueFailed => Dto.Status == "EnqueueFailed";
+    public bool CanReenqueue => Dto.CanReenqueue;
+    // Lote que não chegou na fila (falhou / ficou pendente) e ainda não deu 2h: avisa quando o botão libera.
+    public bool ShowReenqueueAvailableAt => !Dto.CanReenqueue && Dto.ReenqueueAvailableAt != null && Dto.Status != "Queued";
+    public string ReenqueueAvailableAtText => Dto.ReenqueueAvailableAt == null ? "" : string.Format(
+        Loc.Tr("Can be requeued from {0}"),
+        DateTime.SpecifyKind(Dto.ReenqueueAvailableAt.Value, DateTimeKind.Utc).ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture));
     // Reprocessado sem foto pendente (tudo já tratado ou pedido noutro lote): não foi pra fila nem é cobrado.
     public bool Superseded => Dto.Status == "Superseded";
 }

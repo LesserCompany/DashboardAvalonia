@@ -264,7 +264,11 @@
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock IsVisible="{Binding EnqueueFailed}" Text="{Tr 'Failed to queue - will be reprocessed'}" FontSize="11" Foreground="#FFFF6B6B" />
+                        <TextBlock IsVisible="{Binding EnqueueFailed}" Text="{Tr 'Failed to queue'}" FontSize="11" Foreground="#FFFF6B6B" />
+                        <TextBlock IsVisible="{Binding ShowReenqueueAvailableAt}" Text="{Binding ReenqueueAvailableAtText}" FontSize="11" Foreground="{DynamicResource MetaFg}" />
+                        <Button IsVisible="{Binding CanReenqueue}" Content="{Tr 'Requeue batch'}" Padding="10,3" FontSize="11" HorizontalAlignment="Left" Margin="0,2,0,0"
+                                Command="{Binding $parent[UserControl].((vm:CollectionsViewModel)DataContext).ReenqueuePartialBatchCommand}"
+                                CommandParameter="{Binding}" />
                         <TextBlock IsVisible="{Binding Superseded}" Text="{Tr 'Not queued - photos already treated or in another batch (not charged)'}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
                       </StackPanel>
                       <TextBlock Grid.Column="2" Text="{Binding RequestedByText}" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis" />

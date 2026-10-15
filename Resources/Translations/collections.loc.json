@@ -1339,9 +1339,25 @@
     "en-US": "Left out",
     "pt-BR": "De fora"
   },
-  "Failed to queue - will be reprocessed": {
-    "en-US": "Failed to queue - will be reprocessed",
-    "pt-BR": "Falha ao enfileirar - será reprocessado"
+  "Failed to queue": {
+    "en-US": "Failed to queue",
+    "pt-BR": "Falha ao enfileirar"
+  },
+  "Can be requeued from {0}": {
+    "en-US": "Can be requeued from {0}",
+    "pt-BR": "Pode ser reenfileirado a partir de {0}"
+  },
+  "Requeue batch": {
+    "en-US": "Requeue batch",
+    "pt-BR": "Reenfileirar lote"
+  },
+  "Send the {0} photo(s) of this batch that were not treated yet back to the treatment queue?": {
+    "en-US": "Send the {0} photo(s) of this batch that were not treated yet back to the treatment queue?",
+    "pt-BR": "Enviar de novo para a fila de tratamento as {0} foto(s) deste lote que ainda não foram tratadas?"
+  },
+  "Could not requeue the batch.": {
+    "en-US": "Could not requeue the batch.",
+    "pt-BR": "Não foi possível reenfileirar o lote."
   },
   "Not queued - photos already treated or in another batch (not charged)": {
     "en-US": "Not queued - photos already treated or in another batch (not charged)",
