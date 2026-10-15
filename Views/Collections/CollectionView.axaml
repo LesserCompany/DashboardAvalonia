@@ -430,7 +430,7 @@
                       </Button>
                       <Button Width="325" IsEnabled="{Binding BtRequestManualTreatmentAllCollectionIsEnabled}" Command="{Binding RequestManualTreatmentAllCollectionCommand}">
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="{Tr 'Request treatment of the entire collection'}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Tr 'Request manual treatment of the collection'}" VerticalAlignment="Center" />
                             <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Request manual treatment of all images in your collection. Irreversible action.'}"  />
                             <ui:ProgressRing IsVisible="{Binding BtRequestManualTreatmentAllCollectionIsRunning}" VerticalAlignment="Center" BorderThickness="5" IsIndeterminate="True" Width="10" Height="10" />
                           </StackPanel>

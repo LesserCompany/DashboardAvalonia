@@ -39,9 +39,9 @@
     "en-US": "Requests reprocessing of photos not yet marked as completed on the server: recognition queue, treatment queue (if treatment is enabled), and OCR queue (if OCR is enabled). Only available while the collection is not at 100%. Use when processing has stalled and you want to re-queue what is still pending.",
     "pt-BR": "Solicita o reprocessamento das fotos que ainda não foram marcadas como concluídas no servidor: na fila de reconhecimento, na de tratamento (se a coleção tiver tratamento habilitado) e na de OCR (se tiver OCR habilitado). Só aparece enquanto a coleção não estiver 100%. Use quando o processamento parou (por exemplo, há dias) e você quer reenfileirar o que ficou pendente."
   },
-  "Request treatment of the entire collection": {
-    "en-US": "Request treatment of the entire collection",
-    "pt-BR": "Solicitar tratamento da coleção inteira"
+  "Request manual treatment of the collection": {
+    "en-US": "Request manual treatment of the collection",
+    "pt-BR": "Solicitar tratamento manual da coleção"
   },
   "Cancel billing": {
     "en-US": "Cancel billing",
