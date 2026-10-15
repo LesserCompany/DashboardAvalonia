@@ -534,6 +534,8 @@ public class PartialBatchRow
     public string SkippedText => Dto.SkippedPhotoCount.ToString("N0", PtBr);
     public string ValueText => CollectionsViewModel.FormatCurrency((Dto.TotalValueCents ?? 0) / 100);
     public bool EnqueueFailed => Dto.Status == "EnqueueFailed";
+    // Reprocessado sem foto pendente (tudo já tratado ou pedido noutro lote): não foi pra fila nem é cobrado.
+    public bool Superseded => Dto.Status == "Superseded";
 }
 
 // Um item do detalhamento da seleção (participante ou pasta) — usado no resumo do lote e no histórico.

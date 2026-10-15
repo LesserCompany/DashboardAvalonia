@@ -265,6 +265,7 @@
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
                         <TextBlock IsVisible="{Binding EnqueueFailed}" Text="{Tr 'Failed to queue - will be reprocessed'}" FontSize="11" Foreground="#FFFF6B6B" />
+                        <TextBlock IsVisible="{Binding Superseded}" Text="{Tr 'Not queued - photos already treated or in another batch (not charged)'}" FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" />
                       </StackPanel>
                       <TextBlock Grid.Column="2" Text="{Binding RequestedByText}" VerticalAlignment="Center" FontSize="12" TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="3" Text="{Binding BillableText}" VerticalAlignment="Center" HorizontalAlignment="Right" FontSize="12" />

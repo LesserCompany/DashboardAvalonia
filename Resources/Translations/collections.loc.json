@@ -1343,6 +1343,10 @@
     "en-US": "Failed to queue - will be reprocessed",
     "pt-BR": "Falha ao enfileirar - será reprocessado"
   },
+  "Not queued - photos already treated or in another batch (not charged)": {
+    "en-US": "Not queued - photos already treated or in another batch (not charged)",
+    "pt-BR": "Não enfileirado - fotos já tratadas ou em outro lote (sem cobrança)"
+  },
   "{0} participant(s)": {
     "en-US": "{0} participant(s)",
     "pt-BR": "{0} participante(s)"
