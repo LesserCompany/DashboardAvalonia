@@ -1,4 +1,5 @@
 using Avalonia.Data.Converters;
+using LesserDashboardClient.Helpers;
 using SharedClientSide.ServerInteraction;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,8 @@ public sealed class CollectionHasPartialAutoTreatmentConverter : IMultiValueConv
 {
     public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
+        if (!PartialAutoTreatmentFeature.ShowInList(hasBatch: true))
+            return false;
         if (values == null || values.Count < 2)
             return false;
         if (values[0] is not ProfessionalTask item || string.IsNullOrEmpty(item.classCode))

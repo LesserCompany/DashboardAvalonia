@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using SharedClientSide.ServerInteraction.Items.AutoTreatment;
 using SharedClientSide.ServerInteraction;
 using System;
@@ -34,7 +35,8 @@ public partial class CollectionsViewModel
 
     // Modo parcial: coleção HD sem auto tratamento completo (o completo segue com a barra antiga).
     public bool IsPartialAutoTreatmentMode =>
-        SelectedCollection?.UploadHD == true && SelectedCollection?.AutoTreatment != true;
+        PartialAutoTreatmentFeature.ShowPanel(
+            SelectedCollection?.UploadHD == true && SelectedCollection?.AutoTreatment != true);
 
     public int PartialTotal => PartialOverview?.TotalPhotos ?? 0;
     public int PartialTreated => PartialOverview?.TreatedPhotos ?? 0;
@@ -68,6 +70,8 @@ public partial class CollectionsViewModel
     private async Task RefreshPartialAutoTreatmentOverviewAsync(ProfessionalTask selected)
     {
         OnPropertyChanged(nameof(IsPartialAutoTreatmentMode));
+        if (!PartialAutoTreatmentFeature.Enabled)
+            return;
         // Trocou de coleção: não mostra os números da anterior enquanto carrega.
         if (_partialOverviewClassCode != selected.classCode)
         {
@@ -124,6 +128,8 @@ public partial class CollectionsViewModel
     private int _partialCodesRefreshRunning;
     private void RequestPartialAutoTreatmentClassCodesRefresh()
     {
+        if (!PartialAutoTreatmentFeature.Enabled)
+            return;
         if (Interlocked.Exchange(ref _partialCodesRefreshRunning, 1) == 1)
             return;
         _ = Task.Run(async () =>
@@ -253,7 +259,7 @@ public partial class CollectionsViewModel
     [RelayCommand]
     public async Task OpenPartialAutoTreatmentViewCommand()
     {
-        if (SelectedCollection == null)
+        if (!PartialAutoTreatmentFeature.Enabled || SelectedCollection == null)
             return;
         PartialSimulation = null;
         PartialMessage = null;
