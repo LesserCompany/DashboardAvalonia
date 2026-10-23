@@ -7,10 +7,12 @@ namespace LesserDashboardClient.Tests;
 public class PartialAutoTreatmentFeatureTests
 {
     [Test]
-    public void Tratamento_parcial_fica_oculto()
+    public void Tratamento_parcial_aparece_no_painel_hd_e_na_lista_com_lote()
     {
-        Assert.That(PartialAutoTreatmentFeature.Enabled, Is.False);
-        Assert.That(PartialAutoTreatmentFeature.ShowInList(hasBatch: true), Is.False);
-        Assert.That(PartialAutoTreatmentFeature.ShowPanel(isHdWithoutFullTreatment: true), Is.False);
+        Assert.That(PartialAutoTreatmentFeature.Enabled, Is.True);
+        Assert.That(PartialAutoTreatmentFeature.ShowInList(hasBatch: true), Is.True);
+        Assert.That(PartialAutoTreatmentFeature.ShowInList(hasBatch: false), Is.False);
+        Assert.That(PartialAutoTreatmentFeature.ShowPanel(isHdWithoutFullTreatment: true), Is.True);
+        Assert.That(PartialAutoTreatmentFeature.ShowPanel(isHdWithoutFullTreatment: false), Is.False);
     }
 }

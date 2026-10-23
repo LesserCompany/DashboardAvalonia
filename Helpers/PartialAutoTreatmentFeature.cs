@@ -5,7 +5,7 @@ namespace LesserDashboardClient.Helpers;
 /// </summary>
 public static class PartialAutoTreatmentFeature
 {
-    public const bool Enabled = false;
+    public const bool Enabled = true;
 
     public static bool ShowPanel(bool isHdWithoutFullTreatment) =>
         Enabled && isHdWithoutFullTreatment;
