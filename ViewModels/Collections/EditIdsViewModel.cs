@@ -426,9 +426,27 @@ public partial class EditIdsViewModel : ObservableObject
 
     private void ApplyImportedGraduates(ObservableCollection<GraduateByCPF> source)
     {
+        var idsByShortPath = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        foreach (var existing in GraduatesData)
+        {
+            if (existing?.CompanyCustomersCollectionId is not long id || id <= 0)
+                continue;
+            var key = GraduateByCpfDuplicateChecker.NormalizeShortPath(existing.ShortPath);
+            if (!string.IsNullOrEmpty(key))
+                idsByShortPath[key] = id;
+        }
+
         GraduatesData.Clear();
         foreach (var g in source)
-            GraduatesData.Add(g is GraduateByCPFWithPhotos wp ? wp : new GraduateByCPFWithPhotos(g));
+        {
+            var row = g is GraduateByCPFWithPhotos wp ? wp : new GraduateByCPFWithPhotos(g);
+            var key = GraduateByCpfDuplicateChecker.NormalizeShortPath(row.ShortPath);
+            if ((row.CompanyCustomersCollectionId is not long current || current <= 0)
+                && !string.IsNullOrEmpty(key)
+                && idsByShortPath.TryGetValue(key, out var preserved))
+                row.CompanyCustomersCollectionId = preserved;
+            GraduatesData.Add(row);
+        }
         SortGraduatesDataAlphabetically();
     }
 }
