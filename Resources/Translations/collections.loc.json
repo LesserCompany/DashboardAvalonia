@@ -115,6 +115,14 @@
     "en-US": "Rename collection. The collection ID does not change.",
     "pt-BR": "Renomear coleção. O ID da coleção não muda."
   },
+  "Rename": {
+    "en-US": "Rename",
+    "pt-BR": "Renomear"
+  },
+  "Rename collection": {
+    "en-US": "Rename collection",
+    "pt-BR": "Renomear coleção"
+  },
   "Collection ID": {
     "en-US": "Collection ID",
     "pt-BR": "ID da coleção"

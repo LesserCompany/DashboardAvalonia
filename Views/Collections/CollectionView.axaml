@@ -181,17 +181,23 @@
                                          TextAlignment="Center"
                                          Text="{Binding SelectedCollection.DisplayName}"/>
                     <Button Command="{Binding StartEditLabelCommand}"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Padding="4"
+                            Padding="8,4"
+                            CornerRadius="6"
                             VerticalAlignment="Center"
                             Cursor="Hand"
+                            Background="{DynamicResource CardBg}"
+                            BorderBrush="{DynamicResource CardBorder}"
+                            BorderThickness="1"
                             ToolTip.Tip="{Tr 'Rename collection. The collection ID does not change.'}">
-                      <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="13" Foreground="{DynamicResource MetaFg}" />
+                      <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" FontSize="12" VerticalAlignment="Center" />
+                        <TextBlock Text="{Tr 'Rename'}" FontSize="12" VerticalAlignment="Center" />
+                      </StackPanel>
                     </Button>
                   </StackPanel>
-                  <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" IsVisible="{Binding IsEditingLabel}">
-                    <TextBox Text="{Binding EditLabelText, Mode=TwoWay}"
+                  <StackPanel x:Name="LabelEditPanel" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" IsVisible="{Binding IsEditingLabel}">
+                    <TextBox x:Name="LabelEditBox"
+                             Text="{Binding EditLabelText, Mode=TwoWay}"
                              Watermark="{Binding SelectedCollection.classCode}"
                              MaxLength="100"
                              MinWidth="220"
@@ -461,6 +467,12 @@
                           <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
                               <TextBlock Text="{Tr 'Add IDs'}" VerticalAlignment="Center" />
                               <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE9CE;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Add IDs without reupload'}" />
+                          </StackPanel>
+                      </Button>
+                      <Button Width="325" Command="{Binding StartEditLabelCommand}">
+                          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Tr 'Rename collection'}" VerticalAlignment="Center" />
+                              <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE70F;" VerticalAlignment="Center" ToolTip.Tip="{Tr 'Rename collection. The collection ID does not change.'}" />
                           </StackPanel>
                       </Button>
                       <Button Width="325" Command="{Binding OpenViewCollectionConfigCommand}">
