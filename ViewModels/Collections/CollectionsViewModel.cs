@@ -5613,7 +5613,12 @@ public partial class CollectionsViewModel : ViewModelBase
             TbNewProfessionalConfirmEmail = "";
             CreateProfessionalErrorMessage = "";
             CreateProfessionalSuccessMessage = "";
-            
+
+            // Catálogo de permissões (CollectionsViewModel.ProfessionalPermissions.cs); carrega enquanto o dialog abre.
+            NewProfessionalRoles = new();
+            NewProfessionalPolicyDomains = new();
+            _ = LoadNewProfessionalPermissionOptionsAsync();
+
             // Criar e mostrar o dialog
             _addNewProfessionalDialog = new Views.Collections.AddNewProfessionalDialog
             {
@@ -5686,11 +5691,12 @@ public partial class CollectionsViewModel : ViewModelBase
             };
 
             // Chamar API para registrar profissional
-            var result = await GlobalAppStateViewModel.lfc.RegisterProfessional(professional);
+            var result = await GlobalAppStateViewModel.lfc.RegisterProfessional(professional, BuildNewProfessionalAuthorization());
 
             if (result != null && result.success)
             {
-                CreateProfessionalSuccessMessage = "Profissional criado com sucesso!";
+                // A mensagem do servidor avisa quando o e-mail da senha provisória falhou.
+                CreateProfessionalSuccessMessage = string.IsNullOrWhiteSpace(result.message) ? "Profissional criado com sucesso!" : result.message;
                 
                 // Recarregar lista de profissionais
                 await LoadProfessionalsAsync(forceReload: true);
@@ -5708,7 +5714,8 @@ public partial class CollectionsViewModel : ViewModelBase
             }
             else
             {
-                CreateProfessionalErrorMessage = result.message ?? "Erro ao criar profissional.";
+                // result nulo: a rota não respondeu JSON (ex.: ambiente sem RegisterProfessional).
+                CreateProfessionalErrorMessage = result?.message ?? "Erro ao criar profissional.";
             }
         }
         catch (Exception ex)

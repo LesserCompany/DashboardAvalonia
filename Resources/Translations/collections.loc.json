@@ -115,6 +115,40 @@
     "en-US": "Rename collection. The collection ID does not change.",
     "pt-BR": "Renomear coleção. O ID da coleção não muda."
   },
+  "Permissions": { "en-US": "Permissions", "pt-BR": "Permissões" },
+  "Choose what this professional can see and do. You can leave it empty.": {
+    "en-US": "Choose what this professional can see and do. You can leave it empty.",
+    "pt-BR": "Escolha o que este profissional pode ver e fazer. Pode deixar em branco."
+  },
+  "Select all": { "en-US": "Select all", "pt-BR": "Marcar tudo" },
+  "Clear": { "en-US": "Clear", "pt-BR": "Limpar" },
+  "Loading permissions...": { "en-US": "Loading permissions...", "pt-BR": "Carregando permissões..." },
+  "Permissions are not available in this environment. The professional will be created without permissions.": {
+    "en-US": "Permissions are not available in this environment. The professional will be created without permissions.",
+    "pt-BR": "As permissões não estão disponíveis neste ambiente. O profissional será criado sem permissões."
+  },
+  "Roles": { "en-US": "Roles", "pt-BR": "Funções" },
+  "Area": { "en-US": "Area", "pt-BR": "Área" },
+  "View": { "en-US": "View", "pt-BR": "Ver" },
+  "Create": { "en-US": "Create", "pt-BR": "Criar" },
+  "Edit": { "en-US": "Edit", "pt-BR": "Editar" },
+  "Delete": { "en-US": "Delete", "pt-BR": "Excluir" },
+  "All": { "en-US": "All", "pt-BR": "Tudo" },
+  "Company settings": { "en-US": "Company settings", "pt-BR": "Configurações da empresa" },
+  "Diagrammer": { "en-US": "Diagrammer", "pt-BR": "Diagramador" },
+  "HD download": { "en-US": "HD download", "pt-BR": "Download HD" },
+  "Exporter": { "en-US": "Exporter", "pt-BR": "Exportador" },
+  "Users and permissions": { "en-US": "Users and permissions", "pt-BR": "Usuários e permissões" },
+  "ID management": { "en-US": "ID management", "pt-BR": "Gestão de IDs" },
+  "Photo treatment": { "en-US": "Photo treatment", "pt-BR": "Tratamento de fotos" },
+  "Products": { "en-US": "Products", "pt-BR": "Produtos" },
+  "Referred clients": { "en-US": "Referred clients", "pt-BR": "Clientes indicados" },
+  "Graduate search": { "en-US": "Graduate search", "pt-BR": "Busca de formandos" },
+  "Visualizer": { "en-US": "Visualizer", "pt-BR": "Visualizador" },
+  "Administrator": { "en-US": "Administrator", "pt-BR": "Administrador" },
+  "Agent": { "en-US": "Agent", "pt-BR": "Agente" },
+  "User": { "en-US": "User", "pt-BR": "Usuário" },
+  "Photographer": { "en-US": "Photographer", "pt-BR": "Fotógrafo" },
   "Rename": {
     "en-US": "Rename",
     "pt-BR": "Renomear"
