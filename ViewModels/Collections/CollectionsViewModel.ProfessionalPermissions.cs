@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CodingSeb.Localization;
@@ -9,22 +6,21 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LesserDashboardClient.Helpers;
 using LesserDashboardClient.Models;
+using LesserDashboardClient.Views;
+using LesserDashboardClient.Views.Collections;
+using Newtonsoft.Json;
 using SharedClientSide.ServerInteraction.Users;
+using SharedClientSide.ServerInteraction.Users.Professionals;
 
 namespace LesserDashboardClient.ViewModels.Collections;
 
-// Permissões (RBAC) do professional na tela "Adicionar novo profissional". Catálogo vem do servidor
-// (GetUserAuthorizationOptions_v2); o que for marcado vai junto no RegisterProfessional_v2.
+// Profissionais: tela "Gerenciar profissionais", prefixo do login no cadastro e permissões (RBAC) no cadastro e na
+// edição. A grade de permissões é ProfessionalPermissionsEditorViewModel (componente ProfessionalPermissionsEditor).
 public partial class CollectionsViewModel
 {
-    [ObservableProperty] private ObservableCollection<ProfessionalRoleOption> newProfessionalRoles = new();
-    [ObservableProperty] private ObservableCollection<ProfessionalPolicyDomainRow> newProfessionalPolicyDomains = new();
-    [ObservableProperty] private bool newProfessionalPermissionsLoading;
-    [ObservableProperty] private string? newProfessionalPermissionsError;
+    // ---- Gerenciar profissionais ----
 
-    public bool NewProfessionalPermissionsAvailable => NewProfessionalRoles.Count > 0 || NewProfessionalPolicyDomains.Count > 0;
-
-    // Tela de profissionais aberta pelo botão "Profissionais" da lista lateral, só para gerenciar (criar/remover).
+    // Tela de profissionais aberta pelo botão "Gerenciar profissionais" da lista lateral, só para gerenciar.
     // A mesma tela aberta pelo "Separador:" da coleção é um seletor: clicar num profissional troca o separador da
     // coleção selecionada. Neste modo o clique não atribui nada (ver OnSelectedProfessionalChanged).
     [ObservableProperty] private bool isManagingProfessionals;
@@ -41,6 +37,8 @@ public partial class CollectionsViewModel
         }
         await LoadProfessionalsAsync();
     }
+
+    // ---- Cadastro: prefixo do login ----
 
     // Prefixo do login = nome da company + "@" (Helpers/ProfessionalUsernamePrefix). Vazio até a company carregar.
     [ObservableProperty]
@@ -68,105 +66,135 @@ public partial class CollectionsViewModel
         }
     }
 
-    // Nome amigável dos domínios e roles do catálogo; o que não estiver aqui aparece com o nome técnico.
-    private static readonly Dictionary<string, string> PolicyDomainNames = new(StringComparer.Ordinal)
-    {
-        ["Collections"] = "Collections",
-        ["CompanyConfig"] = "Company settings",
-        ["Diagrammer"] = "Diagrammer",
-        ["DownloadHD"] = "HD download",
-        ["Exporter"] = "Exporter",
-        ["UsersConfig"] = "Users and permissions",
-        ["IdManagement"] = "ID management",
-        ["Invoices"] = "Invoices",
-        ["PhotoTreatment"] = "Photo treatment",
-        ["Products"] = "Products",
-        ["ReferredClients"] = "Referred clients",
-        ["Separator"] = "Separator",
-        ["SearchGraduate"] = "Graduate search",
-        ["Visualizer"] = "Visualizer",
-    };
+    // ---- Cadastro: permissões iniciais ----
 
-    private static readonly Dictionary<string, string> RoleNames = new(StringComparer.Ordinal)
-    {
-        ["Admin"] = "Administrator",
-        ["Agent"] = "Agent",
-        ["Separator"] = "Separator",
-        ["user"] = "User",
-        ["Photographer"] = "Photographer",
-    };
+    // Catálogo + caixas do cadastro; o que for marcado vai junto no RegisterProfessional_v2.
+    [ObservableProperty] private ProfessionalPermissionsEditorViewModel newProfessionalPermissions = new();
 
-    private static string FriendlyName(Dictionary<string, string> names, string key) =>
-        names.TryGetValue(key, out var english) ? Loc.Tr(english) : key;
-
-    private async Task LoadNewProfessionalPermissionOptionsAsync()
+    private void ResetNewProfessionalPermissions()
     {
-        NewProfessionalPermissionsLoading = true;
-        NewProfessionalPermissionsError = null;
-        try
-        {
-            var r = await GlobalAppStateViewModel.lfc.GetUserAuthorizationOptions();
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                if (r?.success == true && r.Content != null)
-                {
-                    NewProfessionalRoles = new ObservableCollection<ProfessionalRoleOption>(
-                        (r.Content.Roles ?? new List<string>()).Select(x => new ProfessionalRoleOption { Name = x, DisplayName = FriendlyName(RoleNames, x) }));
-                    NewProfessionalPolicyDomains = new ObservableCollection<ProfessionalPolicyDomainRow>(
-                        (r.Content.Policies ?? new List<PolicyDomain>())
-                            .Select(d => ProfessionalPolicyDomainRow.From(d, FriendlyName(PolicyDomainNames, d.Domain)))
-                            .OrderBy(d => d.DisplayName, StringComparer.CurrentCulture));
-                }
-                else
-                {
-                    NewProfessionalRoles = new();
-                    NewProfessionalPolicyDomains = new();
-                    NewProfessionalPermissionsError = Loc.Tr("Permissions are not available in this environment. The professional will be created without permissions.");
-                }
-                OnPropertyChanged(nameof(NewProfessionalPermissionsAvailable));
-            });
-        }
-        catch (Exception)
-        {
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                NewProfessionalRoles = new();
-                NewProfessionalPolicyDomains = new();
-                NewProfessionalPermissionsError = Loc.Tr("Permissions are not available in this environment. The professional will be created without permissions.");
-                OnPropertyChanged(nameof(NewProfessionalPermissionsAvailable));
-            });
-        }
-        finally
-        {
-            await Dispatcher.UIThread.InvokeAsync(() => NewProfessionalPermissionsLoading = false);
-        }
-    }
-
-    [RelayCommand]
-    private void SelectAllNewProfessionalPolicies()
-    {
-        foreach (var d in NewProfessionalPolicyDomains)
-            d.CanAll = true;
-    }
-
-    [RelayCommand]
-    private void ClearNewProfessionalPermissions()
-    {
-        foreach (var d in NewProfessionalPolicyDomains)
-            d.CanAll = false;
-        foreach (var r in NewProfessionalRoles)
-            r.IsChecked = false;
+        NewProfessionalPermissions = new ProfessionalPermissionsEditorViewModel();
+        _ = NewProfessionalPermissions.LoadAsync(current: null);
     }
 
     // null quando o catálogo não carregou: o cadastro segue sem permissões (e funciona também no legado).
-    private UserAuthorizationConfig? BuildNewProfessionalAuthorization()
+    private UserAuthorizationConfig? BuildNewProfessionalAuthorization() => NewProfessionalPermissions.Build();
+
+    // ---- Edição das permissões de um profissional existente ----
+
+    private EditProfessionalPermissionsDialog? _editProfessionalPermissionsDialog;
+    private UserAuthorizationConfig? _editingProfessionalCurrentAuth;
+
+    [ObservableProperty] private Professional? editingProfessional;
+    [ObservableProperty] private ProfessionalPermissionsEditorViewModel editProfessionalPermissions = new();
+    [ObservableProperty] private bool isSavingProfessionalPermissions;
+    [ObservableProperty] private string? editProfessionalPermissionsError;
+    [ObservableProperty] private string? editProfessionalPermissionsSuccess;
+
+    // Permissões salvas do professional (Users.Authorization no Postgres, JSON de UserAuthorizationConfig, vem em
+    // GetCompanyProfessionals_v2). Vazio/ilegível = nenhuma.
+    public static UserAuthorizationConfig ParseAuthorization(string? json)
     {
-        if (!NewProfessionalPermissionsAvailable)
-            return null;
-        return new UserAuthorizationConfig
+        if (string.IsNullOrWhiteSpace(json))
+            return new UserAuthorizationConfig();
+        try
         {
-            Roles = NewProfessionalRoles.Where(r => r.IsChecked).Select(r => r.Name).ToHashSet(),
-            Policies = NewProfessionalPolicyDomains.SelectMany(d => d.ToPolicies()).ToHashSet()
-        };
+            var auth = JsonConvert.DeserializeObject<UserAuthorizationConfig>(json) ?? new UserAuthorizationConfig();
+            auth.Roles ??= new();
+            auth.Policies ??= new();
+            return auth;
+        }
+        catch
+        {
+            return new UserAuthorizationConfig();
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenEditProfessionalPermissions(Professional? professional)
+    {
+        if (professional == null || string.IsNullOrWhiteSpace(professional.username))
+            return;
+
+        try
+        {
+            EditingProfessional = professional;
+            _editingProfessionalCurrentAuth = ParseAuthorization(professional.Authorization);
+            EditProfessionalPermissionsError = null;
+            EditProfessionalPermissionsSuccess = null;
+            EditProfessionalPermissions = new ProfessionalPermissionsEditorViewModel();
+            _ = EditProfessionalPermissions.LoadAsync(_editingProfessionalCurrentAuth);
+
+            _editProfessionalPermissionsDialog = new EditProfessionalPermissionsDialog { DataContext = this };
+            if (MainWindow.instance != null)
+                await _editProfessionalPermissionsDialog.ShowDialog(MainWindow.instance);
+        }
+        catch (Exception ex)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Could not open the permissions.") + " " + ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveProfessionalPermissions()
+    {
+        var professional = EditingProfessional;
+        if (professional == null || IsSavingProfessionalPermissions)
+            return;
+
+        var chosen = EditProfessionalPermissions.Build();
+        if (chosen == null)
+        {
+            EditProfessionalPermissionsError = Loc.Tr("Permissions are not available in this environment.");
+            return;
+        }
+
+        var diff = ProfessionalPermissionsDiff.Compute(_editingProfessionalCurrentAuth, chosen,
+            EditProfessionalPermissions.CatalogRoles, EditProfessionalPermissions.CatalogPolicies);
+        if (diff.IsEmpty)
+        {
+            CancelEditProfessionalPermissions();
+            return;
+        }
+
+        IsSavingProfessionalPermissions = true;
+        EditProfessionalPermissions.IsEnabled = false;
+        EditProfessionalPermissionsError = null;
+        try
+        {
+            var r = await GlobalAppStateViewModel.lfc.UpdateUserPoliciesAndRoles(professional.username,
+                diff.RolesToAdd, diff.RolesToRemove, diff.PoliciesToAdd, diff.PoliciesToRemove);
+
+            if (r?.success == true)
+            {
+                // Mesma instância da lista de profissionais: reabrir o editor já mostra o que foi salvo.
+                var saved = r.Content ?? chosen;
+                professional.Authorization = JsonConvert.SerializeObject(saved);
+                _editingProfessionalCurrentAuth = saved;
+                EditProfessionalPermissionsSuccess = Loc.Tr("Permissions saved.");
+                await Task.Delay(1000);
+                CancelEditProfessionalPermissions();
+            }
+            else
+            {
+                EditProfessionalPermissionsError = string.IsNullOrWhiteSpace(r?.message) ? Loc.Tr("Could not save the permissions.") : r.message;
+            }
+        }
+        catch (Exception ex)
+        {
+            EditProfessionalPermissionsError = Loc.Tr("Could not save the permissions.") + " " + ex.Message;
+        }
+        finally
+        {
+            IsSavingProfessionalPermissions = false;
+            EditProfessionalPermissions.IsEnabled = true;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelEditProfessionalPermissions()
+    {
+        _editProfessionalPermissionsDialog?.Close();
+        _editProfessionalPermissionsDialog = null;
     }
 }

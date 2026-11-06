@@ -122,6 +122,16 @@
   },
   "Login:": { "en-US": "Login:", "pt-BR": "Login:" },
   "Manage professionals": { "en-US": "Manage professionals", "pt-BR": "Gerenciar profissionais" },
+  "Edit permissions": { "en-US": "Edit permissions", "pt-BR": "Editar permissões" },
+  "Professional permissions": { "en-US": "Professional permissions", "pt-BR": "Permissões do profissional" },
+  "Save permissions": { "en-US": "Save permissions", "pt-BR": "Salvar permissões" },
+  "Permissions saved.": { "en-US": "Permissions saved.", "pt-BR": "Permissões salvas." },
+  "Could not save the permissions.": { "en-US": "Could not save the permissions.", "pt-BR": "Não foi possível salvar as permissões." },
+  "Could not open the permissions.": { "en-US": "Could not open the permissions.", "pt-BR": "Não foi possível abrir as permissões." },
+  "Permissions are not available in this environment.": {
+    "en-US": "Permissions are not available in this environment.",
+    "pt-BR": "As permissões não estão disponíveis neste ambiente."
+  },
   "Create and remove professionals of your company": {
     "en-US": "Create and remove professionals of your company",
     "pt-BR": "Criar e remover os profissionais da sua empresa"

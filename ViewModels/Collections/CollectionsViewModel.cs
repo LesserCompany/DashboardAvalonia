@@ -5625,9 +5625,7 @@ public partial class CollectionsViewModel : ViewModelBase
             CreateProfessionalSuccessMessage = "";
 
             // Catálogo de permissões (CollectionsViewModel.ProfessionalPermissions.cs); carrega enquanto o dialog abre.
-            NewProfessionalRoles = new();
-            NewProfessionalPolicyDomains = new();
-            _ = LoadNewProfessionalPermissionOptionsAsync();
+            ResetNewProfessionalPermissions();
             _ = LoadNewProfessionalUsernamePrefixAsync();
 
             // Criar e mostrar o dialog

@@ -97,5 +97,62 @@ namespace LesserDashboardClient.Models
         }
 
         public bool AnyChecked => CanView || CanCreate || CanEdit || CanDelete;
+
+        // Marca as caixas conforme as policies que o professional já tem ("Domínio.ALL" marca todas).
+        public void LoadFrom(ICollection<string> policies)
+        {
+            if (policies.Contains($"{Domain}.{All}"))
+            {
+                CanAll = true;
+                return;
+            }
+            CanView = HasView && policies.Contains($"{Domain}.{View}");
+            CanCreate = HasCreate && policies.Contains($"{Domain}.{Create}");
+            CanEdit = HasEdit && policies.Contains($"{Domain}.{Edit}");
+            CanDelete = HasDelete && policies.Contains($"{Domain}.{Delete}");
+        }
+
+        // Todas as policies que a linha consegue representar (as que a tela pode tirar).
+        public IEnumerable<string> RepresentablePolicies()
+        {
+            if (HasView) yield return $"{Domain}.{View}";
+            if (HasCreate) yield return $"{Domain}.{Create}";
+            if (HasEdit) yield return $"{Domain}.{Edit}";
+            if (HasDelete) yield return $"{Domain}.{Delete}";
+            if (HasAll) yield return $"{Domain}.{All}";
+        }
+    }
+
+    // Diferença entre as permissões atuais e as escolhidas na tela, no formato de UpdateUserPoliciesAndRoles_v2
+    // (adicionar/remover). Só remove o que a tela mostra: role/policy que o professional tenha e não esteja no
+    // catálogo (nome antigo, criada à mão) fica como está.
+    public sealed class ProfessionalPermissionsDiff
+    {
+        public List<string> RolesToAdd { get; init; } = new();
+        public List<string> RolesToRemove { get; init; } = new();
+        public List<string> PoliciesToAdd { get; init; } = new();
+        public List<string> PoliciesToRemove { get; init; } = new();
+
+        public bool IsEmpty => RolesToAdd.Count == 0 && RolesToRemove.Count == 0 && PoliciesToAdd.Count == 0 && PoliciesToRemove.Count == 0;
+
+        public static ProfessionalPermissionsDiff Compute(
+            UserAuthorizationConfig? current,
+            UserAuthorizationConfig chosen,
+            IEnumerable<string> catalogRoles,
+            IEnumerable<string> catalogPolicies)
+        {
+            var oldRoles = current?.Roles ?? new HashSet<string>();
+            var oldPolicies = current?.Policies ?? new HashSet<string>();
+            var shownRoles = catalogRoles.ToHashSet();
+            var shownPolicies = catalogPolicies.ToHashSet();
+
+            return new ProfessionalPermissionsDiff
+            {
+                RolesToAdd = chosen.Roles.Where(r => !oldRoles.Contains(r)).OrderBy(x => x).ToList(),
+                RolesToRemove = oldRoles.Where(r => shownRoles.Contains(r) && !chosen.Roles.Contains(r)).OrderBy(x => x).ToList(),
+                PoliciesToAdd = chosen.Policies.Where(p => !oldPolicies.Contains(p)).OrderBy(x => x).ToList(),
+                PoliciesToRemove = oldPolicies.Where(p => shownPolicies.Contains(p) && !chosen.Policies.Contains(p)).OrderBy(x => x).ToList(),
+            };
+        }
     }
 }

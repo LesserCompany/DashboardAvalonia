@@ -63,6 +63,71 @@ public class ProfessionalPermissionOptionsTests
     }
 
     [Test]
+    public void Carregar_permissoes_atuais_marca_as_caixas()
+    {
+        var atuais = new HashSet<string> { "Collections.GET", "Collections.DELETE", "Invoices.ALL" };
+
+        var colecoes = Linha("Collections");
+        colecoes.LoadFrom(atuais);
+        Assert.That(colecoes.CanView && colecoes.CanDelete, Is.True);
+        Assert.That(colecoes.CanCreate || colecoes.CanEdit || colecoes.CanAll, Is.False);
+
+        var faturas = Linha("Invoices");
+        faturas.LoadFrom(atuais);
+        Assert.That(faturas.CanAll, Is.True, "Domínio.ALL marca todas");
+    }
+
+    private static readonly string[] CatalogoRoles = UserAuthorization.GetAllRoles().ToArray();
+    private static readonly string[] CatalogoPolicies = UserAuthorization.GetAllPolicyDomains().SelectMany(d => d.Actions).ToArray();
+
+    [Test]
+    public void Diferenca_adiciona_o_marcado_e_remove_o_desmarcado()
+    {
+        var atual = new UserAuthorizationConfig
+        {
+            Roles = new HashSet<string> { "Separator" },
+            Policies = new HashSet<string> { "Collections.GET", "Invoices.ALL" }
+        };
+        var escolhido = new UserAuthorizationConfig
+        {
+            Roles = new HashSet<string> { "Photographer" },
+            Policies = new HashSet<string> { "Collections.GET", "Invoices.GET" }
+        };
+
+        var d = ProfessionalPermissionsDiff.Compute(atual, escolhido, CatalogoRoles, CatalogoPolicies);
+
+        Assert.That(d.RolesToAdd, Is.EqualTo(new[] { "Photographer" }));
+        Assert.That(d.RolesToRemove, Is.EqualTo(new[] { "Separator" }));
+        Assert.That(d.PoliciesToAdd, Is.EqualTo(new[] { "Invoices.GET" }));
+        Assert.That(d.PoliciesToRemove, Is.EqualTo(new[] { "Invoices.ALL" }));
+    }
+
+    [Test]
+    public void Diferenca_nao_remove_o_que_a_tela_nao_mostra()
+    {
+        var atual = new UserAuthorizationConfig
+        {
+            Roles = new HashSet<string> { "RoleAntiga" },
+            Policies = new HashSet<string> { "Legado.GET", "Collections.GET" }
+        };
+        var escolhido = new UserAuthorizationConfig();
+
+        var d = ProfessionalPermissionsDiff.Compute(atual, escolhido, CatalogoRoles, CatalogoPolicies);
+
+        Assert.That(d.RolesToRemove, Is.Empty, "role fora do catálogo fica");
+        Assert.That(d.PoliciesToRemove, Is.EqualTo(new[] { "Collections.GET" }), "policy fora do catálogo fica");
+    }
+
+    [Test]
+    public void Sem_mudanca_a_diferenca_e_vazia()
+    {
+        var atual = new UserAuthorizationConfig { Policies = new HashSet<string> { "Collections.GET" } };
+        var d = ProfessionalPermissionsDiff.Compute(atual, new UserAuthorizationConfig { Policies = new HashSet<string> { "Collections.GET" } }, CatalogoRoles, CatalogoPolicies);
+        Assert.That(d.IsEmpty, Is.True);
+        Assert.That(ProfessionalPermissionsDiff.Compute(null, new UserAuthorizationConfig(), CatalogoRoles, CatalogoPolicies).IsEmpty, Is.True);
+    }
+
+    [Test]
     public void Desmarcar_uma_acao_tira_o_Tudo()
     {
         var r = Linha("Exporter");

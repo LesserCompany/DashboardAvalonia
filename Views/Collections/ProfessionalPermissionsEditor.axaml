@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Collections"
+             xmlns:models="clr-namespace:LesserDashboardClient.Models"
+             xmlns:ui="clr-namespace:FluentAvalonia.UI.Controls;assembly=FluentAvalonia.ProgressRing"
+             x:DataType="vm:ProfessionalPermissionsEditorViewModel"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="LesserDashboardClient.Views.Collections.ProfessionalPermissionsEditor">
+  <!-- Grade de permissões: funções (roles) + uma linha por área com Ver/Criar/Editar/Excluir/Tudo.
+       Usada no cadastro (AddNewProfessionalDialog) e na edição (EditProfessionalPermissionsDialog). -->
+  <UserControl.Styles>
+    <Style Selector="Button.perm-action">
+      <Setter Property="CornerRadius" Value="9"/>
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="TextBlock.perm-header">
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="10">
+    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+      <StackPanel Grid.Column="0">
+        <TextBlock Text="{Tr 'Permissions'}" FontWeight="SemiBold" FontSize="14"/>
+        <TextBlock Text="{Tr 'Choose what this professional can see and do. You can leave it empty.'}"
+                   FontSize="11" Foreground="{DynamicResource MetaFg}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+      </StackPanel>
+      <Button Grid.Column="1" Classes="perm-action" VerticalAlignment="Top"
+              Content="{Tr 'Select all'}" Command="{Binding SelectAllCommand}"
+              IsVisible="{Binding IsAvailable}" IsEnabled="{Binding IsEnabled}"/>
+      <Button Grid.Column="2" Classes="perm-action" VerticalAlignment="Top"
+              Content="{Tr 'Clear'}" Command="{Binding ClearCommand}"
+              IsVisible="{Binding IsAvailable}" IsEnabled="{Binding IsEnabled}"/>
+    </Grid>
+
+    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsLoading}">
+      <ui:ProgressRing Width="14" Height="14" BorderThickness="2" IsIndeterminate="True"/>
+      <TextBlock Text="{Tr 'Loading permissions...'}" Foreground="{DynamicResource MetaFg}" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <TextBlock Text="{Binding LoadError}"
+               IsVisible="{Binding LoadError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+               FontSize="11" Foreground="#FFC107" TextWrapping="Wrap"/>
+
+    <StackPanel Spacing="10" IsVisible="{Binding IsAvailable}" IsEnabled="{Binding IsEnabled}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="{Tr 'Roles'}" Classes="perm-header"/>
+        <ItemsControl ItemsSource="{Binding Roles}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:ProfessionalRoleOption">
+              <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsChecked}" Margin="0,0,14,0" ToolTip.Tip="{Binding Name}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <StackPanel Spacing="2">
+        <Grid ColumnDefinitions="*,62,62,62,62,62" Margin="0,0,0,2">
+          <TextBlock Grid.Column="0" Text="{Tr 'Area'}" Classes="perm-header"/>
+          <TextBlock Grid.Column="1" Text="{Tr 'View'}" Classes="perm-header" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Column="2" Text="{Tr 'Create'}" Classes="perm-header" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Column="3" Text="{Tr 'Edit'}" Classes="perm-header" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Column="4" Text="{Tr 'Delete'}" Classes="perm-header" HorizontalAlignment="Center"/>
+          <TextBlock Grid.Column="5" Text="{Tr 'All'}" Classes="perm-header" HorizontalAlignment="Center"/>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding PolicyDomains}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="models:ProfessionalPolicyDomainRow">
+              <Border BorderBrush="{DynamicResource CardBorder}" BorderThickness="0,1,0,0" Padding="0,2">
+                <Grid ColumnDefinitions="*,62,62,62,62,62">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" VerticalAlignment="Center" FontSize="12" ToolTip.Tip="{Binding Domain}"/>
+                  <CheckBox Grid.Column="1" HorizontalAlignment="Center" IsChecked="{Binding CanView}" IsVisible="{Binding HasView}"/>
+                  <CheckBox Grid.Column="2" HorizontalAlignment="Center" IsChecked="{Binding CanCreate}" IsVisible="{Binding HasCreate}"/>
+                  <CheckBox Grid.Column="3" HorizontalAlignment="Center" IsChecked="{Binding CanEdit}" IsVisible="{Binding HasEdit}"/>
+                  <CheckBox Grid.Column="4" HorizontalAlignment="Center" IsChecked="{Binding CanDelete}" IsVisible="{Binding HasDelete}"/>
+                  <CheckBox Grid.Column="5" HorizontalAlignment="Center" IsChecked="{Binding CanAll}"/>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>
