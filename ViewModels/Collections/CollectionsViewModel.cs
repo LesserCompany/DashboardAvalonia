@@ -132,6 +132,10 @@ public partial class CollectionsViewModel : ViewModelBase
 
     partial void OnSelectedCollectionChanged(ProfessionalTask value)
     {
+        // Edição de label é da coleção anterior (CollectionsViewModel.CollectionLabel.cs).
+        if (IsEditingLabel && value?.classCode != _labelEditClassCode)
+            CancelEditLabel();
+
         if (_isUpdatingSelectedCollection)
             return;
 
@@ -2267,8 +2271,10 @@ public partial class CollectionsViewModel : ViewModelBase
         {
             var login = task.professionalLogin ?? string.Empty;
             var taskClass = task.classCode ?? string.Empty;
+            // O campo de pesquisa de ID também procura na label (nome de exibição).
             bool matchClass = string.IsNullOrEmpty(cc) ||
-                              taskClass.Contains(cc, StringComparison.OrdinalIgnoreCase);
+                              taskClass.Contains(cc, StringComparison.OrdinalIgnoreCase) ||
+                              (task.Label?.Contains(cc, StringComparison.OrdinalIgnoreCase) ?? false);
             bool matchProfessional = string.IsNullOrEmpty(sep) ||
                                      login.Contains(sep, StringComparison.OrdinalIgnoreCase);
             return matchClass && matchProfessional;
@@ -2406,7 +2412,17 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
             }
 
-            var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(classCode);
+            // Busca por trecho do classCode ou da label (SearchCompanyProfessionalTasks_v2). Se o endpoint falhar
+            // (servidor ainda sem ele), cai na busca antiga por classCode exato.
+            List<ProfessionalTask> found;
+            var search = await GlobalAppStateViewModel.lfc.SearchCompanyProfessionalTasks(classCode);
+            if (search?.success == true && search.Content != null)
+                found = search.Content;
+            else
+            {
+                var pt = await GlobalAppStateViewModel.lfc.GetProfessionalTask(classCode);
+                found = pt == null ? new List<ProfessionalTask>() : new List<ProfessionalTask> { pt };
+            }
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -2418,26 +2434,24 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (SelectedCollectionsTab != tabWhenRequested)
                     return;
 
-                if (pt == null)
+                if (found.Count == 0)
                 {
                     ShowNoResultsMessage = true;
                     return;
                 }
 
-                var category = GetCollectionSearchCategory(pt);
-                var expectedTab = TabForSearchCategory(category);
-                if (tabWhenRequested != expectedTab)
+                // Cada resultado vai para a lista da sua categoria (normal / vencida / exclusão pendente); só
+                // aparece aqui o que for da sub-aba atual.
+                var anyInThisTab = false;
+                foreach (var pt in found)
                 {
+                    var category = GetCollectionSearchCategory(pt);
                     MergeServerFetchedTaskForCategory(pt, category);
-                    ApplyLocalFilterAllSources(classCode, professional);
-                    ShowNoResultsMessage = true;
-                    ClearSelectedIfNotInCurrentFilteredVisible();
-                    return;
+                    anyInThisTab |= TabForSearchCategory(category) == tabWhenRequested;
                 }
 
-                MergeServerFetchedTaskForCategory(pt, category);
                 ApplyLocalFilterAllSources(classCode, professional);
-                ShowNoResultsMessage = false;
+                ShowNoResultsMessage = !anyInThisTab;
                 ClearSelectedIfNotInCurrentFilteredVisible();
             });
         }

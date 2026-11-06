@@ -111,6 +111,26 @@
     "en-US": "View collection settings without reupload",
     "pt-BR": "Ver as configurações da coleção sem fazer reupload"
   },
+  "Rename collection. The collection ID does not change.": {
+    "en-US": "Rename collection. The collection ID does not change.",
+    "pt-BR": "Renomear coleção. O ID da coleção não muda."
+  },
+  "Collection ID": {
+    "en-US": "Collection ID",
+    "pt-BR": "ID da coleção"
+  },
+  "Leave empty to show the collection ID again.": {
+    "en-US": "Leave empty to show the collection ID again.",
+    "pt-BR": "Deixe vazio para voltar a mostrar o ID da coleção."
+  },
+  "The name can have at most {0} characters.": {
+    "en-US": "The name can have at most {0} characters.",
+    "pt-BR": "O nome pode ter no máximo {0} caracteres."
+  },
+  "Could not rename the collection.": {
+    "en-US": "Could not rename the collection.",
+    "pt-BR": "Não foi possível renomear a coleção."
+  },
   "Combo:": {
     "en-US": "Combo:",
     "pt-BR": "Combo:"

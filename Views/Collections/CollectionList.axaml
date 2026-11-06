@@ -210,16 +210,23 @@
                                                            Margin="0,6,0,0"/>
                         </StackPanel>
 
-                        <!-- Título (classCode) -->
-                        <TextBlock Grid.Column="1"
-                                   Text="{Binding classCode}"
-                                   FontSize="14"
-                                   FontWeight="SemiBold"
-                                   Margin="0,0,8,0"
-                                   TextWrapping="NoWrap"
-                                   TextTrimming="CharacterEllipsis"
-                                   TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
-                                   ToolTip.Tip="{Binding classCode}"/>
+                        <!-- Título: label (ou classCode, se não houver label); com label, o classCode vai embaixo, discreto -->
+                        <StackPanel Grid.Column="1" Margin="0,0,8,0" VerticalAlignment="Center">
+                          <TextBlock Text="{Binding DisplayName}"
+                                     FontSize="14"
+                                     FontWeight="SemiBold"
+                                     TextWrapping="NoWrap"
+                                     TextTrimming="CharacterEllipsis"
+                                     TextDecorations="{Binding BillingCancelled, Converter={StaticResource BoolToTextDecorationConverter}}"
+                                     ToolTip.Tip="{Binding DisplayName}"/>
+                          <TextBlock Text="{Binding classCode}"
+                                     IsVisible="{Binding HasLabel}"
+                                     FontSize="10"
+                                     Foreground="{DynamicResource MetaFg}"
+                                     TextWrapping="NoWrap"
+                                     TextTrimming="CharacterEllipsis"
+                                     ToolTip.Tip="{Binding classCode}"/>
+                        </StackPanel>
 
                         <!-- Badges + botão três pontinhos alinhados à direita -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
