@@ -80,13 +80,19 @@ public partial class CollectionsViewModel
     // null quando o catálogo não carregou: o cadastro segue sem permissões (e funciona também no legado).
     private UserAuthorizationConfig? BuildNewProfessionalAuthorization() => NewProfessionalPermissions.Build();
 
-    // ---- Edição das permissões de um profissional existente ----
+    // ---- Editar profissional existente (apelido, e-mail, senha, permissões) ----
+    // Tudo num gravar só: UpdateCompanyProfessional_v2. O login (username) não muda: as coleções guardam o login
+    // do separador.
 
     private EditProfessionalPermissionsDialog? _editProfessionalPermissionsDialog;
     private UserAuthorizationConfig? _editingProfessionalCurrentAuth;
 
     [ObservableProperty] private Professional? editingProfessional;
     [ObservableProperty] private ProfessionalPermissionsEditorViewModel editProfessionalPermissions = new();
+    [ObservableProperty] private string editProfessionalSurname = string.Empty;
+    [ObservableProperty] private string editProfessionalEmail = string.Empty;
+    [ObservableProperty] private string editProfessionalNewPassword = string.Empty;
+    [ObservableProperty] private string editProfessionalConfirmPassword = string.Empty;
     [ObservableProperty] private bool isSavingProfessionalPermissions;
     [ObservableProperty] private string? editProfessionalPermissionsError;
     [ObservableProperty] private string? editProfessionalPermissionsSuccess;
@@ -119,6 +125,10 @@ public partial class CollectionsViewModel
         try
         {
             EditingProfessional = professional;
+            EditProfessionalSurname = professional.surname ?? string.Empty;
+            EditProfessionalEmail = professional.contactMail ?? string.Empty;
+            EditProfessionalNewPassword = string.Empty;
+            EditProfessionalConfirmPassword = string.Empty;
             _editingProfessionalCurrentAuth = ParseAuthorization(professional.Authorization);
             EditProfessionalPermissionsError = null;
             EditProfessionalPermissionsSuccess = null;
@@ -131,7 +141,7 @@ public partial class CollectionsViewModel
         }
         catch (Exception ex)
         {
-            GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Could not open the permissions.") + " " + ex.Message);
+            GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Could not open the professional.") + " " + ex.Message);
         }
     }
 
@@ -142,16 +152,22 @@ public partial class CollectionsViewModel
         if (professional == null || IsSavingProfessionalPermissions)
             return;
 
-        var chosen = EditProfessionalPermissions.Build();
-        if (chosen == null)
+        var fields = ProfessionalEditChanges.Compute(professional.surname, professional.contactMail,
+            EditProfessionalSurname, EditProfessionalEmail, EditProfessionalNewPassword, EditProfessionalConfirmPassword);
+        if (fields.Error != null)
         {
-            EditProfessionalPermissionsError = Loc.Tr("Permissions are not available in this environment.");
+            EditProfessionalPermissionsError = fields.Error;
             return;
         }
 
-        var diff = ProfessionalPermissionsDiff.Compute(_editingProfessionalCurrentAuth, chosen,
-            EditProfessionalPermissions.CatalogRoles, EditProfessionalPermissions.CatalogPolicies);
-        if (diff.IsEmpty)
+        // Sem catálogo (ambiente sem o endpoint) as permissões ficam como estão; os outros campos ainda podem mudar.
+        var chosen = EditProfessionalPermissions.Build();
+        var diff = chosen == null
+            ? new ProfessionalPermissionsDiff()
+            : ProfessionalPermissionsDiff.Compute(_editingProfessionalCurrentAuth, chosen,
+                EditProfessionalPermissions.CatalogRoles, EditProfessionalPermissions.CatalogPolicies);
+
+        if (diff.IsEmpty && !fields.HasFieldChanges)
         {
             CancelEditProfessionalPermissions();
             return;
@@ -162,27 +178,39 @@ public partial class CollectionsViewModel
         EditProfessionalPermissionsError = null;
         try
         {
-            var r = await GlobalAppStateViewModel.lfc.UpdateUserPoliciesAndRoles(professional.username,
+            var r = await GlobalAppStateViewModel.lfc.UpdateCompanyProfessional(professional.username,
+                fields.SurName, fields.ContactMail, fields.NewPassword,
                 diff.RolesToAdd, diff.RolesToRemove, diff.PoliciesToAdd, diff.PoliciesToRemove);
 
             if (r?.success == true)
             {
-                // Mesma instância da lista de profissionais: reabrir o editor já mostra o que foi salvo.
-                var saved = r.Content ?? chosen;
-                professional.Authorization = JsonConvert.SerializeObject(saved);
-                _editingProfessionalCurrentAuth = saved;
-                EditProfessionalPermissionsSuccess = Loc.Tr("Permissions saved.");
-                await Task.Delay(1000);
+                // Mesma instância da lista de profissionais: o card e a próxima abertura já mostram o que foi salvo.
+                if (fields.SurName != null)
+                    professional.surname = fields.SurName.Length == 0 ? null : fields.SurName;
+                if (fields.ContactMail != null)
+                    professional.contactMail = fields.ContactMail;
+                if (r.Content != null)
+                {
+                    professional.Authorization = JsonConvert.SerializeObject(r.Content);
+                    _editingProfessionalCurrentAuth = r.Content;
+                }
+                EditProfessionalNewPassword = string.Empty;
+                EditProfessionalConfirmPassword = string.Empty;
+                EditProfessionalPermissionsSuccess = fields.NewPassword != null
+                    ? Loc.Tr("Saved. The professional was signed out and must log in with the new password.")
+                    : Loc.Tr("Saved.");
+                await ApplyProfessionalFilterAsync(System.Threading.CancellationToken.None);
+                await Task.Delay(fields.NewPassword != null ? 2500 : 1000);
                 CancelEditProfessionalPermissions();
             }
             else
             {
-                EditProfessionalPermissionsError = string.IsNullOrWhiteSpace(r?.message) ? Loc.Tr("Could not save the permissions.") : r.message;
+                EditProfessionalPermissionsError = string.IsNullOrWhiteSpace(r?.message) ? Loc.Tr("Could not save the professional.") : r.message;
             }
         }
         catch (Exception ex)
         {
-            EditProfessionalPermissionsError = Loc.Tr("Could not save the permissions.") + " " + ex.Message;
+            EditProfessionalPermissionsError = Loc.Tr("Could not save the professional.") + " " + ex.Message;
         }
         finally
         {
@@ -196,5 +224,8 @@ public partial class CollectionsViewModel
     {
         _editProfessionalPermissionsDialog?.Close();
         _editProfessionalPermissionsDialog = null;
+        EditProfessionalNewPassword = string.Empty;
+        EditProfessionalConfirmPassword = string.Empty;
     }
 }
+

@@ -241,9 +241,9 @@
                               Orientation="Horizontal"
                               Spacing="6"
                               VerticalAlignment="Center">
-                    <!-- Permissões do profissional (EditProfessionalPermissionsDialog); não seleciona o card -->
+                    <!-- Editar profissional: dados, senha e permissões (EditProfessionalPermissionsDialog); não seleciona o card -->
                     <Button Classes="danger-icon-button"
-                            ToolTip.Tip="{Tr 'Edit permissions'}"
+                            ToolTip.Tip="{Tr 'Edit professional'}"
                             Cursor="Hand"
                             Command="{Binding OpenEditProfessionalPermissionsCommand, Source={x:Static vm:CollectionsViewModel.Instance}}"
                             CommandParameter="{Binding}"

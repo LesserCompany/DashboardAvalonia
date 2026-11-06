@@ -123,6 +123,25 @@
   "Login:": { "en-US": "Login:", "pt-BR": "Login:" },
   "Manage professionals": { "en-US": "Manage professionals", "pt-BR": "Gerenciar profissionais" },
   "Edit permissions": { "en-US": "Edit permissions", "pt-BR": "Editar permissões" },
+  "Edit professional": { "en-US": "Edit professional", "pt-BR": "Editar profissional" },
+  "The login cannot be changed: collections keep the login of their separator.": {
+    "en-US": "The login cannot be changed: collections keep the login of their separator.",
+    "pt-BR": "O login não pode ser alterado: as coleções guardam o login do seu separador."
+  },
+  "New password": { "en-US": "New password", "pt-BR": "Nova senha" },
+  "Leave empty to keep the current one": { "en-US": "Leave empty to keep the current one", "pt-BR": "Deixe vazio para manter a atual" },
+  "Confirm the new password": { "en-US": "Confirm the new password", "pt-BR": "Confirme a nova senha" },
+  "At least 6 characters. Changing the password signs the professional out and they receive an email warning.": {
+    "en-US": "At least 6 characters. Changing the password signs the professional out and they receive an email warning.",
+    "pt-BR": "Pelo menos 6 caracteres. Trocar a senha desconecta o profissional, que recebe um aviso por email."
+  },
+  "Saved.": { "en-US": "Saved.", "pt-BR": "Salvo." },
+  "Saved. The professional was signed out and must log in with the new password.": {
+    "en-US": "Saved. The professional was signed out and must log in with the new password.",
+    "pt-BR": "Salvo. O profissional foi desconectado e precisa entrar com a nova senha."
+  },
+  "Could not save the professional.": { "en-US": "Could not save the professional.", "pt-BR": "Não foi possível salvar o profissional." },
+  "Could not open the professional.": { "en-US": "Could not open the professional.", "pt-BR": "Não foi possível abrir o profissional." },
   "Professional permissions": { "en-US": "Professional permissions", "pt-BR": "Permissões do profissional" },
   "Save permissions": { "en-US": "Save permissions", "pt-BR": "Salvar permissões" },
   "Permissions saved.": { "en-US": "Permissions saved.", "pt-BR": "Permissões salvas." },
