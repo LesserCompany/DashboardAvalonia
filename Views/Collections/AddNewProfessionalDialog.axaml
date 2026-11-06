@@ -136,10 +136,33 @@
         <Border Classes="section-card">
           <StackPanel>
             <TextBlock Text="{Tr 'Username (login)'}" Classes="label"/>
-            <TextBox Classes="form-input"
-                     Text="{Binding TbNewProfessionalUsername}"
-                     Watermark="{Tr 'Minimum 4 characters'}"
-                     IsEnabled="{Binding !CreateProfessionalIsRunning}"/>
+            <!-- Login = "{company}@{digitado}": o prefixo da empresa fica fixo à esquerda -->
+            <Grid ColumnDefinitions="Auto,*">
+              <Border Grid.Column="0"
+                      IsVisible="{Binding HasNewProfessionalUsernamePrefix}"
+                      Background="{DynamicResource CardBg}"
+                      BorderBrush="{DynamicResource CardBorder}"
+                      BorderThickness="1,1,0,1"
+                      CornerRadius="8,0,0,8"
+                      Padding="10,0"
+                      Height="38"
+                      ToolTip.Tip="{Tr 'The company name is added before the username.'}">
+                <TextBlock Text="{Binding NewProfessionalUsernamePrefix}"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource MetaFg}"
+                           FontWeight="SemiBold"/>
+              </Border>
+              <TextBox Grid.Column="1"
+                       Classes="form-input"
+                       Text="{Binding TbNewProfessionalUsername}"
+                       Watermark="{Tr 'Minimum 4 characters'}"
+                       IsEnabled="{Binding !CreateProfessionalIsRunning}"/>
+            </Grid>
+            <TextBlock Classes="helper"
+                       IsVisible="{Binding NewProfessionalFinalUsername, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+              <Run Text="{Tr 'Login:'}"/>
+              <Run Text="{Binding NewProfessionalFinalUsername}" FontWeight="SemiBold"/>
+            </TextBlock>
             <TextBlock Classes="helper" Text="{Tr 'Username login help'}"/>
           </StackPanel>
         </Border>

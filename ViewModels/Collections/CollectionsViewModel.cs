@@ -379,6 +379,10 @@ public partial class CollectionsViewModel : ViewModelBase
     {
         lastActiveComponent = oldValue;
 
+        // Saiu da tela de profissionais: o modo "gerenciar" acaba junto.
+        if (newValue != ActiveViews.SelectProfessional)
+            IsManagingProfessionals = false;
+
         // Detectar navegaÃ§Ã£o manual para MessagesView
         if (newValue == ActiveViews.MessagesView && oldValue != ActiveViews.MessagesView)
         {
@@ -1354,7 +1358,11 @@ public partial class CollectionsViewModel : ViewModelBase
         // Nï¿½o volta para a ï¿½ltima view na primeira seleï¿½ï¿½o automï¿½tica
         if (value == null)
             return;
-            
+
+        // Tela aberta só para gerenciar profissionais: não troca o separador de nenhuma coleção nem navega.
+        if (IsManagingProfessionals)
+            return;
+
         var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
         
         // NÃ£o voltar quando estamos apenas abrindo a lista (LoadProfessionals define SelectedProfessional e fechava a lista no 1Âº clique)
@@ -4047,6 +4055,8 @@ public partial class CollectionsViewModel : ViewModelBase
     [RelayCommand]
     public async Task OpenSelectProfessionalViewCommand()
     {
+        // Aberta pelo "Separador:": modo seletor (o clique escolhe o separador).
+        IsManagingProfessionals = false;
         // NÃ£o limpar SelectedCollection se estiver visualizando uma coleÃ§Ã£o
         // Isso permite trocar o separador de uma coleÃ§Ã£o existente
         var wasViewingCollection = SelectedCollection != null && ActiveComponent == ActiveViews.CollectionView;
@@ -5618,6 +5628,7 @@ public partial class CollectionsViewModel : ViewModelBase
             NewProfessionalRoles = new();
             NewProfessionalPolicyDomains = new();
             _ = LoadNewProfessionalPermissionOptionsAsync();
+            _ = LoadNewProfessionalUsernamePrefixAsync();
 
             // Criar e mostrar o dialog
             _addNewProfessionalDialog = new Views.Collections.AddNewProfessionalDialog
@@ -5646,16 +5657,19 @@ public partial class CollectionsViewModel : ViewModelBase
             CreateProfessionalSuccessMessage = "";
 
             // ValidaÃ§Ãµes
-            if (string.IsNullOrWhiteSpace(TbNewProfessionalUsername) || TbNewProfessionalUsername.Length < 4)
+            // O login final é "{company}@{digitado}" (Helpers/ProfessionalUsernamePrefix); as regras valem para a
+            // parte digitada. O prefixo da tela é refeito aqui com os dados da empresa logo abaixo.
+            var typedUsername = ProfessionalUsernamePrefix.TypedPart(NewProfessionalUsernamePrefix, TbNewProfessionalUsername);
+            if (typedUsername.Length < 4)
             {
-                CreateProfessionalErrorMessage = "Nome de usuÃ¡rio deve ter pelo menos 4 caracteres.";
+                CreateProfessionalErrorMessage = "Nome de usuário deve ter pelo menos 4 caracteres.";
                 return;
             }
 
-            // Validar formato do username
-            if (!System.Text.RegularExpressions.Regex.IsMatch(TbNewProfessionalUsername, @"^[a-zA-Z0-9_.-]+$"))
+            // Validar formato do username (o '@' é só o separador do prefixo, não pode ser digitado)
+            if (!ProfessionalUsernamePrefix.IsValidTypedPart(typedUsername, 4))
             {
-                CreateProfessionalErrorMessage = "Nome de usuÃ¡rio deve conter apenas letras, nÃºmeros, pontos, hÃ­fens e underscore.";
+                CreateProfessionalErrorMessage = "Nome de usuário deve conter apenas letras, números, pontos, hífens e underscore.";
                 return;
             }
 
@@ -5681,10 +5695,18 @@ public partial class CollectionsViewModel : ViewModelBase
                 return;
             }
 
+            var prefix = ProfessionalUsernamePrefix.FromCompany(companyResult.Content.company);
+            if (string.IsNullOrEmpty(prefix))
+            {
+                CreateProfessionalErrorMessage = "Não foi possível montar o login: o nome da empresa não tem caracteres válidos.";
+                return;
+            }
+            NewProfessionalUsernamePrefix = prefix;
+
             // Criar objeto Professional
             var professional = new SharedClientSide.ServerInteraction.Users.Professionals.Professional
             {
-                username = TbNewProfessionalUsername.Trim(),
+                username = ProfessionalUsernamePrefix.Build(prefix, typedUsername),
                 surname = string.IsNullOrWhiteSpace(TbNewProfessionalSurname) ? null : TbNewProfessionalSurname.Trim(),
                 company = companyResult.Content.company,
                 contactMail = TbNewProfessionalEmail.Trim().ToLower()

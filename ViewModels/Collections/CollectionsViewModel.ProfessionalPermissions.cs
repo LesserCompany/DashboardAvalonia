@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using LesserDashboardClient.Models;
 using SharedClientSide.ServerInteraction.Users;
 
@@ -22,6 +23,50 @@ public partial class CollectionsViewModel
     [ObservableProperty] private string? newProfessionalPermissionsError;
 
     public bool NewProfessionalPermissionsAvailable => NewProfessionalRoles.Count > 0 || NewProfessionalPolicyDomains.Count > 0;
+
+    // Tela de profissionais aberta pelo botão "Profissionais" da lista lateral, só para gerenciar (criar/remover).
+    // A mesma tela aberta pelo "Separador:" da coleção é um seletor: clicar num profissional troca o separador da
+    // coleção selecionada. Neste modo o clique não atribui nada (ver OnSelectedProfessionalChanged).
+    [ObservableProperty] private bool isManagingProfessionals;
+
+    [RelayCommand]
+    private async Task OpenManageProfessionals()
+    {
+        IsManagingProfessionals = true;
+        ActiveComponent = ActiveViews.SelectProfessional;
+        if (!_professionalsLoaded)
+        {
+            LoadProfessionalsIsRunning = true;
+            await Task.Yield();
+        }
+        await LoadProfessionalsAsync();
+    }
+
+    // Prefixo do login = nome da company + "@" (Helpers/ProfessionalUsernamePrefix). Vazio até a company carregar.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NewProfessionalFinalUsername), nameof(HasNewProfessionalUsernamePrefix))]
+    private string newProfessionalUsernamePrefix = string.Empty;
+
+    public bool HasNewProfessionalUsernamePrefix => !string.IsNullOrEmpty(NewProfessionalUsernamePrefix);
+
+    /// <summary>Login que será criado (prefixo + digitado), mostrado embaixo do campo.</summary>
+    public string NewProfessionalFinalUsername => ProfessionalUsernamePrefix.Build(NewProfessionalUsernamePrefix, TbNewProfessionalUsername);
+
+    partial void OnTbNewProfessionalUsernameChanged(string value) => OnPropertyChanged(nameof(NewProfessionalFinalUsername));
+
+    private async Task LoadNewProfessionalUsernamePrefixAsync()
+    {
+        try
+        {
+            var r = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
+            var prefix = r?.success == true ? ProfessionalUsernamePrefix.FromCompany(r.Content?.company) : string.Empty;
+            await Dispatcher.UIThread.InvokeAsync(() => NewProfessionalUsernamePrefix = prefix);
+        }
+        catch
+        {
+            // Sem prefixo na tela; CreateNewProfessionalCommand tenta de novo com os dados da empresa.
+        }
+    }
 
     // Nome amigável dos domínios e roles do catálogo; o que não estiver aqui aparece com o nome técnico.
     private static readonly Dictionary<string, string> PolicyDomainNames = new(StringComparer.Ordinal)

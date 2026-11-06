@@ -93,6 +93,13 @@
 
         <StackPanel Grid.Column="1" HorizontalAlignment="Center" Spacing="4">
           <TextBlock Text="{Tr 'Select professional'}"
+                     IsVisible="{Binding !IsManagingProfessionals}"
+                     FontSize="22"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
+          <TextBlock Text="{Tr 'Manage professionals'}"
+                     IsVisible="{Binding IsManagingProfessionals}"
                      FontSize="22"
                      FontWeight="Bold"
                      HorizontalAlignment="Center"

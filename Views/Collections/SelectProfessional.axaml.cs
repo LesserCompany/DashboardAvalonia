@@ -22,6 +22,10 @@ public partial class SelectProfessional : UserControl
         if (vm == null)
             return;
 
+        // Modo "gerenciar profissionais": o card não escolhe separador.
+        if (vm.IsManagingProfessionals)
+            return;
+
         vm.SelectedProfessional = professional;
         e.Handled = true;
     }

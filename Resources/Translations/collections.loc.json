@@ -116,6 +116,16 @@
     "pt-BR": "Renomear coleção. O ID da coleção não muda."
   },
   "Permissions": { "en-US": "Permissions", "pt-BR": "Permissões" },
+  "The company name is added before the username.": {
+    "en-US": "The company name is added before the username.",
+    "pt-BR": "O nome da empresa é colocado antes do nome de usuário."
+  },
+  "Login:": { "en-US": "Login:", "pt-BR": "Login:" },
+  "Manage professionals": { "en-US": "Manage professionals", "pt-BR": "Gerenciar profissionais" },
+  "Create and remove professionals of your company": {
+    "en-US": "Create and remove professionals of your company",
+    "pt-BR": "Criar e remover os profissionais da sua empresa"
+  },
   "Choose what this professional can see and do. You can leave it empty.": {
     "en-US": "Choose what this professional can see and do. You can leave it empty.",
     "pt-BR": "Escolha o que este profissional pode ver e fazer. Pode deixar em branco."

@@ -29,6 +29,18 @@
                     <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
+            <!-- Profissionais (criar, remover, permissões) sem precisar abrir uma coleção -->
+            <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}"
+                    HorizontalAlignment="Stretch"
+                    Command="{Binding OpenManageProfessionalsCommand}"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    ToolTip.Tip="{Tr 'Create and remove professionals of your company'}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
+                    <Svg Path="/Assets/icons/person.svg" Width="18" Height="18" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Tr 'Manage professionals'}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
             <!-- Abas: trilho sólido + aba ativa sólida + hover (CollectionsTab* no App.axaml, light/dark) -->
             <Border Background="{DynamicResource CollectionsTabWellBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="8" Padding="4,4">
                 <!-- Grid em vez de WrapPanel: usa toda a largura (3 colunas iguais), evita quebra com espaço vazio à direita -->
