@@ -32,6 +32,7 @@
             <converters:FinalDeletionDateToStringConverter x:Key="FinalDeletionDateToStringConverter" />
             <converters:BillingCanceledListItemBrushConverter x:Key="BillingCanceledListItemBrushConverter" />
             <converters:CollectionHasPartialAutoTreatmentConverter x:Key="CollectionHasPartialAutoTreatmentConverter" />
+            <converters:CollectionComboConverter x:Key="CollectionComboConverter" />
             <converters:ProfessionalLoginDisplayConverter x:Key="ProfessionalLoginDisplayConverter" />
             <converters:ProfessionalSelectionStateConverter x:Key="ProfessionalSelectionStateConverter" />
           </ResourceDictionary>

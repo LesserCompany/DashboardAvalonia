@@ -111,6 +111,14 @@
     "en-US": "View collection settings without reupload",
     "pt-BR": "Ver as configurações da coleção sem fazer reupload"
   },
+  "Combo:": {
+    "en-US": "Combo:",
+    "pt-BR": "Combo:"
+  },
+  "The options of this collection match this combo, which is the one used on the invoice.": {
+    "en-US": "The options of this collection match this combo, which is the one used on the invoice.",
+    "pt-BR": "As opções desta coleção correspondem a este combo, que é o usado na fatura."
+  },
   "Event Folder:": {
     "en-US": "Event Folder:",
     "pt-BR": "Pasta de Eventos:"

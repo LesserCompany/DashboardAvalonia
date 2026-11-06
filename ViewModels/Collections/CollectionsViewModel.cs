@@ -1260,6 +1260,7 @@ public partial class CollectionsViewModel : ViewModelBase
         OnPropertyChanged(nameof(NewCollectionFormIsEnabled));
         OnPropertyChanged(nameof(IsCreateCollectionButtonVisible));
         OnPropertyChanged(nameof(IsReuploadActionButtonsVisible));
+        RefreshViewedCollectionCombo();
     }
     [ObservableProperty] public bool? cbOcr;
     [ObservableProperty] public bool? cbShowPhotosWithFacialEnhancementByDefault;
@@ -3944,6 +3945,8 @@ public partial class CollectionsViewModel : ViewModelBase
 
             IsReupload = forReupload;
             IsViewingCollectionConfig = forViewOnly;
+            // Também quando já estava em visualização e só a coleção mudou (OnIsViewingCollectionConfigChanged não dispara).
+            RefreshViewedCollectionCombo();
             TbCollectionName = SelectedCollection.classCode;
             TbEventFolder = SelectedCollection.originalEventsFolder;
             TbRecFolder = SelectedCollection.originalRecFolder;
@@ -5842,7 +5845,10 @@ public partial class CollectionsViewModel : ViewModelBase
                 {
                     DynamicCombos.Add(combo);
                 }
-                
+
+                // Só combos do servidor servem para descobrir o combo das coleções (ver CollectionsViewModel.CollectionCombo.cs).
+                CombosForCollectionMatching = new List<CollectionComboOptions>(serverCombos);
+
                 // Notificar que a coleÃ§Ã£o mudou
                 OnPropertyChanged(nameof(DynamicCombos));
                 OnPropertyChanged(nameof(HasCombos));

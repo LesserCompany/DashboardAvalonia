@@ -318,6 +318,42 @@
 
                         <!-- Status (upload/tratamento / cobrança) -->
                         <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Vertical" Spacing="4" Margin="0,6,0,0">
+                          <!-- Combo da coleção (sutil): ponto na cor do combo + nome -->
+                          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="5">
+                            <Grid.IsVisible>
+                              <MultiBinding Converter="{StaticResource CollectionComboConverter}" ConverterParameter="Visible" FallbackValue="False">
+                                <Binding Path="."/>
+                                <Binding Path="CombosForCollectionMatching" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                              </MultiBinding>
+                            </Grid.IsVisible>
+                            <Ellipse Grid.Column="0" Width="6" Height="6" VerticalAlignment="Center" Opacity="0.85">
+                              <Ellipse.Fill>
+                                <MultiBinding Converter="{StaticResource CollectionComboConverter}" ConverterParameter="Color">
+                                  <Binding Path="."/>
+                                  <Binding Path="CombosForCollectionMatching" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                                </MultiBinding>
+                              </Ellipse.Fill>
+                            </Ellipse>
+                            <TextBlock Grid.Column="1"
+                                       FontSize="10"
+                                       Foreground="{DynamicResource MetaFg}"
+                                       TextTrimming="CharacterEllipsis"
+                                       TextWrapping="NoWrap"
+                                       VerticalAlignment="Center">
+                              <TextBlock.Text>
+                                <MultiBinding Converter="{StaticResource CollectionComboConverter}" ConverterParameter="Title">
+                                  <Binding Path="."/>
+                                  <Binding Path="CombosForCollectionMatching" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                                </MultiBinding>
+                              </TextBlock.Text>
+                              <ToolTip.Tip>
+                                <MultiBinding Converter="{StaticResource CollectionComboConverter}" ConverterParameter="Title">
+                                  <Binding Path="."/>
+                                  <Binding Path="CombosForCollectionMatching" Source="{x:Static vm:CollectionsViewModel.Instance}"/>
+                                </MultiBinding>
+                              </ToolTip.Tip>
+                            </TextBlock>
+                          </Grid>
                           <TextBlock Text="{Tr 'Billing canceled — this collection is not charged.'}"
                                      FontSize="11"
                                      FontWeight="SemiBold"

@@ -16,10 +16,27 @@
 
       <Grid RowDefinitions="Auto, Auto, Auto, Auto" RowSpacing="6" IsEnabled="{Binding NewCollectionFormIsEnabled}" Margin="0,0,0,30">
             <!-- Title -->
-            <StackPanel Grid.Row="0" Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
-                <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding !IsViewingCollectionConfig}" />
-                <TextBlock Text="{Tr 'Collection configuration'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding IsViewingCollectionConfig}" />
+            <StackPanel Grid.Row="0" Spacing="6" HorizontalAlignment="Center">
+              <StackPanel Spacing="10" Orientation="Horizontal" HorizontalAlignment="Center">
+                  <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" VerticalAlignment="Center" />
+                  <TextBlock Text="{Tr 'New Collection'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding !IsViewingCollectionConfig}" />
+                  <TextBlock Text="{Tr 'Collection configuration'}" VerticalAlignment="Center" FontSize="20" IsVisible="{Binding IsViewingCollectionConfig}" />
+              </StackPanel>
+              <!-- Combo da coleção (só em "Ver configuração da coleção" e quando as opções batem com um combo) -->
+              <Border IsVisible="{Binding ViewedCollectionComboIsVisible}"
+                      HorizontalAlignment="Center"
+                      Background="{DynamicResource CardBg}"
+                      BorderBrush="{Binding ViewedCollectionComboBrush}"
+                      BorderThickness="1"
+                      CornerRadius="8"
+                      Padding="10,4"
+                      ToolTip.Tip="{Tr 'The options of this collection match this combo, which is the one used on the invoice.'}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Ellipse Width="8" Height="8" Fill="{Binding ViewedCollectionComboBrush}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Tr 'Combo:'}" FontSize="12" Foreground="{DynamicResource MetaFg}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding ViewedCollectionComboTitle}" FontSize="12" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+                </StackPanel>
+              </Border>
             </StackPanel>
             <!-- form -->
             <Grid Grid.Row="1" Margin="10" RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto" ColumnDefinitions="Auto, *" RowSpacing="6" ColumnSpacing="6">
