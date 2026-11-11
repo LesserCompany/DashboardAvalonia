@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using SharedClientSide.ServerInteraction.Users;
 
@@ -19,13 +20,34 @@ public sealed class DashboardPermissions
     private const string ProfessionalsUserType = "professionals";
 
     private readonly HashSet<string> _policies;
+    private readonly HashSet<string> _roles;
 
     public bool IsCompany { get; }
 
-    private DashboardPermissions(bool isCompany, HashSet<string> policies)
+    private DashboardPermissions(bool isCompany, HashSet<string> policies, HashSet<string>? roles = null)
     {
         IsCompany = isCompany;
         _policies = policies;
+        _roles = roles ?? new HashSet<string>();
+    }
+
+    /// <summary>Funções do professional que aparecem na tela (sem a "Usuário", escondida).</summary>
+    public IReadOnlyList<string> VisibleRoles =>
+        _roles.Where(r => r != UserAuthorization.Roles.User).OrderBy(r => r, StringComparer.Ordinal).ToList();
+
+    /// <summary>
+    /// Áreas com alguma ação liberada (diretas + pelas funções), com as ações GET/POST/PUT/DELETE de cada uma —
+    /// base do resumo de permissões no cabeçalho. Company: lista vazia (não tem resumo, vê tudo).
+    /// </summary>
+    public IReadOnlyList<(string Domain, IReadOnlyList<string> Actions)> AreasWithActions()
+    {
+        if (IsCompany)
+            return Array.Empty<(string, IReadOnlyList<string>)>();
+        var actions = new[] { "GET", "POST", "PUT", "DELETE" };
+        return UserAuthorization.GetAllPolicyDomains()
+            .Select(d => (d.Domain, (IReadOnlyList<string>)actions.Where(a => Can(d.Domain, a)).ToList()))
+            .Where(x => x.Item2.Count > 0)
+            .ToList();
     }
 
     public static DashboardPermissions From(string? userType, string? authorizationJson)
@@ -47,7 +69,9 @@ public sealed class DashboardPermissions
         }
 
         // Policies diretas + as liberadas pelas funções (ex.: Separador libera Coleções), igual ao servidor.
-        return new DashboardPermissions(false, UserAuthorization.GetEffectivePolicies(auth ?? new UserAuthorizationConfig()));
+        auth ??= new UserAuthorizationConfig();
+        return new DashboardPermissions(false, UserAuthorization.GetEffectivePolicies(auth),
+            new HashSet<string>(auth.Roles ?? new HashSet<string>(), StringComparer.Ordinal));
     }
 
     /// <summary>true se pode a ação no domínio. Ex.: Can("Collections", "GET").</summary>

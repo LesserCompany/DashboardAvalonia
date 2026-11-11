@@ -56,6 +56,12 @@ public partial class MainWindowViewModel : ViewModelBase
     public string LoggedUsername => GlobalAppStateViewModel.lfc?.loginResult?.User?.username ?? "";
     public string AccountTypeText => Loc.Tr("Professional");
 
+    /// <summary>Resumo das permissões do professional: as funções ("Separador"), "Personalizadas" ou "Nenhuma".</summary>
+    public string PermissionsSummaryText => PermissionNames.Summary(Permissions);
+
+    /// <summary>Balão do resumo: uma linha por área liberada ("Coleções: Ver, Criar, Editar").</summary>
+    public string PermissionsDetailText => PermissionNames.Detail(Permissions);
+
     // Índices das abas no MainWindow.axaml (as escondidas continuam ocupando o índice).
     private const int CollectionsTab = 0, DiagrammerTab = 1, SearchGraduateTab = 2, InvoicesTab = 3,
                       PersonalizeTab = 4, UserSettingsTab = 5, OptionsTab = 6;

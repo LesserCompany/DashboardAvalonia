@@ -258,5 +258,13 @@
   "Ask the company administrator to grant you permissions in Manage professionals.": {
     "en-US": "Ask the company administrator to grant you permissions in Manage professionals.",
     "pt-BR": "Peça ao administrador da empresa para liberar suas permissões em Gerenciar profissionais."
+  },
+  "Permissions:": {
+    "en-US": "Permissions:",
+    "pt-BR": "Permissões:"
+  },
+  "Custom": {
+    "en-US": "Custom",
+    "pt-BR": "Personalizadas"
   }
 }

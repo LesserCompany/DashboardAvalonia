@@ -133,6 +133,16 @@
                         <TextBlock Classes="accountLabel" Text="{Tr 'Company:'}" />
                         <TextBlock Classes="accountValue" Text="{Binding CompanyName}" />
                     </StackPanel>
+                    <Border Classes="headerDivider" />
+                    <!-- Resumo das permissões (funções); o detalhe por área fica no balão -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="4"
+                                Background="Transparent"
+                                Cursor="Help"
+                                ToolTip.Tip="{Binding PermissionsDetailText}">
+                        <TextBlock Classes="accountLabel" Text="{Tr 'Permissions:'}" />
+                        <TextBlock Classes="accountValue" Text="{Binding PermissionsSummaryText}" />
+                    </StackPanel>
                 </StackPanel>
 
                 <Border Classes="headerDivider" />

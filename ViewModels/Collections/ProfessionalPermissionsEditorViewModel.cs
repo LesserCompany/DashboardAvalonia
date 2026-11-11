@@ -7,6 +7,7 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using LesserDashboardClient.Models;
 using SharedClientSide.ServerInteraction.Users;
 
@@ -34,36 +35,11 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
 
     public bool IsAvailable => Roles.Count > 0 || PolicyDomains.Count > 0;
 
-    // Nome amigável das áreas e roles do catálogo; o que não estiver aqui aparece com o nome técnico.
-    private static readonly Dictionary<string, string> PolicyDomainNames = new(StringComparer.Ordinal)
-    {
-        ["Collections"] = "Collections",
-        ["CompanyConfig"] = "Company settings",
-        ["Diagrammer"] = "Diagrammer",
-        ["DownloadHD"] = "HD download",
-        ["Exporter"] = "Exporter",
-        ["UsersConfig"] = "Users and permissions",
-        ["IdManagement"] = "ID management",
-        ["Invoices"] = "Invoices",
-        ["PhotoTreatment"] = "Photo treatment",
-        ["Products"] = "Products",
-        ["ReferredClients"] = "Referred clients",
-        ["Separator"] = "Separator",
-        ["SearchGraduate"] = "Graduate search",
-        ["Visualizer"] = "Visualizer",
-    };
+    // Nome amigável das áreas e funções: Helpers/PermissionNames (o cabeçalho do dashboard usa os mesmos).
+    private static readonly Dictionary<string, string> PolicyDomainNames = PermissionNames.PolicyDomains;
+    private static readonly Dictionary<string, string> RoleNames = PermissionNames.Roles;
 
-    private static readonly Dictionary<string, string> RoleNames = new(StringComparer.Ordinal)
-    {
-        ["Admin"] = "Administrator",
-        ["Agent"] = "Agent",
-        ["Separator"] = "Separator",
-        ["user"] = "User",
-        ["Photographer"] = "Photographer",
-    };
-
-    private static string FriendlyName(Dictionary<string, string> names, string key) =>
-        names.TryGetValue(key, out var english) ? Loc.Tr(english) : key;
+    private static string FriendlyName(Dictionary<string, string> names, string key) => PermissionNames.Friendly(names, key);
 
     // Carrega o catálogo e marca o que `current` já tem (null = nada marcado, cadastro novo).
     public async Task LoadAsync(UserAuthorizationConfig? current)

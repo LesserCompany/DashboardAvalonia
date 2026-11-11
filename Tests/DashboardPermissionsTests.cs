@@ -49,3 +49,32 @@ public class DashboardPermissionsTests
         }
     }
 }
+
+// Base do resumo de permissões no cabeçalho do dashboard.
+[TestFixture]
+public class DashboardPermissionsSummaryTests
+{
+    [Test]
+    public void Funcoes_visiveis_sem_a_Usuario()
+    {
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"user\",\"Separator\",\"Photographer\"]}");
+        Assert.That(p.VisibleRoles, Is.EqualTo(new[] { "Photographer", "Separator" }));
+    }
+
+    [Test]
+    public void Areas_com_acoes_juntam_funcao_e_permissao_direta()
+    {
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"Photographer\"],\"Policies\":[\"Invoices.ALL\"]}");
+        var areas = p.AreasWithActions().ToDictionary(x => x.Domain, x => x.Actions);
+        Assert.That(areas.Keys, Is.EquivalentTo(new[] { "Collections", "Invoices" }));
+        Assert.That(areas["Collections"], Is.EqualTo(new[] { "GET", "POST" }));
+        Assert.That(areas["Invoices"], Is.EqualTo(new[] { "GET", "POST", "PUT", "DELETE" }));
+    }
+
+    [Test]
+    public void Company_e_professional_sem_nada_nao_tem_areas()
+    {
+        Assert.That(DashboardPermissions.From("companies", null).AreasWithActions(), Is.Empty);
+        Assert.That(DashboardPermissions.From("professionals", "{}").AreasWithActions(), Is.Empty);
+    }
+}
