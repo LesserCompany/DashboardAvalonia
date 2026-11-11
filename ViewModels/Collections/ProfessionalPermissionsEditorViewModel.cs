@@ -29,6 +29,9 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
     [ObservableProperty] private string? loadError;
     [ObservableProperty] private bool isEnabled = true;
 
+    /// <summary>Expander "Avançado" (grade de áreas) aberto.</summary>
+    [ObservableProperty] private bool isAreasExpanded;
+
     public bool IsAvailable => Roles.Count > 0 || PolicyDomains.Count > 0;
 
     // Nome amigável das áreas e roles do catálogo; o que não estiver aqui aparece com o nome técnico.
@@ -96,6 +99,10 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
                 foreach (var row in rows)
                     row.LoadFrom(policies);
                 PolicyDomains = new ObservableCollection<ProfessionalPolicyDomainRow>(rows);
+
+                // Áreas ficam no "Avançado", fechado; abre sozinho se o professional já tem alguma área
+                // marcada, para a edição não esconder permissões existentes.
+                IsAreasExpanded = rows.Any(x => x.AnyChecked);
             });
         }
         catch (Exception)
@@ -113,6 +120,8 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
     {
         foreach (var d in PolicyDomains)
             d.CanAll = true;
+        // Marca áreas, que ficam no "Avançado": abre para a mudança não ficar escondida.
+        IsAreasExpanded = true;
     }
 
     [RelayCommand]

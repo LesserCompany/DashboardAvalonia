@@ -66,6 +66,10 @@
         </ItemsControl>
       </StackPanel>
 
+      <!-- Áreas (Ver/Criar/Editar/Excluir/Tudo) no "Avançado": de cara, só as funções -->
+      <Expander Header="{Tr 'Advanced'}"
+                HorizontalAlignment="Stretch"
+                IsExpanded="{Binding IsAreasExpanded, Mode=TwoWay}">
       <StackPanel Spacing="2">
         <Grid ColumnDefinitions="*,62,62,62,62,62" Margin="0,0,0,2">
           <TextBlock Grid.Column="0" Text="{Tr 'Area'}" Classes="perm-header"/>
@@ -92,6 +96,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
       </StackPanel>
+      </Expander>
     </StackPanel>
   </StackPanel>
 </UserControl>
