@@ -191,24 +191,14 @@ namespace LesserDashboardClient.ViewModels.Auth
                         // NÃO reinicializar configurações - elas já estão aplicadas
                         // As configurações só devem ser alteradas manualmente pelo usuário nas Opções
                         
-                        // Verifica o tipo de usuário para determinar qual janela mostrar
-                        if (GlobalAppStateViewModel.lfc.loginResult.User.userType == "professionals")
+                        // Company e professional abrem o mesmo dashboard; o professional vê conforme
+                        // as permissões dele (Helpers/DashboardPermissions).
+                        var mainWindow = new MainWindow
                         {
-                            // Para separadores, mostra a ProfessionalWindow
-                            var professionalWindow = new Views.ProfessionalWindow.ProfessionalWindowView(GlobalAppStateViewModel.lfc);
-                            desktop.MainWindow = professionalWindow;
-                            professionalWindow.Show();
-                        }
-                        else
-                        {
-                            // Para empresas, mostra a MainWindow normal
-                            var mainWindow = new MainWindow
-                            {
-                                DataContext = new MainWindowViewModel(),
-                            };
-                            desktop.MainWindow = mainWindow;
-                            mainWindow.Show();
-                        }
+                            DataContext = new MainWindowViewModel(),
+                        };
+                        desktop.MainWindow = mainWindow;
+                        mainWindow.Show();
                         
                         // Espera um tick para garantir que a UI da nova janela iniciou
                         await Task.Delay(150);

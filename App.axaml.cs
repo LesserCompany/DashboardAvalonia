@@ -186,17 +186,12 @@ public partial class App : Application
             return;
         }
 
-        if (lr.User.userType == "professionals")
+        // Company e professional usam o mesmo dashboard; o professional vê conforme as permissões
+        // dele (Helpers/DashboardPermissions). A antiga tela do Separador (lista de coleções) saiu.
+        desktop.MainWindow = new MainWindow
         {
-            desktop.MainWindow = new Views.ProfessionalWindow.ProfessionalWindowView(lfc);
-        }
-        else
-        {
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainWindowViewModel(),
-            };
-        }
+            DataContext = new MainWindowViewModel(),
+        };
 
         VerifyTokenAndValidateDirectory(desktop);
     }

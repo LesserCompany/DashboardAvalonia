@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LesserDashboardClient.Helpers;
 using LesserDashboardClient.Models;
 using SharedClientSide.ServerInteraction.Users.Results;
 using LesserDashboardClient.ViewModels.Collections;
@@ -37,6 +38,45 @@ public partial class MainWindowViewModel : ViewModelBase
     }
     public string Greeting { get; } = "Welcome to Avalonia!";
     public string CompanyName => GlobalAppStateViewModel.lfc.loginResult.User.company;
+
+    // ---- Quem está logado (cabeçalho e abas) ----
+    // Company vê tudo, com cabeçalho completo; professional vê só as abas das permissões dele e um
+    // cabeçalho mais simples. Ver Helpers/DashboardPermissions.
+    public DashboardPermissions Permissions { get; } = DashboardPermissions.From(
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.userType,
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.Authorization);
+
+    public bool IsCompanyLogin => Permissions.IsCompany;
+    public bool IsProfessionalLogin => !Permissions.IsCompany;
+
+    /// <summary>Letra do "avatar" da company no cabeçalho.</summary>
+    public string CompanyInitial => string.IsNullOrWhiteSpace(CompanyName) ? "?" : CompanyName.Trim()[..1].ToUpperInvariant();
+
+    /// <summary>Linha do cabeçalho do professional: "joao · Profissional de euphoria".</summary>
+    public string ProfessionalHeaderText
+    {
+        get
+        {
+            var user = GlobalAppStateViewModel.lfc?.loginResult?.User;
+            var name = !string.IsNullOrWhiteSpace(user?.UserRealName) ? user!.UserRealName : user?.username ?? "";
+            return $"{name} · {string.Format(Loc.Tr("Professional at {0}"), CompanyName)}";
+        }
+    }
+
+    // Índices das abas no MainWindow.axaml (as escondidas continuam ocupando o índice).
+    private const int CollectionsTab = 0, DiagrammerTab = 1, SearchGraduateTab = 2, InvoicesTab = 3,
+                      PersonalizeTab = 4, UserSettingsTab = 5, OptionsTab = 6;
+
+    /// <summary>Primeira aba que o usuário pode ver (Opções, se nenhuma de conteúdo).</summary>
+    private int FirstVisibleTabIndex()
+    {
+        if (Permissions.CanSeeCollections) return CollectionsTab;
+        if (Permissions.CanSeeDiagrammer) return DiagrammerTab;
+        if (Permissions.CanSeeSearchGraduate) return SearchGraduateTab;
+        if (Permissions.CanSeeInvoices) return InvoicesTab;
+        if (Permissions.CanSeeCompanyConfig) return PersonalizeTab;
+        return OptionsTab;
+    }
     [ObservableProperty] public  int progressBarUpdanteComponents = 10;
     [ObservableProperty] public bool isUpdateSomeOneComponent = false;
 
@@ -109,7 +149,8 @@ public partial class MainWindowViewModel : ViewModelBase
         
         // Define o título da janela com o modo de build
         TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
-        
+
+        SelectedTabIndex = FirstVisibleTabIndex();
         _previousSelectedTabIndex = SelectedTabIndex;
 
         // Carrega mensagens do usuário ao inicializar

@@ -234,5 +234,21 @@
   "Session validity tooltip": {
     "en-US": "Time left before your login session expires and you need to sign in again.",
     "pt-BR": "Tempo restante até a sua sessão expirar e ser necessário fazer login novamente."
+  },
+  "Company account": {
+    "en-US": "Company account",
+    "pt-BR": "Conta da empresa"
+  },
+  "Professional at {0}": {
+    "en-US": "Professional at {0}",
+    "pt-BR": "Profissional de {0}"
+  },
+  "You do not have access to any area yet": {
+    "en-US": "You do not have access to any area yet",
+    "pt-BR": "Você ainda não tem acesso a nenhuma área"
+  },
+  "Ask the company administrator to grant you permissions in Manage professionals.": {
+    "en-US": "Ask the company administrator to grant you permissions in Manage professionals.",
+    "pt-BR": "Peça ao administrador da empresa para liberar suas permissões em Gerenciar profissionais."
   }
 }

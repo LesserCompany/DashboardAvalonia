@@ -18,6 +18,16 @@ namespace LesserDashboardClient.ViewModels.Collections;
 // edição. A grade de permissões é ProfessionalPermissionsEditorViewModel (componente ProfessionalPermissionsEditor).
 public partial class CollectionsViewModel
 {
+    // ---- O que o usuário logado pode fazer nesta aba ----
+    // Company: tudo. Professional: conforme as policies dele (Helpers/DashboardPermissions).
+    private DashboardPermissions? _sessionPermissions;
+    private DashboardPermissions SessionPermissions => _sessionPermissions ??= DashboardPermissions.From(
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.userType,
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.Authorization);
+
+    public bool CanCreateCollection => SessionPermissions.CanCreateCollection;
+    public bool CanManageProfessionals => SessionPermissions.CanManageProfessionals;
+
     // ---- Gerenciar profissionais ----
 
     // Tela de profissionais aberta pelo botão "Gerenciar profissionais" da lista lateral, só para gerenciar.

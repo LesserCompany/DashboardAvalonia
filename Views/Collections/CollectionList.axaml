@@ -23,7 +23,7 @@
             </Grid>
         </Grid>
         <StackPanel Grid.Row="1" Orientation="Vertical" Spacing="6">
-            <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
+            <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}" IsVisible="{Binding CanCreateCollection}" HorizontalAlignment="Stretch" Command="{Binding OpenQuickAccessViewCommand}" Background="Transparent" >
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6">
                     <Image Source="avares://LesserDashboard/Assets/addFolderIcon.png" Width="50" Height="50" VerticalAlignment="Center" />
                     <TextBlock Text="{Tr 'Create new collection'}" VerticalAlignment="Center" />
@@ -31,6 +31,7 @@
             </Button>
             <!-- Profissionais (criar, remover, permissões) sem precisar abrir uma coleção -->
             <Button IsEnabled="{Binding !LoadProfessionalsIsRunning}"
+                    IsVisible="{Binding CanManageProfessionals}"
                     HorizontalAlignment="Stretch"
                     Command="{Binding OpenManageProfessionalsCommand}"
                     Background="Transparent"
