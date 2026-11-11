@@ -28,7 +28,7 @@ public class ProfessionalRolePresetsTests
             "Separator.GET", "Separator.POST", "Separator.PUT",
             "IdManagement.GET", "IdManagement.POST", "IdManagement.PUT",
         }));
-        Assert.That(UserAuthorization.GetPoliciesGrantedByRoles(new[] { "Photographer", "user" }), Is.Empty, "funções sem tabela não liberam nada");
+        Assert.That(UserAuthorization.GetPoliciesGrantedByRoles(new[] { "user", "Agent" }), Is.Empty, "funções sem tabela não liberam nada");
     }
 
     [Test]
@@ -102,5 +102,67 @@ public class ProfessionalRolePresetsTests
         Assert.That(p.CanSeeCollections, Is.True);
         Assert.That(p.CanCreateCollection, Is.True);
         Assert.That(p.CanSeeInvoices, Is.False);
+    }
+}
+
+// Administrador, Fotógrafo e a função "Usuário" escondida.
+[TestFixture]
+public class ProfessionalRolePresetsAdminPhotographerTests
+{
+    private static List<ProfessionalPolicyDomainRow> Grade() =>
+        UserAuthorization.GetAllPolicyDomains().Select(d => ProfessionalPolicyDomainRow.From(d, d.Domain)).ToList();
+
+    [Test]
+    public void Administrador_libera_tudo_em_todas_as_areas()
+    {
+        var auth = new UserAuthorizationConfig { Roles = new HashSet<string> { "Admin" } };
+        foreach (var d in UserAuthorization.GetAllPolicyDomains())
+        {
+            Assert.That(UserAuthorization.HasPolicy(auth, d.Domain + ".DELETE"), Is.True, d.Domain);
+            Assert.That(UserAuthorization.HasPolicy(auth, d.Domain + ".ALL"), Is.True, d.Domain);
+        }
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"Admin\"]}");
+        Assert.That(p.HasNoContentTabs, Is.False);
+        Assert.That(p.CanSeeInvoices && p.CanSeeCompanyConfig && p.CanManageProfessionals && p.CanCreateCollection, Is.True);
+    }
+
+    [Test]
+    public void Fotografo_so_ve_e_sobe_colecoes()
+    {
+        Assert.That(UserAuthorization.GetPoliciesGrantedByRoles(new[] { "Photographer" }),
+            Is.EquivalentTo(new[] { "Collections.GET", "Collections.POST" }));
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"Photographer\"]}");
+        Assert.That(p.CanSeeCollections && p.CanCreateCollection, Is.True);
+        Assert.That(p.CanSeeInvoices || p.CanManageProfessionals || p.CanSeeCompanyConfig, Is.False);
+    }
+
+    [Test]
+    public void Marcar_Administrador_marca_Tudo_e_desmarcar_mantem_o_do_Separador()
+    {
+        var grade = Grade();
+        var admin = new ProfessionalRoleOption { Name = "Admin" };
+        var separador = new ProfessionalRoleOption { Name = "Separator" };
+        var funcoes = new List<ProfessionalRoleOption> { admin, separador };
+
+        separador.IsChecked = true;
+        ProfessionalRolePresets.Apply(grade, funcoes, separador);
+        admin.IsChecked = true;
+        ProfessionalRolePresets.Apply(grade, funcoes, admin);
+        Assert.That(grade.All(x => x.CanAll), Is.True);
+
+        admin.IsChecked = false;
+        ProfessionalRolePresets.Apply(grade, funcoes, admin);
+        var colecoes = grade.Single(x => x.Domain == "Collections");
+        Assert.That(colecoes.CanView && colecoes.CanCreate && colecoes.CanEdit, Is.True, "Separador continua marcado");
+        Assert.That(colecoes.CanDelete, Is.False);
+        Assert.That(grade.Single(x => x.Domain == "Invoices").AnyChecked, Is.False);
+    }
+
+    [Test]
+    public void Funcao_Usuario_nao_aparece_na_tela()
+    {
+        Assert.That(ProfessionalRolePresets.IsVisibleRole("user"), Is.False);
+        Assert.That(ProfessionalRolePresets.IsVisibleRole("Separator"), Is.True);
+        Assert.That(ProfessionalRolePresets.IsVisibleRole("Admin"), Is.True);
     }
 }

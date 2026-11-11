@@ -25,6 +25,12 @@ namespace LesserDashboardClient.Models
     // desmarcar tira só o que nenhuma outra função marcada também libera.
     public static class ProfessionalRolePresets
     {
+        // Funções que existem no servidor mas não aparecem na tela (quem já tem continua tendo: a tela só remove o
+        // que mostra, ver ProfessionalPermissionsDiff).
+        private static readonly HashSet<string> HiddenRoles = new(StringComparer.Ordinal) { UserAuthorization.Roles.User };
+
+        public static bool IsVisibleRole(string role) => !HiddenRoles.Contains(role);
+
         public static void Apply(IEnumerable<ProfessionalPolicyDomainRow> rows, IEnumerable<ProfessionalRoleOption> roles, ProfessionalRoleOption changed)
         {
             var granted = UserAuthorization.GetPoliciesGrantedByRoles(new[] { changed.Name });
@@ -45,6 +51,11 @@ namespace LesserDashboardClient.Models
             foreach (var policy in granted.Where(p => !stillGranted.Contains(p)))
                 foreach (var row in rowList)
                     row.SetPolicy(policy, false);
+            // Desmarcar um "Tudo" (ex.: Administrador) limpa a linha inteira: remarca o que as funções ainda
+            // marcadas liberam (ex.: Separador continua com Ver/Criar/Editar em Coleções).
+            foreach (var policy in stillGranted)
+                foreach (var row in rowList)
+                    row.SetPolicy(policy, true);
         }
     }
 

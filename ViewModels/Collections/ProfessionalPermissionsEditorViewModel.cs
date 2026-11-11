@@ -90,6 +90,7 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
                 var policies = current?.Policies ?? new HashSet<string>();
 
                 Roles = new ObservableCollection<ProfessionalRoleOption>((r.Content.Roles ?? new List<string>())
+                    .Where(ProfessionalRolePresets.IsVisibleRole) // "Usuário" fica escondida
                     .Select(x => new ProfessionalRoleOption { Name = x, DisplayName = FriendlyName(RoleNames, x), IsChecked = roles.Contains(x) }));
 
                 var rows = (r.Content.Policies ?? new List<PolicyDomain>())
