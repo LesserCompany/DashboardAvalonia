@@ -57,7 +57,7 @@ public class DashboardPermissionsSummaryTests
     [Test]
     public void Funcoes_visiveis_sem_a_Usuario()
     {
-        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"user\",\"Separator\",\"Photographer\"]}");
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"user\",\"Agent\",\"Separator\",\"Photographer\"]}");
         Assert.That(p.VisibleRoles, Is.EqualTo(new[] { "Photographer", "Separator" }));
     }
 

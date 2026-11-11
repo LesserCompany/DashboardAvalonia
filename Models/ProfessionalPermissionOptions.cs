@@ -26,8 +26,8 @@ namespace LesserDashboardClient.Models
     public static class ProfessionalRolePresets
     {
         // Funções que existem no servidor mas não aparecem na tela (quem já tem continua tendo: a tela só remove o
-        // que mostra, ver ProfessionalPermissionsDiff).
-        private static readonly HashSet<string> HiddenRoles = new(StringComparer.Ordinal) { UserAuthorization.Roles.User };
+        // que mostra, ver ProfessionalPermissionsDiff). Agente: atribuições ainda não definidas.
+        private static readonly HashSet<string> HiddenRoles = new(StringComparer.Ordinal) { UserAuthorization.Roles.User, UserAuthorization.Roles.Agent };
 
         public static bool IsVisibleRole(string role) => !HiddenRoles.Contains(role);
 

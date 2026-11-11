@@ -31,9 +31,9 @@ public sealed class DashboardPermissions
         _roles = roles ?? new HashSet<string>();
     }
 
-    /// <summary>Funções do professional que aparecem na tela (sem a "Usuário", escondida).</summary>
+    /// <summary>Funções do professional que aparecem na tela (sem as escondidas: Usuário, Agente).</summary>
     public IReadOnlyList<string> VisibleRoles =>
-        _roles.Where(r => r != UserAuthorization.Roles.User).OrderBy(r => r, StringComparer.Ordinal).ToList();
+        _roles.Where(LesserDashboardClient.Models.ProfessionalRolePresets.IsVisibleRole).OrderBy(r => r, StringComparer.Ordinal).ToList();
 
     /// <summary>
     /// Áreas com alguma ação liberada (diretas + pelas funções), com as ações GET/POST/PUT/DELETE de cada uma —

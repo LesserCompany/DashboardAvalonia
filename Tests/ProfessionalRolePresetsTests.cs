@@ -162,6 +162,7 @@ public class ProfessionalRolePresetsAdminPhotographerTests
     public void Funcao_Usuario_nao_aparece_na_tela()
     {
         Assert.That(ProfessionalRolePresets.IsVisibleRole("user"), Is.False);
+        Assert.That(ProfessionalRolePresets.IsVisibleRole("Agent"), Is.False, "Agente: atribuições ainda não definidas");
         Assert.That(ProfessionalRolePresets.IsVisibleRole("Separator"), Is.True);
         Assert.That(ProfessionalRolePresets.IsVisibleRole("Admin"), Is.True);
     }
