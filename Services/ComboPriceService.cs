@@ -41,9 +41,10 @@ namespace LesserDashboardClient.Services
                 // Usar o LesserFunctionClient seguindo o padrão do projeto
                 var result = await ViewModels.GlobalAppStateViewModel.lfc.GetCompanyComboPrices(currentLanguage);
                 
-                if (!result.success)
+                // null = resposta não-JSON/erro HTTP (ex.: rota legada que dependia do MongoDB dá 500).
+                if (result == null || !result.success)
                 {
-                    throw new Exception($"Erro na API: {result.message}");
+                    throw new Exception($"Erro na API: {result?.message ?? "sem resposta válida de GetCompanyComboPrices"}");
                 }
                 
                 // Converter List<object> para List<ServerCombo>
