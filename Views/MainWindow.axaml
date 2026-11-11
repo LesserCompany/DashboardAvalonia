@@ -58,89 +58,86 @@
       
         <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" >
             <!-- Top -->
-            <!-- Canto superior direito, empilhado: quem está logado e, abaixo, a validade da sessão com mensagens e o menu da conta -->
+            <!-- Canto superior direito, tudo numa linha: quem está logado | validade da sessão | mensagens e menu da conta -->
             <StackPanel Grid.Row="0"
-                        Orientation="Vertical"
-                        Spacing="6"
-                        Margin="0,8,12,0"
+                        Orientation="Horizontal"
+                        Spacing="12"
+                        Margin="0,6,12,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center">
-            <StackPanel Orientation="Vertical"
-                        Spacing="4"
-                        HorizontalAlignment="Right">
-                <!-- Company: nome com o selo "Conta da empresa" e avatar com a inicial -->
+                <StackPanel.Styles>
+                    <Style Selector="Border.headerDivider">
+                        <Setter Property="Width" Value="1" />
+                        <Setter Property="Height" Value="18" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Background" Value="{DynamicResource TextSecondaryBrush}" />
+                        <Setter Property="Opacity" Value="0.35" />
+                    </Style>
+                    <Style Selector="TextBlock.accountLabel">
+                        <Setter Property="FontSize" Value="11" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                    </Style>
+                    <Style Selector="TextBlock.accountValue">
+                        <Setter Property="FontSize" Value="11" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                    </Style>
+                </StackPanel.Styles>
+
+                <!-- Company: avatar com a inicial, nome e selo "Conta da empresa" -->
                 <StackPanel IsVisible="{Binding IsCompanyLogin}"
                             Orientation="Horizontal"
                             Spacing="8"
-                            HorizontalAlignment="Right"
                             VerticalAlignment="Center">
-                    <StackPanel VerticalAlignment="Center" Spacing="2">
-                        <TextBlock Text="{Binding CompanyName}"
-                                   FontSize="13"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Right" />
-                        <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
-                                CornerRadius="8"
-                                Padding="8,1"
-                                HorizontalAlignment="Right">
-                            <TextBlock Text="{Tr 'Company account'}"
-                                       FontSize="10"
-                                       FontWeight="SemiBold"
-                                       Foreground="White" />
-                        </Border>
-                    </StackPanel>
-                    <Grid Width="30" Height="30" VerticalAlignment="Center">
+                    <Grid Width="24" Height="24" VerticalAlignment="Center">
                         <Ellipse Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
                         <TextBlock Text="{Binding CompanyInitial}"
                                    Foreground="White"
-                                   FontSize="14"
+                                   FontSize="12"
                                    FontWeight="Bold"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center" />
                     </Grid>
+                    <TextBlock Text="{Binding CompanyName}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+                            CornerRadius="8"
+                            Padding="8,1"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Tr 'Company account'}"
+                                   FontSize="10"
+                                   FontWeight="SemiBold"
+                                   Foreground="White" />
+                    </Border>
                 </StackPanel>
 
-                <!-- Professional: Usuário / Tipo de conta / Empresa -->
-                <!-- Cada linha "Rótulo: valor" alinhada à direita, colada no canto -->
+                <!-- Professional: Usuário | Tipo de conta | Empresa -->
                 <StackPanel IsVisible="{Binding IsProfessionalLogin}"
-                            Spacing="1"
-                            HorizontalAlignment="Right"
+                            Orientation="Horizontal"
+                            Spacing="12"
                             VerticalAlignment="Center">
-                    <StackPanel.Styles>
-                        <Style Selector="StackPanel.accountRow">
-                            <Setter Property="Orientation" Value="Horizontal" />
-                            <Setter Property="Spacing" Value="4" />
-                            <Setter Property="HorizontalAlignment" Value="Right" />
-                        </Style>
-                        <Style Selector="TextBlock.accountLabel">
-                            <Setter Property="FontSize" Value="11" />
-                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-                        </Style>
-                        <Style Selector="TextBlock.accountValue">
-                            <Setter Property="FontSize" Value="11" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                        </Style>
-                    </StackPanel.Styles>
-                    <StackPanel Classes="accountRow">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Classes="accountLabel" Text="{Tr 'User:'}" />
                         <TextBlock Classes="accountValue" Text="{Binding LoggedUsername}" />
                     </StackPanel>
-                    <StackPanel Classes="accountRow">
+                    <Border Classes="headerDivider" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Classes="accountLabel" Text="{Tr 'Account type:'}" />
                         <TextBlock Classes="accountValue" Text="{Binding AccountTypeText}" />
                     </StackPanel>
-                    <StackPanel Classes="accountRow">
+                    <Border Classes="headerDivider" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <TextBlock Classes="accountLabel" Text="{Tr 'Company:'}" />
                         <TextBlock Classes="accountValue" Text="{Binding CompanyName}" />
                     </StackPanel>
                 </StackPanel>
 
-            </StackPanel>
+                <Border Classes="headerDivider" />
 
-            <!-- Última linha: validade da sessão e, à direita, mensagens e menu da conta (sair) -->
-            <StackPanel Orientation="Horizontal"
-                        Spacing="10"
-                        HorizontalAlignment="Right">
+                <!-- Validade da sessão -->
                 <StackPanel Orientation="Horizontal"
                             Spacing="6"
                             VerticalAlignment="Center"
@@ -155,9 +152,10 @@
                                Classes="sessionValidity"
                                Classes.expiring="{Binding SessionExpiringSoon}" />
                 </StackPanel>
+
+                <!-- Mensagens (abrem dentro da aba Coleções) e menu da conta (sair) -->
                 <local:UserMessagesButton IsVisible="{Binding Permissions.CanSeeCollections}" VerticalAlignment="Center" />
                 <local:LogoutComponent VerticalAlignment="Center" />
-            </StackPanel>
             </StackPanel>
 
             <!-- Content -->
