@@ -7,12 +7,14 @@
              mc:Ignorable="d" d:DesignWidth="200" d:DesignHeight="200"
              x:Class="LesserDashboardClient.Views.LogoutComponent">
   <Grid>
-    <DropDownButton  VerticalAlignment="Center" HorizontalAlignment="Center">
+    <!-- Menu da conta: só o ícone (quem está logado já aparece no cabeçalho, ao lado) -->
+    <DropDownButton VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Padding="6,3"
+                    Cursor="Hand"
+                    ToolTip.Tip="{Tr 'Logout (Back to Login)'}">
       <DropDownButton.Content>
-        <TextBlock>
-          <Run Text="{Tr 'User:'}" />
-          <Run Text="{Binding CompanyName}" FontWeight="Bold" />
-        </TextBlock>
+        <Svg Path="/Assets/icons/person.svg" Width="14" Height="14" />
       </DropDownButton.Content>
       <DropDownButton.Flyout>
         <MenuFlyout>

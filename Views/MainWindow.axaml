@@ -27,7 +27,7 @@
     </Design.DataContext>
     <Window.Resources>
         <x:Double  x:Key="FontSizeHeaderTabs">14</x:Double>
-        <Thickness x:Key="MarginContent">25</Thickness>
+        <Thickness x:Key="MarginContent">25,4,25,25</Thickness>
     </Window.Resources>
 
     <Window.Styles>
@@ -58,7 +58,7 @@
       
         <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" >
             <!-- Top -->
-            <!-- Canto superior direito, empilhado: quem está logado, a validade da sessão e, abaixo, mensagens e sair -->
+            <!-- Canto superior direito, empilhado: quem está logado e, abaixo, a validade da sessão com mensagens e o menu da conta -->
             <StackPanel Grid.Row="0"
                         Orientation="Vertical"
                         Spacing="6"
@@ -135,10 +135,14 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Validade da sessão, abaixo da identificação -->
+            </StackPanel>
+
+            <!-- Última linha: validade da sessão e, à direita, mensagens e menu da conta (sair) -->
+            <StackPanel Orientation="Horizontal"
+                        Spacing="10"
+                        HorizontalAlignment="Right">
                 <StackPanel Orientation="Horizontal"
                             Spacing="6"
-                            HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             ToolTip.Tip="{Tr 'Session validity tooltip'}">
                     <Ellipse Width="8" Height="8"
@@ -151,14 +155,8 @@
                                Classes="sessionValidity"
                                Classes.expiring="{Binding SessionExpiringSoon}" />
                 </StackPanel>
-            </StackPanel>
-
-            <!-- Mensagens (abrem dentro da aba Coleções) e sair, abaixo da sessão -->
-            <StackPanel Orientation="Horizontal"
-                        Spacing="8"
-                        HorizontalAlignment="Right">
-                <local:UserMessagesButton IsVisible="{Binding Permissions.CanSeeCollections}" />
-                <local:LogoutComponent />
+                <local:UserMessagesButton IsVisible="{Binding Permissions.CanSeeCollections}" VerticalAlignment="Center" />
+                <local:LogoutComponent VerticalAlignment="Center" />
             </StackPanel>
             </StackPanel>
 
