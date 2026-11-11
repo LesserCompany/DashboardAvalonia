@@ -52,16 +52,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Letra do "avatar" da company no cabeçalho.</summary>
     public string CompanyInitial => string.IsNullOrWhiteSpace(CompanyName) ? "?" : CompanyName.Trim()[..1].ToUpperInvariant();
 
-    /// <summary>Linha do cabeçalho do professional: "joao · Profissional de euphoria".</summary>
-    public string ProfessionalHeaderText
-    {
-        get
-        {
-            var user = GlobalAppStateViewModel.lfc?.loginResult?.User;
-            var name = !string.IsNullOrWhiteSpace(user?.UserRealName) ? user!.UserRealName : user?.username ?? "";
-            return $"{name} · {string.Format(Loc.Tr("Professional at {0}"), CompanyName)}";
-        }
-    }
+    // Cabeçalho do professional: Usuário / Tipo de conta / Empresa.
+    public string LoggedUsername => GlobalAppStateViewModel.lfc?.loginResult?.User?.username ?? "";
+    public string AccountTypeText => Loc.Tr("Professional");
 
     // Índices das abas no MainWindow.axaml (as escondidas continuam ocupando o índice).
     private const int CollectionsTab = 0, DiagrammerTab = 1, SearchGraduateTab = 2, InvoicesTab = 3,

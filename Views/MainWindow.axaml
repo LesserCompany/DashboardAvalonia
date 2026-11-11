@@ -96,17 +96,31 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Professional: uma linha discreta (quem é e de qual empresa) -->
-                <StackPanel IsVisible="{Binding IsProfessionalLogin}"
-                            Orientation="Horizontal"
-                            Spacing="6"
-                            VerticalAlignment="Center">
-                    <Svg Path="/Assets/icons/person.svg" Width="14" Height="14" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding ProfessionalHeaderText}"
-                               FontSize="12"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextSecondaryBrush}" />
-                </StackPanel>
+                <!-- Professional: Usuário / Tipo de conta / Empresa -->
+                <Grid IsVisible="{Binding IsProfessionalLogin}"
+                      ColumnDefinitions="Auto, Auto"
+                      RowDefinitions="Auto, Auto, Auto"
+                      ColumnSpacing="6"
+                      RowSpacing="1"
+                      VerticalAlignment="Center">
+                    <Grid.Styles>
+                        <Style Selector="TextBlock.accountLabel">
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="HorizontalAlignment" Value="Right" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                        </Style>
+                        <Style Selector="TextBlock.accountValue">
+                            <Setter Property="FontSize" Value="11" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </Style>
+                    </Grid.Styles>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="accountLabel" Text="{Tr 'User:'}" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="accountValue" Text="{Binding LoggedUsername}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="accountLabel" Text="{Tr 'Account type:'}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="accountValue" Text="{Binding AccountTypeText}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="accountLabel" Text="{Tr 'Company:'}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="accountValue" Text="{Binding CompanyName}" />
+                </Grid>
 
                 <!-- Separador entre a identificação e a validade da sessão -->
                 <Border Width="1"

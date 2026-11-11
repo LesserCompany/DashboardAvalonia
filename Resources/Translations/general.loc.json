@@ -239,9 +239,17 @@
     "en-US": "Company account",
     "pt-BR": "Conta da empresa"
   },
-  "Professional at {0}": {
-    "en-US": "Professional at {0}",
-    "pt-BR": "Profissional de {0}"
+  "Account type:": {
+    "en-US": "Account type:",
+    "pt-BR": "Tipo de conta:"
+  },
+  "Company:": {
+    "en-US": "Company:",
+    "pt-BR": "Empresa:"
+  },
+  "Professional": {
+    "en-US": "Professional",
+    "pt-BR": "Profissional"
   },
   "You do not have access to any area yet": {
     "en-US": "You do not have access to any area yet",
