@@ -58,45 +58,48 @@
       
         <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" >
             <!-- Top -->
-            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
-                <!-- Cabeçalho da company: avatar com a inicial, nome em destaque e selo "Conta da empresa" -->
-                <StackPanel Grid.Column="0"
-                            IsVisible="{Binding IsCompanyLogin}"
+            <!-- Canto superior direito: quem está logado + validade da sessão -->
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        Spacing="12"
+                        Margin="0,8,12,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center">
+                <!-- Company: nome com o selo "Conta da empresa" e avatar com a inicial -->
+                <StackPanel IsVisible="{Binding IsCompanyLogin}"
                             Orientation="Horizontal"
-                            Spacing="10"
-                            Margin="25,12,0,0"
+                            Spacing="8"
                             VerticalAlignment="Center">
-                    <Grid Width="34" Height="34" VerticalAlignment="Center">
-                        <Ellipse Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
-                        <TextBlock Text="{Binding CompanyInitial}"
-                                   Foreground="White"
-                                   FontSize="16"
-                                   FontWeight="Bold"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center" />
-                    </Grid>
                     <StackPanel VerticalAlignment="Center" Spacing="2">
                         <TextBlock Text="{Binding CompanyName}"
-                                   FontSize="16"
-                                   FontWeight="SemiBold" />
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Right" />
                         <Border Background="{DynamicResource SystemControlBackgroundAccentBrush}"
                                 CornerRadius="8"
                                 Padding="8,1"
-                                HorizontalAlignment="Left">
+                                HorizontalAlignment="Right">
                             <TextBlock Text="{Tr 'Company account'}"
                                        FontSize="10"
                                        FontWeight="SemiBold"
                                        Foreground="White" />
                         </Border>
                     </StackPanel>
+                    <Grid Width="30" Height="30" VerticalAlignment="Center">
+                        <Ellipse Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
+                        <TextBlock Text="{Binding CompanyInitial}"
+                                   Foreground="White"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" />
+                    </Grid>
                 </StackPanel>
 
-                <!-- Cabeçalho do professional: uma linha discreta (quem é e de qual empresa) -->
-                <StackPanel Grid.Column="0"
-                            IsVisible="{Binding IsProfessionalLogin}"
+                <!-- Professional: uma linha discreta (quem é e de qual empresa) -->
+                <StackPanel IsVisible="{Binding IsProfessionalLogin}"
                             Orientation="Horizontal"
                             Spacing="6"
-                            Margin="25,8,0,0"
                             VerticalAlignment="Center">
                     <Svg Path="/Assets/icons/person.svg" Width="14" Height="14" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding ProfessionalHeaderText}"
@@ -105,13 +108,17 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" />
                 </StackPanel>
 
+                <!-- Separador entre a identificação e a validade da sessão -->
+                <Border Width="1"
+                        Height="22"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource TextSecondaryBrush}"
+                        Opacity="0.35" />
+
                 <!-- Validade da sessão -->
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
+                <StackPanel Orientation="Horizontal"
                             Spacing="6"
-                            Margin="0,4,12,0"
                             VerticalAlignment="Center"
-                            HorizontalAlignment="Right"
                             ToolTip.Tip="{Tr 'Session validity tooltip'}">
                     <Ellipse Width="8" Height="8"
                              VerticalAlignment="Center"
@@ -123,7 +130,7 @@
                                Classes="sessionValidity"
                                Classes.expiring="{Binding SessionExpiringSoon}" />
                 </StackPanel>
-            </Grid>
+            </StackPanel>
 
             <!-- Content -->
             <Border Grid.Row="1" Margin="{DynamicResource MarginContent}">
