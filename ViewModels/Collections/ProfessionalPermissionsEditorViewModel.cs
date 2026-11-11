@@ -103,6 +103,11 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
                 // Áreas ficam no "Avançado", fechado; abre sozinho se o professional já tem alguma área
                 // marcada, para a edição não esconder permissões existentes.
                 IsAreasExpanded = rows.Any(x => x.AnyChecked);
+
+                // Marcar/desmarcar uma função marca/desmarca as áreas que ela libera (ex.: Separador ->
+                // Coleções e Separador: ver, criar, editar). Ligado só agora, depois da carga inicial.
+                foreach (var role in Roles)
+                    role.CheckedChanged = OnRoleCheckedChanged;
             });
         }
         catch (Exception)
@@ -113,6 +118,14 @@ public partial class ProfessionalPermissionsEditorViewModel : ObservableObject
         {
             await Dispatcher.UIThread.InvokeAsync(() => IsLoading = false);
         }
+    }
+
+    private void OnRoleCheckedChanged(ProfessionalRoleOption role)
+    {
+        ProfessionalRolePresets.Apply(PolicyDomains, Roles, role);
+        // Mostra o que a função marcou, que fica no "Avançado".
+        if (role.IsChecked && UserAuthorization.GetPoliciesGrantedByRoles(new[] { role.Name }).Count > 0)
+            IsAreasExpanded = true;
     }
 
     [RelayCommand]

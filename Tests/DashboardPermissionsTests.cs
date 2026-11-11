@@ -20,7 +20,7 @@ public class DashboardPermissionsTests
     [Test]
     public void Professional_ve_so_o_que_tem_policy()
     {
-        var p = DashboardPermissions.From("professionals", "{\"Roles\":[\"Separator\"],\"Policies\":[\"Collections.GET\",\"Invoices.ALL\"]}");
+        var p = DashboardPermissions.From("professionals", "{\"Roles\":[],\"Policies\":[\"Collections.GET\",\"Invoices.ALL\"]}");
         Assert.That(p.IsCompany, Is.False);
         Assert.That(p.CanSeeCollections, Is.True);
         Assert.That(p.CanSeeInvoices, Is.True, "Domínio.ALL cobre GET");

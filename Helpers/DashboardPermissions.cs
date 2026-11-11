@@ -7,7 +7,8 @@ namespace LesserDashboardClient.Helpers;
 
 /// <summary>
 /// O que o usuário logado pode ver/fazer no dashboard. Company (e admin) vê tudo; professional vê
-/// conforme as policies dele (User.Authorization, que vem no login — o mesmo JSON de
+/// conforme as policies dele mais as liberadas pelas funções (UserAuthorization.PoliciesGrantedByRole)
+/// (User.Authorization, que vem no login — o mesmo JSON de
 /// UserAuthorizationConfig que o servidor usa). Mesma regra de AuthorizationMiddleware.HasPolicy no
 /// servidor: "Domínio.AÇÃO" exato ou "Domínio.ALL".
 ///
@@ -32,12 +33,12 @@ public sealed class DashboardPermissions
         if (!string.Equals(userType, ProfessionalsUserType, StringComparison.OrdinalIgnoreCase))
             return new DashboardPermissions(true, new HashSet<string>());
 
-        HashSet<string>? policies = null;
+        UserAuthorizationConfig? auth = null;
         if (!string.IsNullOrWhiteSpace(authorizationJson))
         {
             try
             {
-                policies = JsonConvert.DeserializeObject<UserAuthorizationConfig>(authorizationJson)?.Policies;
+                auth = JsonConvert.DeserializeObject<UserAuthorizationConfig>(authorizationJson);
             }
             catch (JsonException)
             {
@@ -45,7 +46,8 @@ public sealed class DashboardPermissions
             }
         }
 
-        return new DashboardPermissions(false, new HashSet<string>(policies ?? new HashSet<string>(), StringComparer.Ordinal));
+        // Policies diretas + as liberadas pelas funções (ex.: Separador libera Coleções), igual ao servidor.
+        return new DashboardPermissions(false, UserAuthorization.GetEffectivePolicies(auth ?? new UserAuthorizationConfig()));
     }
 
     /// <summary>true se pode a ação no domínio. Ex.: Can("Collections", "GET").</summary>

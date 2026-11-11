@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,6 +14,38 @@ namespace LesserDashboardClient.Models
         public string Name { get; init; } = string.Empty;
         public string DisplayName { get; init; } = string.Empty;
         [ObservableProperty] private bool isChecked;
+
+        /// <summary>Chamado quando o usuário marca/desmarca a função (para aplicar as áreas que ela libera).</summary>
+        public Action<ProfessionalRoleOption>? CheckedChanged { get; set; }
+
+        partial void OnIsCheckedChanged(bool value) => CheckedChanged?.Invoke(this);
+    }
+
+    // Marcar uma função marca na grade as áreas que ela libera (UserAuthorization.PoliciesGrantedByRole);
+    // desmarcar tira só o que nenhuma outra função marcada também libera.
+    public static class ProfessionalRolePresets
+    {
+        public static void Apply(IEnumerable<ProfessionalPolicyDomainRow> rows, IEnumerable<ProfessionalRoleOption> roles, ProfessionalRoleOption changed)
+        {
+            var granted = UserAuthorization.GetPoliciesGrantedByRoles(new[] { changed.Name });
+            if (granted.Count == 0)
+                return;
+
+            var rowList = rows.ToList();
+            if (changed.IsChecked)
+            {
+                foreach (var policy in granted)
+                    foreach (var row in rowList)
+                        row.SetPolicy(policy, true);
+                return;
+            }
+
+            var stillGranted = UserAuthorization.GetPoliciesGrantedByRoles(
+                roles.Where(r => r != changed && r.IsChecked).Select(r => r.Name));
+            foreach (var policy in granted.Where(p => !stillGranted.Contains(p)))
+                foreach (var row in rowList)
+                    row.SetPolicy(policy, false);
+        }
     }
 
     public partial class ProfessionalPolicyDomainRow : ObservableObject
@@ -97,6 +130,22 @@ namespace LesserDashboardClient.Models
         }
 
         public bool AnyChecked => CanView || CanCreate || CanEdit || CanDelete;
+
+        /// <summary>Marca/desmarca a caixa da policy "Domínio.AÇÃO" se for desta linha (e a ação existir nela).</summary>
+        public void SetPolicy(string policy, bool value)
+        {
+            var dot = policy.IndexOf('.');
+            if (dot < 0 || policy[..dot] != Domain)
+                return;
+            switch (policy[(dot + 1)..])
+            {
+                case View: if (HasView) CanView = value; break;
+                case Create: if (HasCreate) CanCreate = value; break;
+                case Edit: if (HasEdit) CanEdit = value; break;
+                case Delete: if (HasDelete) CanDelete = value; break;
+                case All: CanAll = value; break;
+            }
+        }
 
         // Marca as caixas conforme as policies que o professional já tem ("Domínio.ALL" marca todas).
         public void LoadFrom(ICollection<string> policies)
