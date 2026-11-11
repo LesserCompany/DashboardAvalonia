@@ -58,16 +58,16 @@
       
         <Grid Grid.Row="1" RowDefinitions="Auto, *, Auto" >
             <!-- Top -->
-            <!-- Canto superior direito: quem está logado, a validade da sessão (abaixo) e, ao lado, mensagens e sair -->
+            <!-- Canto superior direito, empilhado: quem está logado, a validade da sessão e, abaixo, mensagens e sair -->
             <StackPanel Grid.Row="0"
-                        Orientation="Horizontal"
-                        Spacing="12"
+                        Orientation="Vertical"
+                        Spacing="6"
                         Margin="0,8,12,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center">
             <StackPanel Orientation="Vertical"
                         Spacing="4"
-                        VerticalAlignment="Center">
+                        HorizontalAlignment="Right">
                 <!-- Company: nome com o selo "Conta da empresa" e avatar com a inicial -->
                 <StackPanel IsVisible="{Binding IsCompanyLogin}"
                             Orientation="Horizontal"
@@ -153,10 +153,10 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Mensagens (abrem dentro da aba Coleções) e sair -->
+            <!-- Mensagens (abrem dentro da aba Coleções) e sair, abaixo da sessão -->
             <StackPanel Orientation="Horizontal"
                         Spacing="8"
-                        VerticalAlignment="Center">
+                        HorizontalAlignment="Right">
                 <local:UserMessagesButton IsVisible="{Binding Permissions.CanSeeCollections}" />
                 <local:LogoutComponent />
             </StackPanel>
