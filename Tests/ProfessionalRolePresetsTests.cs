@@ -19,13 +19,14 @@ public class ProfessionalRolePresetsTests
         grade.Single(x => x.Domain == dominio);
 
     [Test]
-    public void Separador_libera_ver_criar_e_editar_de_colecoes_e_separador_sem_excluir()
+    public void Separador_libera_ver_criar_e_editar_de_colecoes_separador_e_IDs_sem_excluir()
     {
         var liberadas = UserAuthorization.GetPoliciesGrantedByRoles(new[] { "Separator" });
         Assert.That(liberadas, Is.EquivalentTo(new[]
         {
             "Collections.GET", "Collections.POST", "Collections.PUT",
             "Separator.GET", "Separator.POST", "Separator.PUT",
+            "IdManagement.GET", "IdManagement.POST", "IdManagement.PUT",
         }));
         Assert.That(UserAuthorization.GetPoliciesGrantedByRoles(new[] { "Photographer", "user" }), Is.Empty, "funções sem tabela não liberam nada");
     }
@@ -58,6 +59,8 @@ public class ProfessionalRolePresetsTests
         Assert.That(colecoes.CanView && colecoes.CanCreate && colecoes.CanEdit, Is.True);
         Assert.That(colecoes.CanDelete, Is.False);
         Assert.That(Linha(grade, "Separator").CanEdit, Is.True);
+        Assert.That(Linha(grade, "IdManagement").CanCreate, Is.True, "Gestão de IDs faz parte da separação");
+        Assert.That(Linha(grade, "IdManagement").CanDelete, Is.False);
         Assert.That(Linha(grade, "Invoices").AnyChecked, Is.False, "não mexe em área de fora");
 
         separador.IsChecked = false;
