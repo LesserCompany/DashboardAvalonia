@@ -98,31 +98,39 @@
                 </StackPanel>
 
                 <!-- Professional: Usuário / Tipo de conta / Empresa -->
-                <Grid IsVisible="{Binding IsProfessionalLogin}"
-                      ColumnDefinitions="Auto, Auto"
-                      RowDefinitions="Auto, Auto, Auto"
-                      ColumnSpacing="6"
-                      RowSpacing="1"
-                      HorizontalAlignment="Right"
-                      VerticalAlignment="Center">
-                    <Grid.Styles>
+                <!-- Cada linha "Rótulo: valor" alinhada à direita, colada no canto -->
+                <StackPanel IsVisible="{Binding IsProfessionalLogin}"
+                            Spacing="1"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center">
+                    <StackPanel.Styles>
+                        <Style Selector="StackPanel.accountRow">
+                            <Setter Property="Orientation" Value="Horizontal" />
+                            <Setter Property="Spacing" Value="4" />
+                            <Setter Property="HorizontalAlignment" Value="Right" />
+                        </Style>
                         <Style Selector="TextBlock.accountLabel">
                             <Setter Property="FontSize" Value="11" />
-                            <Setter Property="HorizontalAlignment" Value="Right" />
                             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
                         </Style>
                         <Style Selector="TextBlock.accountValue">
                             <Setter Property="FontSize" Value="11" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Style>
-                    </Grid.Styles>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="accountLabel" Text="{Tr 'User:'}" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Classes="accountValue" Text="{Binding LoggedUsername}" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="accountLabel" Text="{Tr 'Account type:'}" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Classes="accountValue" Text="{Binding AccountTypeText}" />
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="accountLabel" Text="{Tr 'Company:'}" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Classes="accountValue" Text="{Binding CompanyName}" />
-                </Grid>
+                    </StackPanel.Styles>
+                    <StackPanel Classes="accountRow">
+                        <TextBlock Classes="accountLabel" Text="{Tr 'User:'}" />
+                        <TextBlock Classes="accountValue" Text="{Binding LoggedUsername}" />
+                    </StackPanel>
+                    <StackPanel Classes="accountRow">
+                        <TextBlock Classes="accountLabel" Text="{Tr 'Account type:'}" />
+                        <TextBlock Classes="accountValue" Text="{Binding AccountTypeText}" />
+                    </StackPanel>
+                    <StackPanel Classes="accountRow">
+                        <TextBlock Classes="accountLabel" Text="{Tr 'Company:'}" />
+                        <TextBlock Classes="accountValue" Text="{Binding CompanyName}" />
+                    </StackPanel>
+                </StackPanel>
 
                 <!-- Validade da sessão, abaixo da identificação -->
                 <StackPanel Orientation="Horizontal"
