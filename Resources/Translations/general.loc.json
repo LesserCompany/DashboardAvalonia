@@ -167,6 +167,38 @@
     "en-US": "Mark as Read",
     "pt-BR": "Marcar como lida"
   },
+  "Unread messages one": {
+    "en-US": "You have 1 unread message",
+    "pt-BR": "Você tem 1 mensagem não lida"
+  },
+  "Unread messages many": {
+    "en-US": "You have {0} unread messages",
+    "pt-BR": "Você tem {0} mensagens não lidas"
+  },
+  "Unread messages hint": {
+    "en-US": "Read them and mark them as read to keep up with your account updates.",
+    "pt-BR": "Leia e marque como lida para ficar por dentro das novidades da sua conta."
+  },
+  "All messages read": {
+    "en-US": "You're all caught up: every message has been read.",
+    "pt-BR": "Tudo em dia: você já leu todas as mensagens."
+  },
+  "Unread section": {
+    "en-US": "Unread",
+    "pt-BR": "Não lidas"
+  },
+  "Read section": {
+    "en-US": "Already read",
+    "pt-BR": "Já lidas"
+  },
+  "Unread badge": {
+    "en-US": "UNREAD",
+    "pt-BR": "NÃO LIDA"
+  },
+  "Read badge": {
+    "en-US": "Read",
+    "pt-BR": "Lida"
+  },
   "No messages available": {
     "en-US": "No messages available",
     "pt-BR": "Nenhuma mensagem disponível"

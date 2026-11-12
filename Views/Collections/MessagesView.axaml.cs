@@ -111,21 +111,36 @@ public partial class MessagesView : UserControl
             // Usar SortedUserMessages do ViewModel (ordenação está no VM, não na View)
             var sortedMessages = viewModel.SortedUserMessages;
 
+            var messagesList = sortedMessages?.ToList() ?? new System.Collections.Generic.List<UserMessage>();
+            var unreadCount = messagesList.Count(m => !m.IsRead);
+            UpdateUnreadSummary(messagesList.Count, unreadCount);
+
             // Verificar se há mensagens
-            if (sortedMessages != null && sortedMessages.Any())
+            if (messagesList.Any())
             {
-                // Adicionar cada mensagem ao painel
-                foreach (var message in sortedMessages)
+                // Não lidas primeiro (ordem do ViewModel), cada grupo com o seu cabeçalho.
+                bool unreadHeaderAdded = false, readHeaderAdded = false;
+                foreach (var message in messagesList)
                 {
+                    if (!message.IsRead && !unreadHeaderAdded)
+                    {
+                        messagesPanel.Children.Add(CreateSectionHeader($"{Loc.Tr("Unread section")} ({unreadCount})", highlighted: true));
+                        unreadHeaderAdded = true;
+                    }
+                    else if (message.IsRead && !readHeaderAdded && unreadCount > 0)
+                    {
+                        messagesPanel.Children.Add(CreateSectionHeader(Loc.Tr("Read section"), highlighted: false));
+                        readHeaderAdded = true;
+                    }
+
                     var messageItem = CreateMessageItem(message, viewModel);
                     messagesPanel.Children.Add(messageItem);
                 }
 
                 // Mostrar botão "Marcar todas como lidas" se houver mensagens não lidas
-                // A propriedade HasUnreadMessages já está no ViewModel
                 if (markAllButton != null)
                 {
-                    markAllButton.IsVisible = viewModel.HasUnreadMessages;
+                    markAllButton.IsVisible = unreadCount > 0;
                     // Remover handler anterior para evitar duplicação
                     markAllButton.Click -= MarkAllAsReadButton_Click;
                     markAllButton.Click += MarkAllAsReadButton_Click;
@@ -178,27 +193,11 @@ public partial class MessagesView : UserControl
             var currentTheme = Application.Current?.ActualThemeVariant;
             bool isDarkMode = currentTheme == ThemeVariant.Dark;
             
-            // Definir background baseado no tema e status de leitura
-            IBrush backgroundBrush;
-            if (message.IsRead)
-            {
-                // Mensagem lida: background mais sutil
-                backgroundBrush = Avalonia.Media.Brushes.Transparent;
-            }
-            else
-            {
-                // Mensagem não lida: background mais destacado
-                if (isDarkMode)
-                {
-                    backgroundBrush = this.FindResource("CardBackgroundBrush") as IBrush ?? 
-                                    Avalonia.Media.Brushes.Transparent;
-                }
-                else
-                {
-                    backgroundBrush = this.FindResource("CardBackgroundInactiveBrush") as IBrush ?? 
-                                    Avalonia.Media.Brushes.White;
-                }
-            }
+            // Não lida: fundo levemente na cor de destaque + barra lateral; lida: sem fundo e mais apagada.
+            var accent = GetAccentColor();
+            IBrush backgroundBrush = message.IsRead
+                ? Avalonia.Media.Brushes.Transparent
+                : new SolidColorBrush(accent, isDarkMode ? 0.18 : 0.10);
             
             // Definir cores do texto baseado no tema
             IBrush primaryTextBrush;
@@ -224,9 +223,11 @@ public partial class MessagesView : UserControl
                 Padding = new Thickness(20),
                 Margin = new Thickness(0, 0, 0, 20),
                 Background = backgroundBrush,
-                BorderThickness = new Thickness(1),
-                BorderBrush = this.FindResource("SeparatorBrush") as IBrush ?? 
-                             Avalonia.Media.Brushes.Gray
+                BorderThickness = message.IsRead ? new Thickness(1) : new Thickness(6, 1, 1, 1),
+                BorderBrush = message.IsRead
+                    ? this.FindResource("SeparatorBrush") as IBrush ?? Avalonia.Media.Brushes.Gray
+                    : new SolidColorBrush(accent),
+                Opacity = message.IsRead ? 0.75 : 1
             };
 
             // Criar Grid principal com 2 colunas: conteúdo e botão
@@ -281,35 +282,44 @@ public partial class MessagesView : UserControl
             headerPanel.Children.Add(dateText);
             headerPanel.Children.Add(timeText);
 
-            // Adicionar badge "NEW" se não for lida
+            // Selo de situação: "● NÃO LIDA" em destaque, ou "✓ Lida" discreto.
             if (!message.IsRead)
             {
-                var newBadge = new Border
+                headerPanel.Children.Add(new Border
                 {
-                    Background = Avalonia.Media.Brushes.Red,
-                    CornerRadius = new CornerRadius(4),
-                    Padding = new Thickness(6, 2),
-                    Margin = new Thickness(8, 0, 0, 0)
-                };
-
-                var badgeText = new TextBlock
+                    Background = new SolidColorBrush(accent),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(8, 2),
+                    Margin = new Thickness(10, 0, 0, 0),
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                    Child = new TextBlock
+                    {
+                        Text = "● " + Loc.Tr("Unread badge"),
+                        FontSize = 11,
+                        FontWeight = FontWeight.Bold,
+                        Foreground = Avalonia.Media.Brushes.White
+                    }
+                });
+            }
+            else
+            {
+                headerPanel.Children.Add(new TextBlock
                 {
-                    Text = "NEW",
-                    FontSize = 10,
-                    FontWeight = FontWeight.Bold,
-                    Foreground = Avalonia.Media.Brushes.White
-                };
-
-                newBadge.Child = badgeText;
-                headerPanel.Children.Add(newBadge);
+                    Text = "✓ " + Loc.Tr("Read badge"),
+                    FontSize = 11,
+                    Foreground = secondaryTextBrush,
+                    Opacity = 0.8,
+                    Margin = new Thickness(10, 2, 0, 0),
+                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top
+                });
             }
 
             // Criar o TextBlock do título
             var titleText = new TextBlock
             {
                 Text = message.Title,
-                FontWeight = FontWeight.Bold,
-                FontSize = 15,
+                FontWeight = message.IsRead ? FontWeight.SemiBold : FontWeight.Bold,
+                FontSize = message.IsRead ? 15 : 17,
                 Foreground = primaryTextBrush,
                 TextWrapping = TextWrapping.Wrap
             };
@@ -378,33 +388,23 @@ public partial class MessagesView : UserControl
             // Criar botão "Marcar como lida" (só aparece se não estiver lida)
             if (!message.IsRead)
             {
+                // Botão com texto e cor de destaque (antes era só um "✓" solto, que não parecia clicável).
                 var markAsReadButton = new Button
                 {
-                    Content = "✓",
-                    FontSize = 20,
-                    FontWeight = FontWeight.Bold,
-                    Background = Avalonia.Media.Brushes.Transparent,
+                    Content = "✓  " + Loc.Tr("Mark as Read"),
+                    FontSize = 13,
+                    FontWeight = FontWeight.SemiBold,
+                    Foreground = Avalonia.Media.Brushes.White,
+                    Background = new SolidColorBrush(accent),
                     BorderThickness = new Thickness(0),
-                    Padding = new Thickness(8),
+                    CornerRadius = new CornerRadius(6),
+                    Padding = new Thickness(14, 8),
                     Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand),
                     VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
                     HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-                    Margin = new Thickness(0, 0, 0, 0),
-                    [Grid.ColumnProperty] = 1,
-                    [ToolTip.TipProperty] = Loc.Tr("Mark as Read")
+                    Margin = new Thickness(16, 0, 0, 0),
+                    [Grid.ColumnProperty] = 1
                 };
-
-                // Definir cor do botão baseado no tema
-                if (isDarkMode)
-                {
-                    markAsReadButton.Foreground = this.FindResource("SystemControlBackgroundAccentBrush") as IBrush ?? 
-                                                Avalonia.Media.Brushes.LightBlue;
-                }
-                else
-                {
-                    markAsReadButton.Foreground = this.FindResource("SystemControlBackgroundAccentBrush") as IBrush ?? 
-                                                Avalonia.Media.Brushes.DodgerBlue;
-                }
 
                 string messageId = message.Id;
                 markAsReadButton.Click += async (s, e) =>
@@ -455,6 +455,61 @@ public partial class MessagesView : UserControl
             };
         }
     }
+
+    /// <summary>Cor de destaque do tema (laranja LetsPic); fallback se o recurso não existir.</summary>
+    private Color GetAccentColor() =>
+        (this.FindResource("SystemControlBackgroundAccentBrush") as ISolidColorBrush)?.Color ?? Color.Parse("#FF9600");
+
+    /// <summary>Faixa do topo: quantas mensagens faltam ler (em destaque) ou "tudo em dia".</summary>
+    private void UpdateUnreadSummary(int totalCount, int unreadCount)
+    {
+        var summary = this.FindControl<Border>("UnreadSummaryBorder");
+        var icon = this.FindControl<TextBlock>("UnreadSummaryIcon");
+        var text = this.FindControl<TextBlock>("UnreadSummaryText");
+        var hint = this.FindControl<TextBlock>("UnreadSummaryHint");
+        if (summary == null || icon == null || text == null || hint == null)
+            return;
+
+        summary.IsVisible = totalCount > 0;
+        if (totalCount == 0)
+            return;
+
+        var accent = GetAccentColor();
+        var isDarkMode = Application.Current?.ActualThemeVariant == ThemeVariant.Dark;
+        if (unreadCount > 0)
+        {
+            summary.Background = new SolidColorBrush(accent, isDarkMode ? 0.22 : 0.14);
+            summary.BorderBrush = new SolidColorBrush(accent);
+            icon.Text = "✉";
+            icon.Foreground = new SolidColorBrush(accent);
+            text.Text = unreadCount == 1
+                ? Loc.Tr("Unread messages one")
+                : string.Format(Loc.Tr("Unread messages many"), unreadCount);
+            hint.Text = Loc.Tr("Unread messages hint");
+            hint.IsVisible = true;
+        }
+        else
+        {
+            summary.Background = Avalonia.Media.Brushes.Transparent;
+            summary.BorderBrush = this.FindResource("SeparatorBrush") as IBrush ?? Avalonia.Media.Brushes.Gray;
+            icon.Text = "✓";
+            icon.Foreground = this.FindResource("TextSecondaryBrush") as IBrush ?? Avalonia.Media.Brushes.Gray;
+            text.Text = Loc.Tr("All messages read");
+            hint.IsVisible = false;
+        }
+    }
+
+    private TextBlock CreateSectionHeader(string title, bool highlighted) => new TextBlock
+    {
+        Text = title.ToUpperInvariant(),
+        FontSize = 12,
+        FontWeight = FontWeight.Bold,
+        LetterSpacing = 0.5,
+        Foreground = highlighted
+            ? new SolidColorBrush(GetAccentColor())
+            : this.FindResource("TextSecondaryBrush") as IBrush ?? Avalonia.Media.Brushes.Gray,
+        Margin = new Thickness(2, 4, 0, -8)
+    };
 
     private void ShowNoMessagesPlaceholder(StackPanel messagesPanel)
     {
