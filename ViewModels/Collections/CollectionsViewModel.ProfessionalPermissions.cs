@@ -26,6 +26,14 @@ public partial class CollectionsViewModel
         GlobalAppStateViewModel.lfc?.loginResult?.User?.Authorization);
 
     public bool CanCreateCollection => SessionPermissions.CanCreateCollection;
+
+    // Separador padrão de coleção nova: professional logado = ele mesmo; company = selecionado na lista ou a
+    // própria company (Helpers/NewCollectionSeparator).
+    private string DefaultNewCollectionSeparator() => NewCollectionSeparator.Default(
+        SessionPermissions.IsCompany,
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.username,
+        SelectedProfessional?.username,
+        GlobalAppStateViewModel.lfc?.loginResult?.User?.company);
     public bool CanManageProfessionals => SessionPermissions.CanManageProfessionals;
 
     // ---- Gerenciar profissionais ----

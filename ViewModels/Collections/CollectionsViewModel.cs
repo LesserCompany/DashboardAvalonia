@@ -3659,7 +3659,7 @@ public partial class CollectionsViewModel : ViewModelBase
         // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
         // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
         // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
-        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        CurrentProfessionalName = DefaultNewCollectionSeparator();
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollection; // Abre a tela de nova coleï¿½ï¿½o personalizada
         _preConfiguredComboAuthority = null;
@@ -3714,7 +3714,7 @@ public partial class CollectionsViewModel : ViewModelBase
         // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
         // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
         // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
-        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        CurrentProfessionalName = DefaultNewCollectionSeparator();
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
         _preConfiguredComboAuthority = null;
@@ -3771,7 +3771,7 @@ public partial class CollectionsViewModel : ViewModelBase
         // nível de company) — SelectedProfessional fica null nesse caso (Professionals vazio, ver
         // LoadProfessionalsAsync), então é SelectedProfessional em si que precisa do fallback, não só
         // .username. Agora cai certo no username da própria company (mesmo comportamento do legado).
-        CurrentProfessionalName = SelectedProfessional?.username ?? GlobalAppStateViewModel.lfc.loginResult.User.company;
+        CurrentProfessionalName = DefaultNewCollectionSeparator();
         ScrollComponentNewCollection = 0;
         ActiveComponent = ActiveViews.NewCollectionPreConfigured;
         _preConfiguredComboAuthority = options;
