@@ -7,59 +7,74 @@
              mc:Ignorable="d" d:DesignWidth="40" d:DesignHeight="40"
              x:Class="LesserDashboardClient.Views.UserMessagesButton">
   <UserControl.Styles>
-    <!-- Contador pulsando enquanto houver mensagem não lida: chama a atenção sem tirar o foco da tela. -->
-    <Style Selector="Border.pulse">
+    <!-- Halo atrás do sino enquanto houver mensagem não lida: pulso lento e suave. O sino e o contador ficam
+         sempre nítidos (antes o contador piscava por cima do sino e o escondia). -->
+    <Style Selector="Ellipse.halo">
       <Style.Animations>
-        <Animation Duration="0:0:1.6" IterationCount="INFINITE" Easing="SineEaseInOut">
+        <Animation Duration="0:0:3" IterationCount="INFINITE" Easing="SineEaseInOut">
           <KeyFrame Cue="0%">
-            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Opacity" Value="0.10"/>
           </KeyFrame>
           <KeyFrame Cue="50%">
-            <Setter Property="Opacity" Value="0.45"/>
+            <Setter Property="Opacity" Value="0.35"/>
           </KeyFrame>
           <KeyFrame Cue="100%">
-            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Opacity" Value="0.10"/>
           </KeyFrame>
         </Animation>
       </Style.Animations>
     </Style>
   </UserControl.Styles>
-  <Button Command="{Binding OpenMessagesCommand}" 
-          VerticalAlignment="Center" 
+  <Button Command="{Binding OpenMessagesCommand}"
+          VerticalAlignment="Center"
           HorizontalAlignment="Center"
           Background="Transparent"
           BorderThickness="0"
           Padding="4"
           ToolTip.Tip="{Tr 'Messages'}">
-    <Grid>
-      <!-- Ícone de notificação (bell) - tamanho normal quando não há mensagens -->
-      <Svg Path="/Assets/icons/bell.svg" 
-           Width="16" 
-           Height="16" 
+    <!-- Área um pouco maior que o sino: o contador fica no canto superior direito, sem cobrir o ícone. -->
+    <Grid Width="30" Height="28">
+      <!-- Halo pulsando (só com mensagem não lida) -->
+      <Ellipse Classes.halo="{Binding HasUnreadMessages}"
+               IsVisible="{Binding HasUnreadMessages}"
+               Width="28"
+               Height="28"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Bottom"
+               Margin="-3,0,0,-3"
+               Fill="{DynamicResource SystemControlBackgroundAccentBrush}" />
+
+      <!-- Sino sem mensagens: tamanho normal -->
+      <Svg Path="/Assets/icons/bell.svg"
+           Width="16"
+           Height="16"
            Cursor="Hand"
+           HorizontalAlignment="Center"
+           VerticalAlignment="Center"
            IsVisible="{Binding !HasUnreadMessages}" />
-      
-      <!-- Ícone de notificação (bell) - tamanho maior quando há mensagens não lidas -->
-      <Svg Path="/Assets/icons/bell.svg" 
-           Width="20" 
-           Height="20" 
+
+      <!-- Sino com mensagens não lidas: maior, alinhado embaixo à esquerda pra deixar o canto livre pro contador -->
+      <Svg Path="/Assets/icons/bell.svg"
+           Width="22"
+           Height="22"
            Cursor="Hand"
+           HorizontalAlignment="Left"
+           VerticalAlignment="Bottom"
            IsVisible="{Binding HasUnreadMessages}" />
-      
-      <!-- Badge com contagem de mensagens não lidas -->
+
+      <!-- Contador de mensagens não lidas (fixo, sem piscar) -->
       <Border IsVisible="{Binding HasUnreadMessages}"
-              Classes.pulse="{Binding HasUnreadMessages}"
-              Width="22" 
-              Height="22"
-              CornerRadius="11"
+              MinWidth="17"
+              Height="17"
+              CornerRadius="9"
+              Padding="4,0"
               Background="#FF4444"
               BorderBrush="White"
-              BorderThickness="2"
+              BorderThickness="1.5"
               HorizontalAlignment="Right"
-              VerticalAlignment="Top"
-              Margin="0,-2,-2,0">
-        <TextBlock Text="{Binding UnreadMessagesCount}" 
-                   FontSize="12"
+              VerticalAlignment="Top">
+        <TextBlock Text="{Binding UnreadMessagesCount}"
+                   FontSize="10"
                    FontWeight="Bold"
                    Foreground="White"
                    VerticalAlignment="Center"
