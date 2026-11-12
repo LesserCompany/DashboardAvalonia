@@ -280,6 +280,19 @@
                            Margin="4"
                            Orientation="Horizontal"
                            Spacing="4">
+                  <!-- Notas de atualização desta versão (ReleaseNotesDialog) -->
+                  <Button Height="25"
+                         Margin="0 0 8 0"
+                         HorizontalAlignment="Center"
+                         Background="{DynamicResource SystemChromeBlackMediumLowColor}"
+                         ToolTip.Tip="{Tr 'Release notes window title'}"
+                         Command="{Binding OpenReleaseNotesCommand}">
+                    <TextBlock Text="{Tr 'Release notes button'}"
+                              FontSize="11"
+                              Foreground="White"
+                              VerticalAlignment="Center"
+                              Margin="2 0" />
+                  </Button>
                   <TextBlock FontSize="11" 
                             Text="{Tr 'Having problems?'}" 
                             Margin="0 0 4 0" 

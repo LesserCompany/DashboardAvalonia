@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="520"
+        x:Class="LesserDashboardClient.Views.ReleaseNotesDialog"
+        Title="{Tr 'Release notes window title'}"
+        Width="480"
+        MinHeight="360"
+        Height="520"
+        MaxHeight="720"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+  <!-- Notas de atualização desta versão (GetAppReleaseNotes). Mesmo visual do SupportHelpDialog. -->
+  <Grid RowDefinitions="Auto,*">
+    <Border Grid.Row="0"
+            Background="{DynamicResource SystemControlBackgroundAccentBrush}"
+            Padding="20,14">
+      <StackPanel Spacing="6">
+        <TextBlock x:Name="TitleText"
+                   Text="{Tr 'Release notes window title'}"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Foreground="White"
+                   TextWrapping="Wrap"/>
+        <TextBlock x:Name="VersionText"
+                   FontSize="13"
+                   Foreground="White"
+                   Opacity="0.95"/>
+      </StackPanel>
+    </Border>
+
+    <DockPanel Grid.Row="1"
+               Margin="20,16,20,20"
+               LastChildFill="True">
+      <Button x:Name="BtClose"
+              DockPanel.Dock="Bottom"
+              Click="BtClose_OnClick"
+              Margin="0,16,0,0"
+              HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Center"
+              Padding="14,10"
+              Content="{Tr 'Support close'}"/>
+
+      <Grid>
+        <StackPanel x:Name="LoadingPanel"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <ui:ProgressRing IsIndeterminate="True" BorderThickness="2" Width="16" Height="16"/>
+          <TextBlock Text="{Tr 'Release notes loading'}" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <TextBlock x:Name="MessageText"
+                   IsVisible="False"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+
+        <ScrollViewer x:Name="NotesScroll"
+                      IsVisible="False"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <SelectableTextBlock x:Name="NotesText"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               LineHeight="22"/>
+        </ScrollViewer>
+      </Grid>
+    </DockPanel>
+  </Grid>
+</Window>

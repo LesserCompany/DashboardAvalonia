@@ -219,6 +219,30 @@
     "en-US": "Close",
     "pt-BR": "Fechar"
   },
+  "Release notes button": {
+    "en-US": "What's new",
+    "pt-BR": "Novidades"
+  },
+  "Release notes window title": {
+    "en-US": "Release notes",
+    "pt-BR": "Notas de atualização"
+  },
+  "Release notes version": {
+    "en-US": "Version",
+    "pt-BR": "Versão"
+  },
+  "Release notes loading": {
+    "en-US": "Loading release notes...",
+    "pt-BR": "Carregando as novidades..."
+  },
+  "Release notes empty": {
+    "en-US": "There are no release notes for this version yet.",
+    "pt-BR": "Ainda não há notas de atualização para esta versão."
+  },
+  "Release notes error": {
+    "en-US": "We couldn't load the release notes right now. Please try again later.",
+    "pt-BR": "Não foi possível carregar as novidades agora. Tente novamente mais tarde."
+  },
   "Session expires in": {
     "en-US": "Session expires in",
     "pt-BR": "A sessão expira em"

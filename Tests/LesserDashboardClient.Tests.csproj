@@ -28,6 +28,7 @@
     <Compile Include="..\Models\ProfessionalPermissionOptions.cs" Link="Models\ProfessionalPermissionOptions.cs" />
     <Compile Include="..\Helpers\ProfessionalUsernamePrefix.cs" Link="Helpers\ProfessionalUsernamePrefix.cs" />
     <Compile Include="..\Helpers\DashboardPermissions.cs" Link="Helpers\DashboardPermissions.cs" />
+    <Compile Include="..\Helpers\ReleaseNotesTarget.cs" Link="Helpers\ReleaseNotesTarget.cs" />
     <Compile Include="..\Models\ProfessionalEditChanges.cs" Link="Models\ProfessionalEditChanges.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\UserAuthorization.cs" Link="UserAuthorization.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\Professionals\ProfessionalTask.cs" Link="ProfessionalTask.cs" />

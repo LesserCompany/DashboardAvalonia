@@ -311,6 +311,19 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         await GlobalAppStateViewModel.Instance.ShowSupportHelpDialogAsync();
     }
+
+    /// <summary>Notas de atualização desta versão (botão ao lado do Suporte) — ver Helpers/ReleaseNotesTarget.</summary>
+    [RelayCommand]
+    public async Task OpenReleaseNotesCommand()
+    {
+        var packaged = PackagedAppHelper.ShouldUsePackagedBinaries();
+        var (appName, version) = ReleaseNotesTarget.Resolve(packaged, packaged ? PackagedAppHelper.GetPackageFullName() : null, GetParentFolderName());
+        var dlg = new ReleaseNotesDialog(appName, version);
+        if (MainWindow.instance != null)
+            await dlg.ShowDialog(MainWindow.instance);
+        else
+            dlg.Show();
+    }
     [RelayCommand]
     public async Task LogoutAndExitCommand()
     {
