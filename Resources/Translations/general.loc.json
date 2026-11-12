@@ -199,6 +199,10 @@
     "en-US": "Read",
     "pt-BR": "Lida"
   },
+  "Open message": {
+    "en-US": "Click to open the message",
+    "pt-BR": "Clique para abrir a mensagem"
+  },
   "No messages available": {
     "en-US": "No messages available",
     "pt-BR": "Nenhuma mensagem disponível"
