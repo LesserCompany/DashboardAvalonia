@@ -4720,6 +4720,9 @@ public partial class CollectionsViewModel : ViewModelBase
             if (saveOnly)
             {
                 await SaveCollectionSettingsWithoutUploadAsync(pt);
+                // Opção escondida de formato (Ctrl+Shift+Y): "Salvar" também grava a escolha.
+                if (await ApplyFormPhotoStorageFormatAsync(pt.classCode))
+                    ResetFormPhotoStorageFormatOption();
                 return;
             }
 
@@ -4904,7 +4907,8 @@ public partial class CollectionsViewModel : ViewModelBase
                 if (graduatesDataToUpload.Count > 0)
                     await GlobalAppStateViewModel.lfc.RegisterGraduatesCPFsAndEmails(graduatesDataToUpload);
 
-            if (CollectionSubmitRules.StartsUploadApp(saveOnly))
+            // O pt acima é montado do formulário e não traz o formato (JPEG/WebP): vem do servidor antes do Uploader.
+            if (CollectionSubmitRules.StartsUploadApp(saveOnly) && await PreparePhotoStorageFormatForUploadAsync(pt))
             {
                 Action<int> callback = MainWindowViewModel.Instance != null
                     ? MainWindowViewModel.Instance.UpdateProgressBarUpdateComponent

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,8 +9,13 @@ using SharedClientSide.ServerInteraction;
 namespace LesserDashboardClient.ViewModels.Collections;
 
 // Formato em que o Uploader grava as fotos da coleção (JPEG, padrão, ou WebP), para testar WebP em coleções
-// escolhidas sem mudar as demais. Painel escondido: só aparece com Ctrl+Shift+Y na tela da coleção (ver
-// CollectionView.axaml.cs). Servidor em SetCollectionPhotoStorageFormat_v2.
+// escolhidas sem mudar as demais. Servidor em SetCollectionPhotoStorageFormat_v2. Dois pontos escondidos, ambos com
+// Ctrl+Shift+Y:
+//  - tela da coleção (CollectionView): painel para trocar o formato de uma coleção existente;
+//  - formulários de criação/reenvio (NewCollection, NewCollectionPreConfigured): opção "Gravar fotos em WebP" nas
+//    configurações avançadas, aplicada logo depois de a coleção ser gravada e antes de abrir o Uploader.
+// Todo envio pelo Uploader lê o formato do servidor (PreparePhotoStorageFormatForUploadAsync): o formulário monta a
+// coleção do zero e não traz o campo.
 public partial class CollectionsViewModel
 {
     [ObservableProperty] private bool isPhotoStorageFormatPanelVisible;
@@ -45,6 +51,82 @@ public partial class CollectionsViewModel
             ResetPhotoStorageFormatPanel();
         else
             OnPropertyChanged(nameof(SelectedCollectionPhotoStorageFormatText));
+    }
+
+    // ---- Formulário de criação/reenvio ----
+
+    [ObservableProperty] private bool isFormPhotoStorageFormatOptionVisible;
+    [ObservableProperty] private bool formStoresPhotosAsWebP;
+
+    public void ToggleFormPhotoStorageFormatOption()
+    {
+        IsFormPhotoStorageFormatOptionVisible = !IsFormPhotoStorageFormatOptionVisible;
+        if (IsFormPhotoStorageFormatOptionVisible)
+        {
+            // Reenvio de coleção existente: começa no formato atual dela.
+            var code = TbCollectionName?.Trim();
+            var existing = string.IsNullOrEmpty(code) ? null
+                : (SelectedCollection?.classCode == code ? SelectedCollection : CollectionsList.FirstOrDefault(c => c.classCode == code));
+            FormStoresPhotosAsWebP = existing?.StoresPhotosAsWebP == true;
+        }
+    }
+
+    private void ResetFormPhotoStorageFormatOption()
+    {
+        IsFormPhotoStorageFormatOptionVisible = false;
+        FormStoresPhotosAsWebP = false;
+    }
+
+    // Grava no servidor o formato escolhido no formulário, só se a opção escondida foi aberta. false = falhou (já avisou).
+    private async Task<bool> ApplyFormPhotoStorageFormatAsync(string classCode)
+    {
+        if (!IsFormPhotoStorageFormatOptionVisible)
+            return true;
+
+        var format = FormStoresPhotosAsWebP ? ProfessionalTask.PHOTO_STORAGE_FORMAT_WEBP : ProfessionalTask.PHOTO_STORAGE_FORMAT_JPEG;
+        try
+        {
+            var r = await GlobalAppStateViewModel.lfc.SetCollectionPhotoStorageFormat(classCode, format);
+            if (r?.success == true)
+                return true;
+            GlobalAppStateViewModel.Instance.ShowDialogOk("Não foi possível gravar o formato das fotos (" + format + "): " + (r?.message ?? "sem resposta do servidor"));
+        }
+        catch (Exception e)
+        {
+            GlobalAppStateViewModel.Instance.ShowDialogOk("Não foi possível gravar o formato das fotos (" + format + "): " + e.Message);
+        }
+        return false;
+    }
+
+    // Antes de abrir o Uploader: aplica a escolha do formulário (se houver) e copia para pt o formato salvo no servidor,
+    // que é o que o Uploader usa. false = não abrir o Uploader (a escolha WebP/JPEG não foi gravada).
+    private async Task<bool> PreparePhotoStorageFormatForUploadAsync(ProfessionalTask pt)
+    {
+        try
+        {
+            if (!await ApplyFormPhotoStorageFormatAsync(pt.classCode))
+                return false;
+
+            try
+            {
+                var server = await GlobalAppStateViewModel.lfc.GetProfessionalTask(pt.classCode);
+                pt.PhotoStorageFormat = server?.PhotoStorageFormat;
+            }
+            catch
+            {
+                // Sem resposta: vale a escolha do formulário, se houve; senão JPEG (padrão).
+                pt.PhotoStorageFormat = IsFormPhotoStorageFormatOptionVisible && FormStoresPhotosAsWebP ? ProfessionalTask.PHOTO_STORAGE_FORMAT_WEBP : null;
+            }
+
+            // Mantém a lista em dia (o painel da coleção e o próximo envio leem dela).
+            foreach (var c in CollectionsList.Where(c => c.classCode == pt.classCode && !ReferenceEquals(c, pt)))
+                c.PhotoStorageFormat = pt.PhotoStorageFormat;
+            return true;
+        }
+        finally
+        {
+            ResetFormPhotoStorageFormatOption();
+        }
     }
 
     [RelayCommand]

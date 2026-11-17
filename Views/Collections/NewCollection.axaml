@@ -293,6 +293,11 @@
                   </StackPanel>
                   <CheckBox IsChecked="{Binding CbAllowDeletedProductionToBeFoundAnyone}" Content="{Tr 'Allow deleted production photos to be found by anyone'}" />
                   <CheckBox IsChecked="{Binding CbOcr, FallbackValue=False}" Content="{Tr 'OCR processing (In development)'}" />
+                  <!-- Escondido: Ctrl+Shift+Y mostra (CollectionsViewModel.PhotoStorageFormat.cs). -->
+                  <CheckBox IsVisible="{Binding IsFormPhotoStorageFormatOptionVisible}"
+                            IsChecked="{Binding FormStoresPhotosAsWebP}"
+                            Content="Gravar fotos em WebP (teste)"
+                            ToolTip.Tip="Desmarcado: JPEG (padrão). A extensão original do arquivo é mantida. Vale para as fotos enviadas a partir de agora." />
                     
                   <!-- Graduates Section - Oculto quando for apenas tratamento -->
                   <StackPanel IsVisible="{Binding !IsTreatmentOnlyCombo}" Spacing="6">

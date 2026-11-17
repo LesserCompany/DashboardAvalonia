@@ -24,6 +24,37 @@ public partial class NewCollection : UserControl
     {
         InitializeComponent();
         this.Loaded += NewCollection_Loaded;
+        HookPhotoStorageFormatShortcut();
+    }
+
+    // Ctrl+Shift+Y mostra/esconde a opção "Gravar fotos em WebP" (configurações avançadas). Escutado na janela
+    // (túnel), só com este formulário visível.
+    private TopLevel? _photoFormatTopLevel;
+
+    private void HookPhotoStorageFormatShortcut()
+    {
+        AttachedToVisualTree += (_, _) =>
+        {
+            _photoFormatTopLevel = TopLevel.GetTopLevel(this);
+            _photoFormatTopLevel?.AddHandler(KeyDownEvent, PhotoFormatShortcut_KeyDown, RoutingStrategies.Tunnel);
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            _photoFormatTopLevel?.RemoveHandler(KeyDownEvent, PhotoFormatShortcut_KeyDown);
+            _photoFormatTopLevel = null;
+        };
+    }
+
+    private void PhotoFormatShortcut_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!IsEffectivelyVisible || DataContext is not CollectionsViewModel vm)
+            return;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && e.KeyModifiers.HasFlag(KeyModifiers.Shift)
+            && (e.Key == Key.Y || e.PhysicalKey == PhysicalKey.Y))
+        {
+            vm.ToggleFormPhotoStorageFormatOption();
+            e.Handled = true;
+        }
     }
 
     private void NewCollection_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
