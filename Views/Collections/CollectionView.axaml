@@ -238,6 +238,56 @@
                              MaxWidth="380"
                              HorizontalAlignment="Center"
                              TextAlignment="Center" />
+
+                  <!-- Formato das fotos (JPEG/WebP): painel escondido, abre com Ctrl+Shift+Y (CollectionView.axaml.cs). -->
+                  <Border IsVisible="{Binding IsPhotoStorageFormatPanelVisible}"
+                          Margin="0,8,0,0"
+                          Padding="12"
+                          CornerRadius="8"
+                          BorderThickness="1"
+                          BorderBrush="#FFFFB020"
+                          Background="#22FFB020"
+                          HorizontalAlignment="Center"
+                          MaxWidth="420">
+                    <StackPanel Spacing="8">
+                      <TextBlock Text="Formato de armazenamento das fotos" FontWeight="SemiBold" />
+                      <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource MetaFg}"
+                                 Text="Formato em que o Uploader comprime as fotos desta coleção. A extensão original do arquivo é mantida. Vale para as próximas fotos enviadas." />
+                      <TextBlock FontSize="12">
+                        <Run Text="Atual: " />
+                        <Run Text="{Binding SelectedCollectionPhotoStorageFormatText}" FontWeight="SemiBold" />
+                      </TextBlock>
+                      <StackPanel Orientation="Horizontal" Spacing="16">
+                        <RadioButton GroupName="PhotoStorageFormat" Content="JPEG (padrão)"
+                                     IsChecked="{Binding !PhotoStorageFormatWebPSelected, Mode=OneWay}"
+                                     IsEnabled="{Binding !IsSavingPhotoStorageFormat}" />
+                        <RadioButton GroupName="PhotoStorageFormat" Content="WebP (teste)"
+                                     IsChecked="{Binding PhotoStorageFormatWebPSelected}"
+                                     IsEnabled="{Binding !IsSavingPhotoStorageFormat}" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Button Command="{Binding SavePhotoStorageFormatCommand}" IsEnabled="{Binding !IsSavingPhotoStorageFormat}" Padding="10,5">
+                          <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{Tr 'Save'}" VerticalAlignment="Center" />
+                            <ui:ProgressRing IsVisible="{Binding IsSavingPhotoStorageFormat}" BorderThickness="3" IsIndeterminate="True" Width="12" Height="12" VerticalAlignment="Center" />
+                          </StackPanel>
+                        </Button>
+                        <Button Command="{Binding ClosePhotoStorageFormatPanelCommand}" Padding="10,5">
+                          <TextBlock Text="Fechar" VerticalAlignment="Center" />
+                        </Button>
+                      </StackPanel>
+                      <TextBlock Text="{Binding PhotoStorageFormatMessage}"
+                                 IsVisible="{Binding PhotoStorageFormatMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                 Classes.error="{Binding PhotoStorageFormatMessageIsError}"
+                                 FontSize="11"
+                                 TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border.Styles>
+                      <Style Selector="TextBlock.error">
+                        <Setter Property="Foreground" Value="#FFFF6B6B" />
+                      </Style>
+                    </Border.Styles>
+                  </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Vertical" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
