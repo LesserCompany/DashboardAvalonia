@@ -2,11 +2,13 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction.Users.Graduate;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -111,6 +113,65 @@ public partial class EditIds : UserControl
         FailedItemsExpander.IsVisible = false;
         FailedItemsExpander.IsExpanded = false;
         FailedItemsList.ItemsSource = null;
+    }
+
+    private async void DownloadParticipantsExcel_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not EditIdsViewModel vm)
+            return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.StorageProvider == null)
+            return;
+
+        var safeName = string.Concat((vm.TbCollectionName ?? "").Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)).Trim();
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Salvar Excel dos participantes",
+            SuggestedFileName = $"participantes-{(safeName == "" ? "colecao" : safeName)}-{DateTime.Now:yyyy-MM-dd}.xlsx",
+            DefaultExtension = "xlsx",
+            ShowOverwritePrompt = true,
+            FileTypeChoices = new List<FilePickerFileType>
+            {
+                new("Excel") { Patterns = new List<string> { "*.xlsx" } }
+            }
+        });
+        if (file == null)
+            return;
+
+        DownloadParticipantsExcelButton.IsEnabled = false;
+        string? error;
+        try
+        {
+            // Gera em memória e só grava se deu certo (erro não deixa arquivo vazio/pela metade).
+            using var buffer = new MemoryStream();
+            error = await vm.ExportParticipantsExcelAsync(buffer);
+            if (error == null)
+            {
+                await using var stream = await file.OpenWriteAsync();
+                stream.SetLength(0);
+                buffer.Position = 0;
+                await buffer.CopyToAsync(stream);
+            }
+        }
+        catch (IOException ex)
+        {
+            error = "Não foi possível salvar o arquivo. Se ele estiver aberto no Excel, feche e tente novamente.\n\n" + ex.Message;
+        }
+        catch (Exception ex)
+        {
+            error = "Erro ao gerar o Excel: " + ex.Message;
+        }
+        finally
+        {
+            DownloadParticipantsExcelButton.IsEnabled = true;
+        }
+
+        var path = file.TryGetLocalPath() ?? file.Name;
+        var box = error == null
+            ? MessageBoxManager.GetMessageBoxStandard("", $"Excel salvo em:\n{path}\n\nEdite os dados e arraste o arquivo para a área abaixo. Não altere a coluna \"{EditIdsViewModel.ParticipantIdHeader}\".")
+            : MessageBoxManager.GetMessageBoxStandard("Erro", error);
+        await box.ShowWindowDialogAsync(MainWindow.instance);
     }
 
     private void ExcelDropZone_OnDragOver(object? sender, DragEventArgs e)

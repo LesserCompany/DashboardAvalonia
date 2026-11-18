@@ -304,6 +304,14 @@
     "en-US": "Edit data in excel",
     "pt-BR": "Editar dados no excel"
   },
+  "Download participants excel": {
+    "en-US": "Download participants excel",
+    "pt-BR": "Baixar Excel dos participantes"
+  },
+  "Download participants excel tip": {
+    "en-US": "Saves an Excel file with all participants and their ID. Edit it and drop it below: each row keeps editing the same participant, even if all of its data changed. Do not change the participant ID column; leave it empty for new participants.",
+    "pt-BR": "Salva um Excel com todos os participantes e o Id de cada um. Edite e arraste o arquivo abaixo: cada linha continua editando o mesmo participante, mesmo que todos os dados dele mudem. Não altere a coluna Id participante; deixe vazia para participantes novos."
+  },
   "Drop your excel file here": {
     "en-US": "Drop your excel file here",
     "pt-BR": "Solte aqui o seu arquivo excel"

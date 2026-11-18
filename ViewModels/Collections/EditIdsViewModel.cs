@@ -1,8 +1,10 @@
 using Avalonia.Media;
 using Avalonia.Threading;
+using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LesserDashboardClient.Helpers;
+using OfficeOpenXml;
 using SharedClientSide.Helpers;
 using SharedClientSide.ServerInteraction;
 using SharedClientSide.ServerInteraction.Users.Graduate;
@@ -84,6 +86,14 @@ public partial class EditIdsViewModel : ObservableObject
 
     public string RecFolderForExcel => _recFolder;
 
+    // Cabeçalho da coluna com o Id do participante no servidor (CompanyCustomersCollectionId) no Excel de
+    // "Baixar Excel dos participantes". Ao arrastar o Excel de volta, a linha com Id edita esse participante
+    // mesmo que foto, CPF, nome e e-mail tenham mudado; linha sem Id é participante novo.
+    public const string ParticipantIdHeader = "Id participante";
+
+    // Ids dos participantes da coleção segundo a última leitura do servidor (carga da tela ou exportação).
+    private readonly HashSet<long> _serverParticipantIds = new();
+
     public bool IsPhotoSalesEnabled => _collection.EnablePhotosSales == true;
 
     public ObservableCollection<GraduateByCPFWithPhotos> GraduatesData { get; } = new();
@@ -164,28 +174,48 @@ public partial class EditIdsViewModel : ObservableObject
         GraduatesData.Clear();
         var result = await _lfc.GetGraduatesByCPFByClassCode(_collection.classCode);
         var graduates = result?.Content ?? new();
+        if (result?.Content != null)
+            RememberServerParticipantIds(graduates);
         foreach (var g in graduates)
             GraduatesData.Add(g);
 
-        MergeRecognitionShortPathsFromRecFolder();
+        foreach (var shortPath in UnregisteredRecognitionShortPaths(GraduatesData))
+        {
+            GraduatesData.Add(new GraduateByCPFWithPhotos
+            {
+                ShortPath = shortPath,
+                Name = "",
+                Blocked = false,
+                BlockType = GraduateByCPF.BlockTypes.WATERMARK
+            });
+        }
         SortGraduatesDataAlphabetically();
     }
 
-    /// <summary>
-    /// Inclui na grade todos os shortpaths de reconhecimento da pasta local da PT,
-    /// como se o usuário tivesse selecionado a pasta (mesmo comportamento do New ID no Add IDs).
-    /// </summary>
-    private void MergeRecognitionShortPathsFromRecFolder()
+    private void RememberServerParticipantIds(IEnumerable<GraduateByCPF> serverGraduates)
     {
+        _serverParticipantIds.Clear();
+        foreach (var g in serverGraduates)
+            if (g?.CompanyCustomersCollectionId is long id && id > 0)
+                _serverParticipantIds.Add(id);
+    }
+
+    /// <summary>
+    /// Shortpaths de reconhecimento da pasta local da PT que ainda não estão em <paramref name="known"/>
+    /// (mesmo comportamento do New ID no Add IDs): entram na grade e no Excel como participantes novos.
+    /// </summary>
+    private List<string> UnregisteredRecognitionShortPaths(IEnumerable<GraduateByCPF> known)
+    {
+        var found = new List<string>();
         if (string.IsNullOrWhiteSpace(_recFolder) || !Directory.Exists(_recFolder))
-            return;
+            return found;
 
         if (!FileHelper.TryGetFilesWithExtensionsAndFilters(_recFolder, out var gradPhotos, out _, out _))
-            return;
+            return found;
 
         var recRoot = _recFolder.TrimEnd('\\', '/');
         var existingShortPaths = new HashSet<string>(
-            GraduatesData
+            known
                 .Where(g => g != null && !string.IsNullOrWhiteSpace(g.ShortPath))
                 .Select(g => GraduateByCpfDuplicateChecker.NormalizeShortPath(g.ShortPath)),
             StringComparer.OrdinalIgnoreCase);
@@ -209,15 +239,10 @@ public partial class EditIdsViewModel : ObservableObject
             if (existingShortPaths.Contains(normalized))
                 continue;
 
-            GraduatesData.Add(new GraduateByCPFWithPhotos
-            {
-                ShortPath = shortPath,
-                Name = "",
-                Blocked = false,
-                BlockType = GraduateByCPF.BlockTypes.WATERMARK
-            });
+            found.Add(shortPath);
             existingShortPaths.Add(normalized);
         }
+        return found;
     }
 
     public void SortGraduatesDataAlphabetically()
@@ -416,11 +441,39 @@ public partial class EditIdsViewModel : ObservableObject
             return "Erro interno.";
 
         var working = new ObservableCollection<GraduateByCPF>(GraduatesData.Cast<GraduateByCPF>());
-        var err = collectionsVm.ImportGraduatesFromExcel(f, working, _recFolder, CanEditCPFs, CPFsErrorMessage, IsPhotoSalesEnabled);
+        var err = collectionsVm.ImportGraduatesFromExcel(f, working, _recFolder, CanEditCPFs, CPFsErrorMessage, IsPhotoSalesEnabled, readParticipantId: true);
+        if (err != null)
+            return err;
+
+        err = ValidateParticipantIds(working);
         if (err != null)
             return err;
 
         ApplyImportedGraduates(working);
+        return null;
+    }
+
+    // Id vindo do Excel tem que ser de um participante desta coleção e aparecer uma vez só; senão a linha
+    // editaria outro participante (ou dois participantes virariam um).
+    private string? ValidateParticipantIds(IEnumerable<GraduateByCPF> imported)
+    {
+        var seen = new Dictionary<long, string>();
+        foreach (var g in imported)
+        {
+            if (g?.CompanyCustomersCollectionId is not long id)
+                continue;
+
+            var photo = string.IsNullOrWhiteSpace(g.ShortPath) ? "(sem foto)" : g.ShortPath;
+            if (!_serverParticipantIds.Contains(id))
+                return $"O {ParticipantIdHeader} {id} (foto {photo}) não pertence a esta coleção.\n\n" +
+                       "Use o Excel gerado por \"Baixar Excel dos participantes\" desta coleção, sem alterar a coluna " +
+                       $"\"{ParticipantIdHeader}\". Nas linhas de participantes novos, deixe essa coluna vazia.";
+
+            if (seen.TryGetValue(id, out var otherPhoto))
+                return $"O {ParticipantIdHeader} {id} aparece em mais de uma linha (fotos {otherPhoto} e {photo}).\n\n" +
+                       "Cada participante deve aparecer uma única vez. Corrija o Excel e tente novamente.";
+            seen[id] = photo;
+        }
         return null;
     }
 
@@ -436,17 +489,113 @@ public partial class EditIdsViewModel : ObservableObject
                 idsByShortPath[key] = id;
         }
 
+        // Id que veio do Excel vence; o da foto (ShortPath) só completa linha sem Id e se nenhuma outra linha já
+        // usa esse Id (ex.: participante cuja foto foi trocada e outra linha nova com a foto antiga).
+        var usedIds = new HashSet<long>(source
+            .Select(g => g?.CompanyCustomersCollectionId)
+            .Where(id => id is long v && v > 0)
+            .Select(id => id!.Value));
+
         GraduatesData.Clear();
         foreach (var g in source)
         {
-            var row = g is GraduateByCPFWithPhotos wp ? wp : new GraduateByCPFWithPhotos(g);
+            // O construtor de cópia só copia IGraduateByCPF, que não tem o Id.
+            var row = g is GraduateByCPFWithPhotos wp ? wp : new GraduateByCPFWithPhotos(g) { CompanyCustomersCollectionId = g.CompanyCustomersCollectionId };
             var key = GraduateByCpfDuplicateChecker.NormalizeShortPath(row.ShortPath);
             if ((row.CompanyCustomersCollectionId is not long current || current <= 0)
                 && !string.IsNullOrEmpty(key)
-                && idsByShortPath.TryGetValue(key, out var preserved))
+                && idsByShortPath.TryGetValue(key, out var preserved)
+                && usedIds.Add(preserved))
                 row.CompanyCustomersCollectionId = preserved;
             GraduatesData.Add(row);
         }
         SortGraduatesDataAlphabetically();
+    }
+
+    /// <summary>
+    /// "Baixar Excel dos participantes": grava em <paramref name="output"/> todos os participantes da coleção,
+    /// lidos de novo do servidor (nunca da grade, que pode ter edições não enviadas), com a coluna
+    /// <see cref="ParticipantIdHeader"/> = Id dado pelo servidor. Fotos da pasta de reconhecimento ainda sem
+    /// participante entram no fim, com o Id vazio (participantes novos). Mesmas colunas de "Editar dados no excel",
+    /// então o arquivo volta pela área de arrastar. Retorna null ou a mensagem de erro.
+    /// </summary>
+    public async Task<string?> ExportParticipantsExcelAsync(Stream output)
+    {
+        var result = await _lfc.GetGraduatesByCPFByClassCode(_collection.classCode);
+        if (result?.Content == null || result.success != true)
+            return "Não foi possível buscar os participantes da coleção no servidor. Tente novamente.";
+
+        var participants = result.Content.Where(g => g != null).Cast<GraduateByCPF>().ToList();
+        RememberServerParticipantIds(participants);
+
+        var withoutId = participants.Count(g => g.CompanyCustomersCollectionId is not long id || id <= 0);
+        if (withoutId > 0)
+            return $"O servidor não informou o {ParticipantIdHeader} de {withoutId} participante(s). O Excel não foi gerado. Tente novamente mais tarde.";
+
+        // Mesma ordem da grade (pela foto), fotos novas no meio. Participante sem foto vai pro fim: a importação
+        // para na primeira linha com a foto vazia.
+        var rows = participants
+            .Select(g => (Id: g.CompanyCustomersCollectionId, ShortPath: g.ShortPath, Graduate: (GraduateByCPF?)g))
+            .Concat(UnregisteredRecognitionShortPaths(participants).Select(p => (Id: (long?)null, ShortPath: p, Graduate: (GraduateByCPF?)null)))
+            .OrderBy(x => string.IsNullOrWhiteSpace(x.ShortPath) ? 1 : 0)
+            .ThenBy(x => x.ShortPath, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        using var excel = new ExcelPackage();
+        var ws = excel.Workbook.Worksheets.Add("Participantes");
+
+        var headers = new[]
+        {
+            ParticipantIdHeader,
+            TranslationHelper.Default.PHOTO_NAME,
+            TranslationHelper.Default.ID,
+            Loc.Tr("Name"),
+            "Email",
+            TranslationHelper.Default.MAX_PHOTOS,
+            TranslationHelper.Default.MAX_PHOTOS_FOR_TREATMENT,
+            TranslationHelper.Default.FREE_PHOTOS_FROM_THIS_CLASS_CODE,
+            TranslationHelper.Default.GRADUATE_CAN_VIEW_ALL_PHOTOS_FROM_THIS_CLASS_CODE,
+            TranslationHelper.Default.BLOCKED,
+            TranslationHelper.Default.BLOCK_MODE
+        };
+        for (var c = 0; c < headers.Length; c++)
+            ws.Cells[1, c + 1].Value = headers[c];
+
+        void WriteRow(int r, long? id, string? shortPath, GraduateByCPF? g)
+        {
+            if (id != null)
+                ws.Cells[r, 1].Value = id.Value;
+            ws.Cells[r, 2].Value = string.IsNullOrWhiteSpace(shortPath) ? null : shortPath;   // vazia = fim da importação
+            ws.Cells[r, 3].Value = g?.CPF ?? "";
+            ws.Cells[r, 4].Value = g?.Name ?? "";
+            ws.Cells[r, 5].Value = g?.Email ?? "";
+            ws.Cells[r, 6].Value = g?.MaxPhotos?.ToString() ?? "";
+            ws.Cells[r, 7].Value = g?.MaxPhotosForTreatmentRequest?.ToString() ?? "";
+            ws.Cells[r, 8].Value = g?.FreePhotosFromThisClassCode?.ToString() ?? "";
+            ws.Cells[r, 9].Value = g?.GraduateCanViewAllPhotosFromThisClassCode?.ToString() ?? "";
+            ws.Cells[r, 10].Value = (g?.Blocked ?? false).ToString();
+            ws.Cells[r, 11].Value = string.IsNullOrWhiteSpace(g?.BlockType) ? GraduateByCPF.BlockTypes.WATERMARK : g!.BlockType;
+        }
+
+        var row = 2;
+        foreach (var x in rows)
+            WriteRow(row++, x.Id, x.ShortPath, x.Graduate);
+
+        var lastRow = Math.Max(row - 1, 1);
+        ws.Cells[1, 1, 1, headers.Length].Style.Font.Bold = true;
+        ws.Cells[1, 1, lastRow, 1].Style.Numberformat.Format = "0";
+        ws.Cells[1, 1, lastRow, 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+        ws.Cells[1, 1, lastRow, 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(230, 230, 230));
+        ws.Cells[1, 1].AddComment("Preenchido pelo sistema: não altere. Linha sem Id = participante novo.", "Lesser");
+        ws.Cells[1, 3, lastRow, 3].Style.Numberformat.Format = "@";   // CPF como texto (mantém zeros à esquerda)
+        ws.View.FreezePanes(2, 1);
+        ws.Column(1).Width = 16;
+        ws.Column(2).Width = 60;
+        for (var c = 3; c <= headers.Length; c++)
+            ws.Column(c).Width = c <= 5 ? 30 : 18;
+
+        await excel.SaveAsAsync(output);
+        return null;
     }
 }

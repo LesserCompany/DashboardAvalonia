@@ -3150,7 +3150,8 @@ public partial class CollectionsViewModel : ViewModelBase
         string recFolder,
         bool canEditCpfs,
         string cpfsErrorMessage,
-        bool photoSalesEnabled = false)
+        bool photoSalesEnabled = false,
+        bool readParticipantId = false)
     {
         if (!canEditCpfs)
             return cpfsErrorMessage;
@@ -3251,6 +3252,11 @@ public partial class CollectionsViewModel : ViewModelBase
         var colGraduateCanViewAllPhotos = getCol(TranslationHelper.Default.GRADUATE_CAN_VIEW_ALL_PHOTOS_FROM_THIS_CLASS_CODE, "graduate can view all photos from this class", "formando pode ver todas as fotos desta turma");
         var colBlocked = getCol(TranslationHelper.Default.BLOCKED, "blocked", "bloqueado");
         var colBlockMode = getCol(TranslationHelper.Default.BLOCK_MODE, "block mode", "block type", "tipo de bloqueio");
+        // Só no Editar IDs (Excel gerado por "Baixar Excel dos participantes"): Id do participante no servidor
+        // (CompanyCustomersCollectionId). Só por cabeçalho, sem posição padrão: Excel sem a coluna segue como antes.
+        var colParticipantId = readParticipantId
+            ? getCol(EditIdsViewModel.ParticipantIdHeader, "participant id", "id do participante")
+            : -1;
 
         static string ExcelColumnName(int colNumber)
         {
@@ -3468,6 +3474,39 @@ public partial class CollectionsViewModel : ViewModelBase
                     {
                         gradByCPF.BlockType = "ACCESS_DENIED";
                     }
+                }
+            }
+
+            if (colParticipantId > 0)
+            {
+                var idValue = workSheet.Cells[i, colParticipantId].Value;
+                var idRaw = idValue?.ToString()?.Trim() ?? "";
+                if (idRaw != "")
+                {
+                    long participantId = 0;
+                    bool parsedId;
+                    if (idValue is double d)
+                    {
+                        parsedId = d >= 1 && d < 9e15 && d == Math.Floor(d);
+                        if (parsedId)
+                            participantId = (long)d;
+                    }
+                    else
+                    {
+                        parsedId = long.TryParse(idRaw, NumberStyles.None, CultureInfo.InvariantCulture, out participantId) && participantId > 0;
+                    }
+                    if (!parsedId)
+                    {
+                        var colExcel = ExcelColumnName(colParticipantId);
+                        return $"Excel formatado de forma errada — importação interrompida.\n\n" +
+                               $"Linha: {i}\n" +
+                               $"Campo: {EditIdsViewModel.ParticipantIdHeader}\n" +
+                               $"Coluna (Excel): {colExcel} (#{colParticipantId})\n" +
+                               $"Valor encontrado: \"{idRaw}\"\n\n" +
+                               "Esta coluna é preenchida pelo sistema e não deve ser alterada. " +
+                               "Deixe vazia apenas nas linhas de participantes novos.";
+                    }
+                    gradByCPF.CompanyCustomersCollectionId = participantId;
                 }
             }
             graduates.Add(gradByCPF);

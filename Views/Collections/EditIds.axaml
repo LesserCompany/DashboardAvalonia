@@ -80,6 +80,15 @@
                       HorizontalAlignment="Stretch"
                       HorizontalContentAlignment="Center" />
 
+              <!-- Salva no computador o Excel com todos os participantes e o Id dado pelo servidor; editado e
+                   arrastado de volta abaixo, cada linha com Id edita o mesmo participante. -->
+              <Button x:Name="DownloadParticipantsExcelButton"
+                      Click="DownloadParticipantsExcel_Click"
+                      Content="{Tr 'Download participants excel'}"
+                      ToolTip.Tip="{Tr 'Download participants excel tip'}"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center" />
+
               <Border Height="100"
                       BorderThickness="2"
                       BorderBrush="{StaticResource AccentButtonBackground}"
