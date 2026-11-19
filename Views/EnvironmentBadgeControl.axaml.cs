@@ -68,11 +68,11 @@ namespace LesserDashboardClient.Views
 
                 if (hasOverride)
                 {
-                    TooltipText = $"Ambiente ativo: {activeEnv} (Override da sessão)\nAmbiente do build: {buildEnv}\n\nEsta troca vale apenas nesta sessão.";
+                    TooltipText = $"Ambiente ativo: {activeEnv} (Override da sessão)\nAmbiente do servidor: {buildEnv}\n\nEsta troca vale apenas nesta sessão.";
                 }
                 else
                 {
-                    TooltipText = $"Ambiente ativo: {activeEnv} (Do build)";
+                    TooltipText = $"Ambiente ativo: {activeEnv} (Do servidor)";
                 }
             }
             catch (Exception ex)

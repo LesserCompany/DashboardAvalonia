@@ -12,12 +12,6 @@
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'=='Alpha'">
-      <DefineConstants>TRACE;ALPHA</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='Beta'">
-      <DefineConstants>TRACE;BETA</DefineConstants>
-    </PropertyGroup>
 
     <ItemGroup>
         <AvaloniaResource Include="Assets\**" />

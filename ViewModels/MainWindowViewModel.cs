@@ -138,16 +138,20 @@ public partial class MainWindowViewModel : ViewModelBase
         .OrderBy(m => m.IsRead)
         .ThenByDescending(m => m.CreatedDate);
 
+    private void RefreshAppModeAndTitle()
+    {
+        AppMode = LesserFunctionClient.GetConfig();
+        TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
+    }
+
     public MainWindowViewModel()
     {
         Instance = this;
         
-        // Inicializa o AppMode baseado na configuração de compilação (Alpha, Beta, Debug, Prod)
-        string config = LesserFunctionClient.GetConfig();
-        AppMode = config;
-        
-        // Define o título da janela com o modo de build
-        TitleApp = $"LetsPic Lesser Client - {AppVersion} - {AppMode}";
+        // Ambiente na barra de título: vem do servidor (GetTargetEnvironment), não do build — atualiza quando ele
+        // responder ou o usuário trocar de conta.
+        LesserFunctionClient.TargetEnvironmentChanged += () => Dispatcher.UIThread.Post(RefreshAppModeAndTitle);
+        RefreshAppModeAndTitle();
 
         SelectedTabIndex = FirstVisibleTabIndex();
         _previousSelectedTabIndex = SelectedTabIndex;
