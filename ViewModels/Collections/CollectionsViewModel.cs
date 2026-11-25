@@ -23,6 +23,7 @@ using SharedClientSide.ServerInteraction.Users.Graduate;
 using SharedClientSide.ServerInteraction.Users.Professionals;
 using SharedClientSide.ServerInteraction.Users.Requests;
 using SharedClientSide.ServerInteraction.Users.Results;
+using SharedClientSide_AVALONIA.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -4690,6 +4691,14 @@ public partial class CollectionsViewModel : ViewModelBase
             if (!Directory.Exists(TbEventFolder))
             {
                 GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Events folder not found"));
+                return;
+            }
+            // Fotos em pasta de nuvem (OneDrive ou Google Drive) não são enviadas: o aviso pede pasta local.
+            var blockedPhotoFolder = CloudFolderGuard.CreateDefault().FindFirstBlocked(
+                new[] { IsTreatmentOnlyCombo ? null : TbRecFolder, TbEventFolder });
+            if (blockedPhotoFolder != null)
+            {
+                await GlobalAppStateViewModel.Instance.ShowUnsupportedPhotoFolderDialogAsync(blockedPhotoFolder);
                 return;
             }
             }

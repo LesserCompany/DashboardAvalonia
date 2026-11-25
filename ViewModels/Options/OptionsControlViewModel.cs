@@ -2,8 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CodingSeb.Localization;
 using Avalonia.Threading;
+using SharedClientSide_AVALONIA.Helpers;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace LesserDashboardClient.ViewModels.Options;
 
@@ -114,13 +116,22 @@ public partial class OptionsControlViewModel : ViewModelBase
         }
     }
     [RelayCommand]
-    public void SavePathToDownloadCommand()
+    public async Task SavePathToDownloadCommand()
     {
         // Validar se o campo está vazio - verificar diretamente o _pathToDownload
         // Se o campo estiver vazio, não permitir salvar mesmo que exista um valor padrão
         if (string.IsNullOrWhiteSpace(_pathToDownload))
         {
             GlobalAppStateViewModel.Instance.ShowDialogOk(Loc.Tr("Please select a directory path"));
+            return;
+        }
+
+        // Pasta de nuvem não é salva: o aviso oferece criar e usar a pasta local do LetsPic.
+        var cloudCheck = CloudFolderGuard.CreateDefault().Check(_pathToDownload);
+        if (!cloudCheck.IsSupported)
+        {
+            if (await GlobalAppStateViewModel.Instance.ShowUnsupportedWorkFolderDialogAsync(cloudCheck))
+                RefreshPathToDownload();
             return;
         }
 

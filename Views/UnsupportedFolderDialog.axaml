@@ -1,0 +1,107 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:LesserDashboardClient.Views"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="420"
+        x:Class="LesserDashboardClient.Views.UnsupportedFolderDialog"
+        x:DataType="local:UnsupportedFolderDialog"
+        Title="Pasta não suportada"
+        Width="560"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+
+  <!-- Aviso de pasta no OneDrive/Google Drive (CloudFolderGuard). Mesma paleta laranja do ReuploadWarningDialog. -->
+  <Window.Styles>
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="#FF9800"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#F57C00"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E65100"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto">
+
+    <!-- Faixa de alerta -->
+    <Border Grid.Row="0" Padding="24,18">
+      <Border.Background>
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+          <GradientStop Offset="0" Color="#FF9800"/>
+          <GradientStop Offset="1" Color="#E65100"/>
+        </LinearGradientBrush>
+      </Border.Background>
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24"
+                Background="#33FFFFFF" VerticalAlignment="Center">
+          <Path Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"
+                Fill="White" Width="26" Height="26" Stretch="Uniform"
+                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+          <TextBlock Text="PASTA NÃO SUPORTADA"
+                     FontSize="11" FontWeight="Bold" LetterSpacing="1.5"
+                     Foreground="#FFE0B2"/>
+          <TextBlock Text="{Binding Heading}"
+                     FontSize="20" FontWeight="Bold"
+                     Foreground="White" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Conteúdo -->
+    <StackPanel Grid.Row="1" Margin="24,20,24,0" Spacing="14">
+
+      <!-- Caminho bloqueado -->
+      <Border Background="#1FFF9800" BorderBrush="#FF9800" BorderThickness="1"
+              CornerRadius="6" Padding="12,10">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <Path Grid.Column="0"
+                Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+                Fill="#FF9800" Width="18" Height="18" Stretch="Uniform"
+                VerticalAlignment="Center"/>
+          <SelectableTextBlock Grid.Column="1" Text="{Binding FolderPath}"
+                               FontFamily="Consolas, Menlo, monospace" FontSize="13"
+                               TextWrapping="Wrap" VerticalAlignment="Center"/>
+        </Grid>
+      </Border>
+
+      <TextBlock Text="{Binding Explanation}" FontSize="13" LineHeight="20" TextWrapping="Wrap"/>
+
+      <!-- O que fazer -->
+      <Border Background="#1A4CAF50" BorderBrush="#4CAF50" BorderThickness="1"
+              CornerRadius="6" Padding="12,10">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <Path Grid.Column="0"
+                Data="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"
+                Fill="#4CAF50" Width="16" Height="16" Stretch="Uniform"
+                VerticalAlignment="Top" Margin="0,2,0,0"/>
+          <TextBlock Grid.Column="1" Text="{Binding Advice}"
+                     FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        </Grid>
+      </Border>
+    </StackPanel>
+
+    <!-- Botões -->
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                Spacing="10" Margin="24,20,24,22">
+      <Button Content="{Binding SecondaryButtonText}"
+              Command="{Binding SecondaryCommand}"
+              MinWidth="120" Padding="16,8"/>
+      <Button Content="{Binding PrimaryButtonText}"
+              Command="{Binding PrimaryCommand}"
+              IsVisible="{Binding HasPrimaryButton}"
+              IsDefault="True"
+              Classes="primary"
+              MinWidth="150" Padding="16,8"/>
+    </StackPanel>
+  </Grid>
+</Window>

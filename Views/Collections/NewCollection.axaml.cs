@@ -9,6 +9,7 @@ using LesserDashboardClient.ViewModels.Collections;
 using LesserDashboardClient.Views;
 using MsBox.Avalonia;
 using SharedClientSide.ServerInteraction.Users.Graduate;
+using SharedClientSide_AVALONIA.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -202,6 +203,14 @@ public partial class NewCollection : UserControl
         if (folder != null && DataContext is CollectionsViewModel vm)
         {
             string selectedPath = folder.Path.LocalPath;
+
+            // Pasta de nuvem (OneDrive ou Google Drive) não é aceita: o aviso pede para mover as fotos.
+            var cloudCheck = CloudFolderGuard.CreateDefault().Check(selectedPath);
+            if (!cloudCheck.IsSupported)
+            {
+                await GlobalAppStateViewModel.Instance.ShowUnsupportedPhotoFolderDialogAsync(cloudCheck);
+                return;
+            }
             
             // Combo apenas tratamento: exceção robusta — aceitar qualquer pasta existente (sem exigir nome 1.eventos/eventos/event)
             bool acceptFolder = vm.IsTreatmentOnlyCombo
@@ -240,6 +249,14 @@ public partial class NewCollection : UserControl
         if (folder != null && DataContext is CollectionsViewModel vm)
         {
             string selectedPath = folder.Path.LocalPath;
+
+            // Pasta de nuvem (OneDrive ou Google Drive) não é aceita: o aviso pede para mover as fotos.
+            var cloudCheck = CloudFolderGuard.CreateDefault().Check(selectedPath);
+            if (!cloudCheck.IsSupported)
+            {
+                await GlobalAppStateViewModel.Instance.ShowUnsupportedPhotoFolderDialogAsync(cloudCheck);
+                return;
+            }
             
             // Validar se a pasta é de reconhecimentos
             if (IsValidRecognitionFolder(selectedPath))

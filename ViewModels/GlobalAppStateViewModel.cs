@@ -9,6 +9,7 @@ using MsBox.Avalonia;
 using MsBox.Avalonia.Dto;
 using MsBox.Avalonia.Models;
 using SharedClientSide.ServerInteraction;
+using SharedClientSide_AVALONIA.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -575,6 +576,13 @@ public partial class GlobalAppStateViewModel : ObservableObject
                 return (false, Loc.Tr("Download directory is not accessible") + $": {ex.Message}");
             }
 
+            // O Uploader grava nessa pasta: pasta de nuvem (OneDrive ou Google Drive) não é suportada.
+            var cloudCheck = CloudFolderGuard.CreateDefault().Check(downloadPath);
+            if (!cloudCheck.IsSupported)
+            {
+                return (false, CloudFolderGuard.BuildMessage(cloudCheck, FolderRole.WorkFolder));
+            }
+
             return (true, string.Empty);
         }
         catch (Exception ex)
@@ -622,6 +630,61 @@ public partial class GlobalAppStateViewModel : ObservableObject
         }
     }
 
+    /// <summary>Texto do botão que cria e passa a usar a pasta de trabalho local (ex.: "Usar C:\LetsPic").</summary>
+    public static string LocalWorkFolderButtonLabel => $"Usar {LocalWorkFolder.DefaultCandidates()[0]}";
+
+    /// <summary>
+    /// Cria C:\LetsPic (ou %USERPROFILE%\LetsPic se não der para gravar lá), confere que é local e salva como pasta de trabalho.
+    /// </summary>
+    public bool TryUseLocalWorkFolder()
+    {
+        string? folder = LocalWorkFolder.Prepare(
+            LocalWorkFolder.DefaultCandidates(), CloudFolderGuard.CreateDefault(), new FileSystemLocalFolderWriter());
+
+        if (folder == null)
+        {
+            ShowDialogOk("Não foi possível criar a pasta local do LetsPic. Escolha outra pasta local no seu computador.");
+            return false;
+        }
+
+        // Altera o objeto atual (e não recarrega) para a tela de Opções, que observa este objeto, mostrar o novo caminho.
+        options.DefaultPathToDownloadProfessionalTaskFiles = folder;
+        options.Save();
+        return true;
+    }
+
+    /// <summary>
+    /// Aviso de pasta de trabalho em nuvem, com o botão "Usar C:\LetsPic". Retorna true se a pasta foi trocada.
+    /// </summary>
+    public async Task<bool> ShowUnsupportedWorkFolderDialogAsync(FolderCheckResult blockedFolder)
+    {
+        var choice = await ShowUnsupportedFolderWindowAsync(
+            blockedFolder, FolderRole.WorkFolder, LocalWorkFolderButtonLabel, "Escolher outra pasta");
+
+        return choice == UnsupportedFolderDialog.Choice.Primary && TryUseLocalWorkFolder();
+    }
+
+    /// <summary>Aviso de pasta de fotos em nuvem: só explica, as fotos precisam ir para uma pasta local.</summary>
+    public async Task ShowUnsupportedPhotoFolderDialogAsync(FolderCheckResult blockedFolder)
+    {
+        await ShowUnsupportedFolderWindowAsync(blockedFolder, FolderRole.PhotoFolder, null, "Entendi");
+    }
+
+    /// <summary>Janela de aviso destacada (faixa laranja). Sem janela principal aberta, cai no aviso de texto.</summary>
+    private async Task<UnsupportedFolderDialog.Choice> ShowUnsupportedFolderWindowAsync(
+        FolderCheckResult blockedFolder, FolderRole role, string? primaryButtonText, string secondaryButtonText)
+    {
+        if (MainWindow.instance == null)
+        {
+            ShowDialogOk(CloudFolderGuard.BuildMessage(blockedFolder, role), "Pasta não suportada");
+            return UnsupportedFolderDialog.Choice.Closed;
+        }
+
+        var dialog = new UnsupportedFolderDialog(blockedFolder, role, primaryButtonText, secondaryButtonText);
+        await dialog.ShowDialog(MainWindow.instance);
+        return dialog.Result;
+    }
+
     /// <summary>
     /// Valida o diretório de downloads e mostra dialog se inválido
     /// </summary>
@@ -648,6 +711,36 @@ public partial class GlobalAppStateViewModel : ObservableObject
                 bool directoryValid = false;
                 while (!directoryValid)
                 {
+                    // Pasta de trabalho no OneDrive/Google Drive: aviso destacado com o botão "Usar C:\LetsPic".
+                    var cloudCheck = CloudFolderGuard.CreateDefault().Check(GetDownloadPathFromSettingsFile());
+                    if (!cloudCheck.IsSupported)
+                    {
+                        var choice = await ShowUnsupportedFolderWindowAsync(
+                            cloudCheck, FolderRole.WorkFolder, LocalWorkFolderButtonLabel, Loc.Tr("Select Directory"));
+
+                        if (choice == UnsupportedFolderDialog.Choice.Primary)
+                        {
+                            if (TryUseLocalWorkFolder())
+                            {
+                                var (isValid, newErrorMessage) = ValidateDownloadDirectory();
+                                if (isValid)
+                                    directoryValid = true;
+                                else
+                                    errorMessage = newErrorMessage;
+                            }
+                        }
+                        else if (choice == UnsupportedFolderDialog.Choice.Secondary
+                                 && await OpenFolderPickerForDownloadDirectory())
+                        {
+                            var (isValid, newErrorMessage) = ValidateDownloadDirectory();
+                            if (isValid)
+                                directoryValid = true;
+                            else
+                                errorMessage = newErrorMessage;
+                        }
+                        continue;
+                    }
+
                     MessageBoxCustomParams customParams = new MessageBoxCustomParams
                     {
                         MaxWidth = 550,
@@ -659,6 +752,7 @@ public partial class GlobalAppStateViewModel : ObservableObject
                         ContentTitle = Loc.Tr("Invalid Download Directory"),
                         ButtonDefinitions = new List<ButtonDefinition>
                         {
+                            new ButtonDefinition { Name = LocalWorkFolderButtonLabel, IsDefault = true },
                             new ButtonDefinition { Name = Loc.Tr("Select Directory") },
                         },
                     };
@@ -666,7 +760,19 @@ public partial class GlobalAppStateViewModel : ObservableObject
                     var bbox = MessageBoxManager.GetMessageBoxCustom(customParams);
                     var result = await bbox.ShowWindowDialogAsync(MainWindow.instance);
 
-                    // O usuário só pode clicar em "Selecionar Diretório" (única opção)
+                    if (result == LocalWorkFolderButtonLabel)
+                    {
+                        if (TryUseLocalWorkFolder())
+                        {
+                            var (isValid, newErrorMessage) = ValidateDownloadDirectory();
+                            if (isValid)
+                                directoryValid = true;
+                            else
+                                errorMessage = newErrorMessage;
+                        }
+                        continue;
+                    }
+
                     if (result == Loc.Tr("Select Directory"))
                     {
                         // Abre o folder picker
