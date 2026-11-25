@@ -37,9 +37,6 @@
       <ListBoxItem ToolTip.Tip="{Tr 'SG tab CPF by collection tooltip'}">
         <TextBlock Text="{Tr 'SG tab CPF by collection'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>
-      <ListBoxItem ToolTip.Tip="{Tr 'SG tab CPF for collection tooltip'}">
-        <TextBlock Text="{Tr 'SG tab CPF for collection'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
-      </ListBoxItem>
       <ListBoxItem ToolTip.Tip="{Tr 'SG tab review photos chosen tooltip'}">
         <TextBlock Text="{Tr 'SG tab review photos chosen'}" FontSize="14" FontWeight="Bold" TextWrapping="Wrap" />
       </ListBoxItem>

@@ -23,21 +23,13 @@
     "en-US": "CPF management",
     "pt-BR": "Gerenciamento de CPF"
   },
-  "SG tab CPF for collection": {
-    "en-US": "CPF protection and access control",
-    "pt-BR": "Proteção e controle de CPFs"
-  },
-  "SG tab CPF for collection tooltip": {
-    "en-US": "Define which CPFs are protected or blocked and manage access rules in your collections (former “CPF management”).",
-    "pt-BR": "Define quais CPFs estão protegidos ou bloqueados e gerencia regras de acesso nas coleções (antigo Gerenciamento de CPF)."
-  },
   "SG tab CPF by collection": {
-    "en-US": "CPF search by collection",
-    "pt-BR": "Busca de CPF por coleção"
+    "en-US": "CPF search",
+    "pt-BR": "Busca por CPF"
   },
   "SG tab CPF by collection tooltip": {
-    "en-US": "Embedded web search for graduates by CPF (former “CPF search”).",
-    "pt-BR": "Busca web embutida de formandos por CPF (antiga Busca de CPF)."
+    "en-US": "Search by CPF. The block is shown first. CPF management opens on the next step.",
+    "pt-BR": "Busca por CPF. O bloqueio aparece primeiro. O gerenciamento de CPF abre no passo seguinte."
   },
   "SG tab review photos chosen": {
     "en-US": "Review photos chosen by CPFs",

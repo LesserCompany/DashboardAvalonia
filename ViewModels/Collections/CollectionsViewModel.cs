@@ -4216,6 +4216,16 @@ public partial class CollectionsViewModel : ViewModelBase
         target.recognitionPhotos = source.recognitionPhotos;
         target.eventPhotos = source.eventPhotos;
         target.photosSeparatedByProfessional = source.photosSeparatedByProfessional;
+        // Campos lidos pela tela de configuracao da colecao: sem eles, apos salvar ela reabria com o valor antigo.
+        target.ShowPhotosWithColorCorrectionByDefault = source.ShowPhotosWithColorCorrectionByDefault;
+        target.ShowPhotosWithFacialEnhancementByDefault = source.ShowPhotosWithFacialEnhancementByDefault;
+        target.AutoTreatmentVersion = source.AutoTreatmentVersion;
+        target.Description = source.Description;
+        target.AllowCPFsToSeeAllPhotos = source.AllowCPFsToSeeAllPhotos;
+        target.UploadPhotosAreAlreadySorted = source.UploadPhotosAreAlreadySorted;
+        target.EnableFaceRelevanceDetection = source.EnableFaceRelevanceDetection;
+        target.AllowDeletedProductionToBeFoundAnyone = source.AllowDeletedProductionToBeFoundAnyone;
+        target.PhotosDistribution = source.PhotosDistribution;
     }
 
     /// <summary>

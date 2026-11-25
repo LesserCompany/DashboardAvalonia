@@ -55,14 +55,14 @@ public partial class SearchGraduateControl : UserControl
 
         if (_lastInstance.DataContext is SearchGraduateViewModel vm)
         {
-            if (vm.SelectedSectionIndex == 1)
+            if (vm.SelectedSectionIndex == 0)
             {
                 vm.NotifyActiveUrlChanged();
                 _ = _lastInstance.InjectCpfsWhenReadyAsync();
             }
             else
             {
-                vm.SelectedSectionIndex = 1;
+                vm.SelectedSectionIndex = 0;
             }
         }
     }
@@ -80,7 +80,7 @@ public partial class SearchGraduateControl : UserControl
                 if (args.PropertyName == nameof(SearchGraduateViewModel.SelectedSectionIndex))
                 {
                     SyncOpenInWebButton(vm);
-                    if (vm.SelectedSectionIndex == 1 && _pendingCpfsToInject is { Count: > 0 })
+                    if (vm.SelectedSectionIndex == 0 && _pendingCpfsToInject is { Count: > 0 })
                         _ = InjectCpfsWhenReadyAsync();
                 }
                 else if (args.PropertyName == nameof(SearchGraduateViewModel.ActiveUrlWeb))
@@ -91,7 +91,7 @@ public partial class SearchGraduateControl : UserControl
 
             SyncOpenInWebButton(vm);
 
-            if (_pendingCpfsToInject is { Count: > 0 } && vm.SelectedSectionIndex == 1)
+            if (_pendingCpfsToInject is { Count: > 0 } && vm.SelectedSectionIndex == 0)
                 _ = InjectCpfsWhenReadyAsync();
         }
     }
@@ -164,8 +164,8 @@ public partial class SearchGraduateControl : UserControl
         if (_detachedFromVisualTree)
             return;
 
-        var urlWithFilter = AppendFilterQuery(vm.UrlProtectedCpf, cpfs);
-        var webWithFilter = AppendFilterQuery(vm.UrlProtectedCpfWeb, cpfs);
+        var urlWithFilter = AppendFilterQuery(vm.UrlSearchCPF, cpfs);
+        var webWithFilter = AppendFilterQuery(vm.UrlSearchCPFWeb, cpfs);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {

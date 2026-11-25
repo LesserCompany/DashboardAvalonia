@@ -33,25 +33,23 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
         public string ActiveUrl => SelectedSectionIndex switch
         {
             0 => UrlSearchCPF,
-            1 => UrlProtectedCpf,
-            2 => UrlReviewPhotos,
-            3 => UrlPhotosForTreatment,
+            1 => UrlReviewPhotos,
+            2 => UrlPhotosForTreatment,
             _ => "about:blank"
         };
 
         public string ActiveUrlWeb => SelectedSectionIndex switch
         {
             0 => UrlSearchCPFWeb,
-            1 => UrlProtectedCpfWeb,
-            2 => UrlReviewPhotosWeb,
-            3 => UrlPhotosForTreatmentWeb,
+            1 => UrlReviewPhotosWeb,
+            2 => UrlPhotosForTreatmentWeb,
             _ => ""
         };
 
         public SearchGraduateViewModel()
         {
-            // Índice 0 = busca web (Busca de CPF por coleção); índice 1 = CPFs protegidos (antigo Gerenciamento de CPF).
-            _selectedSectionIndex = SearchGraduateNavigationState.HasPendingCpfs ? 1 : 0;
+            // Índice 0 = busca por CPF (bloqueio primeiro, gerenciamento no passo seguinte).
+            _selectedSectionIndex = 0;
         }
 
         public void NotifyActiveUrlChanged()
@@ -89,15 +87,6 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             }
         }
 
-        public string UrlProtectedCpf
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(loginToken)) return "about:blank";
-                return baseUrl + "/management-cpfs/" + $"?token={loginToken}" + DarkModeParam + "&hideNavbar=true";
-            }
-        }
-
         // ======================== URLs para abrir na web (sem hideNavbar) ========================
 
         public string UrlSearchCPFWeb
@@ -124,15 +113,6 @@ namespace LesserDashboardClient.ViewModels.SearchGraduate
             {
                 if (string.IsNullOrEmpty(loginToken)) return "";
                 return baseUrl + "/photos-for-treatment/" + $"?token={loginToken}" + DarkModeParam;
-            }
-        }
-
-        public string UrlProtectedCpfWeb
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(loginToken)) return "";
-                return baseUrl + "/management-cpfs/" + $"?token={loginToken}" + DarkModeParam;
             }
         }
 

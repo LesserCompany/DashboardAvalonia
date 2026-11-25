@@ -6,7 +6,7 @@ namespace LesserDashboardClient.Tests;
 [TestFixture]
 public class LoginEnvironmentResolverTests
 {
-    const string Bootstrap = "https://functions.lesser.biz/api/";
+    const string Bootstrap = "https://functions.letspic.com.br/api/v2/";
 
     [Test]
     public void Username_vazio_vai_como_test()

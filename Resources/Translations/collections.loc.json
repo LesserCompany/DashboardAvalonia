@@ -454,7 +454,7 @@
   },
   "This contract name already exists...": {
     "en-US": "This contract name already exists. Do you wish to REUPLOAD it?\nThis may render the collection inaccessible if used inappropriately.\nContact suppor through contato@lesser.biz or Whatsapp +55 16 996-1234-34.\nPress YES if you are sure and if you didn't change anything in the root folder.\nand you wish to make a new attempt to upload the same photos, with no addition or removal\nand without alteration of the extension of any file of change in the name of any folder or file.",
-    "pt-BR": "ATENÇÃO: Esta turma já existe!\n\nDeseja fazer REUPLOAD?\n\nAVISO: Esta ação pode tornar a coleção inutilizável se utilizada incorretamente.\n\nAperte SIM apenas se:\n• Não alterou nenhuma foto na pasta\n• Não adicionou nem removeu fotos\n• Não mudou nomes de arquivos ou pastas\n• Não alterou extensões dos arquivos\n• Deseja tentar o upload novamente com as mesmas fotos\n\nPrecisa de ajuda? Contate o suporte:\nlucas@lesser.biz ou WhatsApp (16) 996-1234-34"
+    "pt-BR": "ATENÇÃO: Esta turma já existe!\n\nDeseja fazer REUPLOAD?\n\nAVISO: Esta ação pode tornar a coleção inutilizável se utilizada incorretamente.\n\nAperte SIM apenas se:\n• Não alterou nenhuma foto na pasta\n• Não adicionou nem removeu fotos\n• Não mudou nomes de arquivos ou pastas\n• Não alterou extensões dos arquivos\n• Deseja tentar o upload novamente com as mesmas fotos\n\nPrecisa de ajuda? Fale com o suporte pelo WhatsApp:\n(16) 996-1234-34"
   },
   "Waiting for upload...": {
     "en-US": "Waiting for upload...",
@@ -669,8 +669,8 @@
     "pt-BR": "Não foi possível carregar os dados da empresa para montar o link de compartilhamento."
   },
   "Open CPF protection for this collection filter": {
-    "en-US": "Open CPF management → CPF protection and access control with this collection’s CPFs in the filter",
-    "pt-BR": "Abrir Gerenciamento de CPF → Proteção e controle de CPFs com os CPFs desta coleção no filtro"
+    "en-US": "Open CPF search with this collection’s CPFs. The block is shown first; management opens on the next step.",
+    "pt-BR": "Abrir a Busca por CPF com os CPFs desta coleção. O bloqueio aparece primeiro; o gerenciamento abre no passo seguinte."
   },
   "Combos": {
     "en-US": "Combos",
