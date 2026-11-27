@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Helpers;
+﻿namespace LesserDashboardClient.Helpers;
 
 /// <summary>
 /// Liga ou oculta o tratamento parcial no Dashboard (painel, botão e ícone da lista).

@@ -1,4 +1,4 @@
-using Avalonia.Data.Converters;
+﻿using Avalonia.Data.Converters;
 using CodingSeb.Localization;
 using System;
 using System.Globalization;

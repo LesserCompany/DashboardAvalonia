@@ -1,4 +1,4 @@
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Threading;
 using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;

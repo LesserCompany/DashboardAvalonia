@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CodingSeb.Localization;
@@ -14,7 +14,7 @@ using SharedClientSide.ServerInteraction.Users.Professionals;
 
 namespace LesserDashboardClient.ViewModels.Collections;
 
-// Profissionais: tela "Gerenciar profissionais", prefixo do login no cadastro e permissões (RBAC) no cadastro e na
+// Profissionais: tela "Gerenciar profissionais", sufixo do login no cadastro e permissões (RBAC) no cadastro e na
 // edição. A grade de permissões é ProfessionalPermissionsEditorViewModel (componente ProfessionalPermissionsEditor).
 public partial class CollectionsViewModel
 {
@@ -56,31 +56,31 @@ public partial class CollectionsViewModel
         await LoadProfessionalsAsync();
     }
 
-    // ---- Cadastro: prefixo do login ----
+    // ---- Cadastro: sufixo do login ----
 
-    // Prefixo do login = nome da company + "@" (Helpers/ProfessionalUsernamePrefix). Vazio até a company carregar.
+    // Sufixo do login = "@" + nome da company (Helpers/ProfessionalUsernameSuffix). Vazio até a company carregar.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(NewProfessionalFinalUsername), nameof(HasNewProfessionalUsernamePrefix))]
-    private string newProfessionalUsernamePrefix = string.Empty;
+    [NotifyPropertyChangedFor(nameof(NewProfessionalFinalUsername), nameof(HasNewProfessionalUsernameSuffix))]
+    private string newProfessionalUsernameSuffix = string.Empty;
 
-    public bool HasNewProfessionalUsernamePrefix => !string.IsNullOrEmpty(NewProfessionalUsernamePrefix);
+    public bool HasNewProfessionalUsernameSuffix => !string.IsNullOrEmpty(NewProfessionalUsernameSuffix);
 
-    /// <summary>Login que será criado (prefixo + digitado), mostrado embaixo do campo.</summary>
-    public string NewProfessionalFinalUsername => ProfessionalUsernamePrefix.Build(NewProfessionalUsernamePrefix, TbNewProfessionalUsername);
+    /// <summary>Login que será criado (digitado + sufixo), mostrado embaixo do campo.</summary>
+    public string NewProfessionalFinalUsername => ProfessionalUsernameSuffix.Build(NewProfessionalUsernameSuffix, TbNewProfessionalUsername);
 
     partial void OnTbNewProfessionalUsernameChanged(string value) => OnPropertyChanged(nameof(NewProfessionalFinalUsername));
 
-    private async Task LoadNewProfessionalUsernamePrefixAsync()
+    private async Task LoadNewProfessionalUsernameSuffixAsync()
     {
         try
         {
             var r = await GlobalAppStateViewModel.lfc.GetCompanyDetails();
-            var prefix = r?.success == true ? ProfessionalUsernamePrefix.FromCompany(r.Content?.company) : string.Empty;
-            await Dispatcher.UIThread.InvokeAsync(() => NewProfessionalUsernamePrefix = prefix);
+            var suffix = r?.success == true ? ProfessionalUsernameSuffix.FromCompany(r.Content?.company) : string.Empty;
+            await Dispatcher.UIThread.InvokeAsync(() => NewProfessionalUsernameSuffix = suffix);
         }
         catch
         {
-            // Sem prefixo na tela; CreateNewProfessionalCommand tenta de novo com os dados da empresa.
+            // Sem sufixo na tela; CreateNewProfessionalCommand tenta de novo com os dados da empresa.
         }
     }
 

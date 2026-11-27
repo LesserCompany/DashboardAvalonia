@@ -1,4 +1,4 @@
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using QRCoder;
 using System.IO;
 

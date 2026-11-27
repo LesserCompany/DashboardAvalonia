@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Helpers
+﻿namespace LesserDashboardClient.Helpers
 {
     // Separador padrão de uma coleção nova (tela de nova coleção; ainda pode ser trocado pela lista de profissionais):
     //   - login de professional: ele mesmo (username completo do login, ex.: "test@testClaudio2" — é o mesmo valor

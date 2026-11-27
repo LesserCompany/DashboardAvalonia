@@ -1,0 +1,268 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:LesserDashboardClient.ViewModels.Update"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="720"
+        x:Class="LesserDashboardClient.Views.UpdateInstructionsWindow"
+        x:DataType="vm:UpdateInstructionsViewModel"
+        Title="{Binding Label}"
+        Width="600"
+        SizeToContent="Height"
+        MaxHeight="900"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource UpdSurface}">
+
+  <Design.DataContext>
+    <vm:UpdateInstructionsViewModel/>
+  </Design.DataContext>
+
+  <!-- Tela de instruções de atualização. Mesma faixa laranja dos alertas do app (UnsupportedFolderDialog).
+       Cores só pelos tokens abaixo. -->
+  <Window.Resources>
+    <SolidColorBrush x:Key="UpdSurface" Color="#2B2B2F"/>
+    <SolidColorBrush x:Key="UpdPanel" Color="#333338"/>
+    <SolidColorBrush x:Key="UpdPanelBorder" Color="#45454B"/>
+    <SolidColorBrush x:Key="UpdDivider" Color="#3A3A3E"/>
+    <SolidColorBrush x:Key="UpdText" Color="#F2F2F4"/>
+    <SolidColorBrush x:Key="UpdTextMuted" Color="#C4C4CA"/>
+    <SolidColorBrush x:Key="UpdTextSubtle" Color="#A3A3AA"/>
+    <SolidColorBrush x:Key="UpdAccent" Color="#FF9800"/>
+    <SolidColorBrush x:Key="UpdAccentHover" Color="#F57C00"/>
+    <SolidColorBrush x:Key="UpdAccentPressed" Color="#E65100"/>
+    <SolidColorBrush x:Key="UpdAccentSoft" Color="#1AFF9800"/>
+    <SolidColorBrush x:Key="UpdAccentLink" Color="#FFB74D"/>
+    <SolidColorBrush x:Key="UpdOnAccent" Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="UpdOnAccentSoft" Color="#FFE0B2"/>
+    <SolidColorBrush x:Key="UpdIconWell" Color="#33FFFFFF"/>
+    <SolidColorBrush x:Key="UpdSecondary" Color="#3A3A3E"/>
+    <SolidColorBrush x:Key="UpdSecondaryHover" Color="#46464C"/>
+    <SolidColorBrush x:Key="UpdSecondaryBorder" Color="#5A5A60"/>
+    <SolidColorBrush x:Key="UpdStepIdle" Color="#4A4A50"/>
+    <LinearGradientBrush x:Key="UpdBand" StartPoint="0%,0%" EndPoint="100%,0%">
+      <GradientStop Offset="0" Color="#FF9800"/>
+      <GradientStop Offset="1" Color="#E65100"/>
+    </LinearGradientBrush>
+  </Window.Resources>
+
+  <Window.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Principal: laranja cheio -->
+    <Style Selector="Button.primary">
+      <Setter Property="Background" Value="{StaticResource UpdAccent}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdOnAccent}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="MinHeight" Value="44"/>
+      <Setter Property="Padding" Value="22,10"/>
+      <Setter Property="FontSize" Value="15"/>
+    </Style>
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdAccentHover}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdOnAccent}"/>
+    </Style>
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdAccentPressed}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdOnAccent}"/>
+    </Style>
+    <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdAccent}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdOnAccent}"/>
+      <Setter Property="Opacity" Value="0.55"/>
+    </Style>
+
+    <!-- Secundário: cinza com borda -->
+    <Style Selector="Button.secondary">
+      <Setter Property="Background" Value="{StaticResource UpdSecondary}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdText}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource UpdSecondaryBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="MinHeight" Value="34"/>
+      <Setter Property="Padding" Value="14,6"/>
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdSecondaryHover}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource UpdSecondaryBorder}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdText}"/>
+    </Style>
+    <Style Selector="Button.secondary:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdSecondary}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdText}"/>
+    </Style>
+
+    <!-- Link: texto laranja, sem caixa -->
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdAccentLink}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdAccentSoft}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdAccentLink}"/>
+    </Style>
+    <Style Selector="Button.link:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource UpdAccentSoft}"/>
+      <Setter Property="Foreground" Value="{StaticResource UpdAccentLink}"/>
+    </Style>
+
+    <!-- Painéis -->
+    <Style Selector="Border.panel">
+      <Setter Property="Background" Value="{StaticResource UpdPanel}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource UpdPanelBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding" Value="18,16"/>
+    </Style>
+    <Style Selector="Border.panel.highlight">
+      <Setter Property="Background" Value="{StaticResource UpdAccentSoft}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource UpdAccent}"/>
+    </Style>
+
+    <!-- Número do passo -->
+    <Style Selector="Border.stepNumber">
+      <Setter Property="Width" Value="28"/>
+      <Setter Property="Height" Value="28"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Background" Value="{StaticResource UpdStepIdle}"/>
+    </Style>
+    <Style Selector="Border.stepNumber.highlight">
+      <Setter Property="Background" Value="{StaticResource UpdAccent}"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Faixa -->
+    <Border Grid.Row="0" Background="{StaticResource UpdBand}" Padding="26,22">
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+        <Border Grid.Column="0" Width="52" Height="52" CornerRadius="26"
+                Background="{StaticResource UpdIconWell}" VerticalAlignment="Center">
+          <Panel>
+            <!-- Alerta (Store) -->
+            <Path IsVisible="{Binding IsStoreMode}"
+                  Data="M12,2L1,21H23M12,6L19.53,19H4.47M11,10V14H13V10M11,16V18H13V16"
+                  Fill="{StaticResource UpdOnAccent}" Width="26" Height="26" Stretch="Uniform"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <!-- Download (zip) -->
+            <Path IsVisible="{Binding IsZipMode}"
+                  Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"
+                  Fill="{StaticResource UpdOnAccent}" Width="24" Height="24" Stretch="Uniform"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          </Panel>
+        </Border>
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+          <TextBlock Text="{Binding Label}" FontSize="13" FontWeight="SemiBold"
+                     Foreground="{StaticResource UpdOnAccentSoft}"/>
+          <TextBlock Text="{Binding Headline}" FontSize="22" FontWeight="Bold" LineHeight="28"
+                     Foreground="{StaticResource UpdOnAccent}"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Conteúdo -->
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="26,20,26,8" Spacing="16">
+
+        <StackPanel Spacing="10">
+          <TextBlock Text="{Binding Explanation}" FontSize="14" LineHeight="21"
+                     Foreground="{StaticResource UpdTextMuted}"/>
+          <Border IsVisible="{Binding HasInstalledVersion}" HorizontalAlignment="Left"
+                  Background="{StaticResource UpdSecondary}" CornerRadius="4" Padding="8,3">
+            <TextBlock Text="{Binding InstalledVersionText}" FontSize="12"
+                       Foreground="{StaticResource UpdTextSubtle}"/>
+          </Border>
+        </StackPanel>
+
+        <!-- Modo Store: atualizar agora -->
+        <Border Classes="panel highlight" IsVisible="{Binding IsStoreMode}">
+          <StackPanel Spacing="12">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Atualizar agora, sem sair daqui" FontSize="15" FontWeight="Bold"
+                         Foreground="{StaticResource UpdText}"/>
+              <TextBlock Text="O Windows baixa e instala a versão nova pela Microsoft Store."
+                         FontSize="13" LineHeight="19" Foreground="{StaticResource UpdTextMuted}"/>
+            </StackPanel>
+            <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8">
+              <Button Classes="primary" Content="Atualizar agora"
+                      Command="{Binding UpdateNowCommand}" IsEnabled="{Binding CanUpdateNow}"
+                      IsDefault="True" MinWidth="180"/>
+              <Button Classes="link" Content="Abrir na Microsoft Store"
+                      Command="{Binding OpenStoreCommand}" VerticalAlignment="Center"/>
+            </WrapPanel>
+            <ProgressBar IsVisible="{Binding IsInstalling}"
+                         IsIndeterminate="{Binding !HasInstallProgress}"
+                         Value="{Binding InstallProgress}" Minimum="0" Maximum="100"
+                         Height="6" CornerRadius="3"
+                         Foreground="{StaticResource UpdAccent}" Background="{StaticResource UpdDivider}"/>
+            <TextBlock IsVisible="{Binding HasInstallStatus}" Text="{Binding InstallStatus}"
+                       FontSize="13" LineHeight="19" Foreground="{StaticResource UpdText}"/>
+          </StackPanel>
+        </Border>
+
+        <!-- Passos (zip: o caminho principal; Store: o plano B) -->
+        <Border Classes="panel" Classes.highlight="{Binding IsZipMode}">
+          <StackPanel Spacing="14">
+            <TextBlock Text="{Binding StepsTitle}" FontSize="15" FontWeight="Bold"
+                       Foreground="{StaticResource UpdText}"/>
+            <ItemsControl ItemsSource="{Binding Steps}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="14"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:UpdateStepViewModel">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border Grid.Column="0" Classes="stepNumber" Classes.highlight="{Binding IsHighlighted}"
+                            VerticalAlignment="Top">
+                      <TextBlock Text="{Binding Number}" FontSize="13" FontWeight="Bold"
+                                 Foreground="{StaticResource UpdOnAccent}"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" Spacing="3">
+                      <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold"
+                                 Foreground="{StaticResource UpdText}" Margin="0,4,0,0"/>
+                      <TextBlock Text="{Binding Detail}" FontSize="13" LineHeight="19"
+                                 Foreground="{StaticResource UpdTextMuted}"/>
+                      <Button Classes="primary" IsVisible="{Binding IsPrimaryAction}"
+                              Content="{Binding ActionLabel}" Command="{Binding Command}"
+                              HorizontalAlignment="Left" Margin="0,8,0,0" MinWidth="180"/>
+                      <Button Classes="secondary" IsVisible="{Binding IsSecondaryAction}"
+                              Content="{Binding ActionLabel}" Command="{Binding Command}"
+                              HorizontalAlignment="Left" Margin="0,6,0,0"/>
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Rodapé -->
+    <Border Grid.Row="2" BorderBrush="{StaticResource UpdDivider}" BorderThickness="0,1,0,0"
+            Padding="26,14" Margin="0,12,0,0">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+        <TextBlock Grid.Column="0" IsVisible="{Binding HasDismissNote}" Text="{Binding DismissNote}"
+                   FontSize="12" Foreground="{StaticResource UpdTextSubtle}" VerticalAlignment="Center"/>
+        <Button Grid.Column="1" Classes="secondary" Content="{Binding DismissLabel}"
+                Command="{Binding DismissCommand}" MinWidth="120"/>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

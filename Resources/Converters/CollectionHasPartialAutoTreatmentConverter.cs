@@ -1,4 +1,4 @@
-using Avalonia.Data.Converters;
+﻿using Avalonia.Data.Converters;
 using LesserDashboardClient.Helpers;
 using SharedClientSide.ServerInteraction;
 using System;

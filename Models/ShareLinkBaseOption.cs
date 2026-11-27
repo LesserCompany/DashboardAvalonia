@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Models;
+﻿namespace LesserDashboardClient.Models;
 
 /// <summary>
 /// Opção de base/domínio para montar o link de compartilhamento da coleção.

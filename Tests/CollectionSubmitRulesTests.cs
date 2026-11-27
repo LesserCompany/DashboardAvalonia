@@ -1,4 +1,4 @@
-using LesserDashboardClient.Helpers;
+﻿using LesserDashboardClient.Helpers;
 using NUnit.Framework;
 
 namespace LesserDashboardClient.Tests;

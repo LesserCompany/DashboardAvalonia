@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using SharedClientSide_AVALONIA.Helpers;
 
 namespace LesserDashboardClient.Views;

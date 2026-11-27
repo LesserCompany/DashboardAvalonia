@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Helpers;
+﻿namespace LesserDashboardClient.Helpers;
 
 /// <summary>
 /// Regras do botão "Solicitar Reprocessamento": só faz sentido quando

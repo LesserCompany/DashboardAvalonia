@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using System;

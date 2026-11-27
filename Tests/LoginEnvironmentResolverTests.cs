@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using SharedClientSide.ServerInteraction.Users.Login;
 
 namespace LesserDashboardClient.Tests;

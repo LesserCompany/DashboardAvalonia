@@ -1,4 +1,4 @@
-using SharedClientSide.ServerInteraction;
+﻿using SharedClientSide.ServerInteraction;
 
 namespace LesserDashboardClient.ViewModels.SearchGraduate
 {

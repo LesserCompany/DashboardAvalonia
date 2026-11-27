@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using LesserDashboardClient.Helpers;
 using Newtonsoft.Json;
 using SharedClientSide.Helpers;

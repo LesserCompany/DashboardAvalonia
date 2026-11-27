@@ -1,0 +1,10 @@
+# Encoding dos arquivos-fonte. Arquivos UTF-8 sem BOM já foram lidos como Windows-1252 (PowerShell 5.1)
+# e regravados, corrompendo os acentos. Com BOM, todo editor/ferramenta reconhece o UTF-8.
+# A build falha se algum arquivo estiver fora disso: ver SharedClientSide/BuildTools/SourceEncoding/README.md.
+root = true
+
+[*.{cs,axaml,xaml}]
+charset = utf-8-bom
+
+[*.{json,resx,xml,csproj,props,targets,md}]
+charset = utf-8

@@ -1,4 +1,4 @@
-using Avalonia.Data.Converters;
+﻿using Avalonia.Data.Converters;
 using Avalonia.Media;
 using LesserDashboardClient.Models;
 using LesserDashboardClient.Services;

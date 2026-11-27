@@ -116,9 +116,9 @@
     "pt-BR": "Renomear coleção. O ID da coleção não muda."
   },
   "Permissions": { "en-US": "Permissions", "pt-BR": "Permissões" },
-  "The company name is added before the username.": {
-    "en-US": "The company name is added before the username.",
-    "pt-BR": "O nome da empresa é colocado antes do nome de usuário."
+  "The company name is added after the username.": {
+    "en-US": "The company name is added after the username.",
+    "pt-BR": "O nome da empresa é colocado depois do nome de usuário."
   },
   "Login:": { "en-US": "Login:", "pt-BR": "Login:" },
   "Manage professionals": { "en-US": "Manage professionals", "pt-BR": "Gerenciar profissionais" },

@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Helpers;
+﻿namespace LesserDashboardClient.Helpers;
 
 /// <summary>
 /// Distingue "só salvar a task" de "reupload com envio de fotos".

@@ -1,4 +1,4 @@
-using CodingSeb.Localization;
+﻿using CodingSeb.Localization;
 using LesserDashboardClient.Helpers;
 using SharedClientSide.Helpers;
 using System;

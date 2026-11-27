@@ -1,4 +1,4 @@
-using SharedClientSide.ServerInteraction.Users.Graduate;
+﻿using SharedClientSide.ServerInteraction.Users.Graduate;
 using System;
 using System.Collections.Generic;
 using System.IO;

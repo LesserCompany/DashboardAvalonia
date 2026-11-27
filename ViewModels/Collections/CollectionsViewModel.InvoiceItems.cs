@@ -1,4 +1,4 @@
-using CodingSeb.Localization;
+﻿using CodingSeb.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SharedClientSide.ServerInteraction.Items.Financial;

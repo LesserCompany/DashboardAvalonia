@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <RootNamespace>LesserDashboardClient.Tests</RootNamespace>
+    <!-- Compila só o scanner de SharedClientSide/BuildTools/SourceEncoding/SourceEncodingCheck.cs (sem a task do MSBuild). -->
+    <DefineConstants>$(DefineConstants);SOURCE_ENCODING_SCANNER_ONLY</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\SharedClientSide\BuildTools\SourceEncoding\SourceEncodingCheck.cs" Link="SourceEncodingCheck.cs" />
     <Compile Include="..\Helpers\CollectionRecognitionVersion.cs" Link="Helpers\CollectionRecognitionVersion.cs" />
     <Compile Include="..\Helpers\CollectionReprocessRules.cs" Link="Helpers\CollectionReprocessRules.cs" />
     <Compile Include="..\Helpers\CollectionsListRefreshSettings.cs" Link="Helpers\CollectionsListRefreshSettings.cs" />
@@ -26,10 +29,13 @@
     <Compile Include="..\Services\CollectionComboMatcher.cs" Link="Services\CollectionComboMatcher.cs" />
     <Compile Include="..\Models\CollectionComboOptions.cs" Link="Models\CollectionComboOptions.cs" />
     <Compile Include="..\Models\ProfessionalPermissionOptions.cs" Link="Models\ProfessionalPermissionOptions.cs" />
-    <Compile Include="..\Helpers\ProfessionalUsernamePrefix.cs" Link="Helpers\ProfessionalUsernamePrefix.cs" />
+    <Compile Include="..\Helpers\ProfessionalUsernameSuffix.cs" Link="Helpers\ProfessionalUsernamePrefix.cs" />
     <Compile Include="..\Helpers\DashboardPermissions.cs" Link="Helpers\DashboardPermissions.cs" />
     <Compile Include="..\Helpers\ReleaseNotesTarget.cs" Link="Helpers\ReleaseNotesTarget.cs" />
     <Compile Include="..\Helpers\NewCollectionSeparator.cs" Link="Helpers\NewCollectionSeparator.cs" />
+    <Compile Include="..\Helpers\UpdateInstructionsPolicy.cs" Link="Helpers\UpdateInstructionsPolicy.cs" />
+    <Compile Include="..\Helpers\UpdateLinks.cs" Link="Helpers\UpdateLinks.cs" />
+    <Compile Include="..\Helpers\UpdateInstructionsContent.cs" Link="Helpers\UpdateInstructionsContent.cs" />
     <Compile Include="..\Models\ProfessionalEditChanges.cs" Link="Models\ProfessionalEditChanges.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\UserAuthorization.cs" Link="UserAuthorization.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\Professionals\ProfessionalTask.cs" Link="ProfessionalTask.cs" />
@@ -37,6 +43,9 @@
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\MVVMCommon\NotifyPropertyChangedBase.cs" Link="NotifyPropertyChangedBase.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\DataStructure\CoreApp\TargetEnvironment\TargetEnvironmentResponse.cs" Link="TargetEnvironmentResponse.cs" />
     <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\Login\LoginEnvironmentResolver.cs" Link="LoginEnvironmentResolver.cs" />
+    <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\LesserFunctionResult.cs" Link="LesserFunctionResult.cs" />
+    <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\Users\Results\UserResult.cs" Link="UserResult.cs" />
+    <Compile Include="..\..\..\SharedClientSide\SharedClientSide\ServerInteraction\LesserFunctionClient\LesserFunctionJsonResponse.cs" Link="LesserFunctionJsonResponse.cs" />
   </ItemGroup>
 
 </Project>

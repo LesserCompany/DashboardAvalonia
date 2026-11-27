@@ -1,4 +1,4 @@
-namespace LesserDashboardClient.Helpers;
+﻿namespace LesserDashboardClient.Helpers;
 
 /// <summary>
 /// Versão de reconhecimento facial enviada na criação/atualização de coleção.

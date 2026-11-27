@@ -1,4 +1,4 @@
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using LesserDashboardClient.ViewModels.Collections;
 using SharedClientSide.ServerInteraction;
 

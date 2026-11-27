@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -9,6 +9,8 @@ using Avalonia.Styling;
 using CodingSeb.Localization;
 using CodingSeb.Localization.Loaders;
 using LesserDashboardClient.ViewModels;
+using LesserDashboardClient.ViewModels.Update;
+using LesserDashboardClient.Services.Store;
 using LesserDashboardClient.Views;
 using LesserDashboardClient.Helpers;
 using MsBox.Avalonia;
@@ -27,14 +29,6 @@ namespace LesserDashboardClient;
 
 public partial class App : Application
 {
-    /// <summary>Product Id na Microsoft Store — https://apps.microsoft.com/detail/9P5GDKBRXR16</summary>
-    private const string MsixStoreProductId = "9P5GDKBRXR16";
-
-    /// <summary>Se true, mostra a janela de "atualização disponível" (fase 1 - só avisar) no startup para demo. Colocar false em produção.</summary>
-    private const bool ForceShowUpdateAvailableForDemo = false;
-    /// <summary>Se true, mostra a janela de "atualização obrigatória" (fase 2 - bloquear) no startup para demo. Colocar false em produção.</summary>
-    private const bool ForceShowUpdateRequiredForDemo = false;
-
     public static AuthWindow? AuthWindowInstance { get; set; }
     private static bool isRedirecting = false; // Flag para evitar redirecionamentos duplos
     
@@ -137,18 +131,8 @@ public partial class App : Application
         {
             DisableAvaloniaDataAnnotationValidation();
 
-            // Demo fase 2: bloqueia imediatamente (sem rede).
-            if (ForceShowUpdateRequiredForDemo)
-            {
-                if (MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
-                    MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
-                ShowUpdateRequiredWindowAndShutdown(desktop);
-                base.OnFrameworkInitializationCompleted();
-                return;
-            }
-
             // Abrir UI primeiro — nunca bloquear a thread de UI com GetResult() no check de update.
-            // O check (MSIX Store / sideload / web VersioningParams) corre async depois da janela.
+            // A checagem (Store / instalador web antigo) corre async depois da janela.
             OpenStartupWindow(desktop);
             ScheduleStartupUpdateCheck(desktop);
         }
@@ -197,36 +181,24 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Check de update pós-UI (somente MSIX):
-    /// - Required → troca para janela de bloqueio e shutdown
-    /// - Available → aviso fase 1 por cima
-    /// - WebLegacy / sem update / erro → segue normal (UI já aberta)
+    /// Depois que a janela abre, decide se mostra a tela de instruções de atualização
+    /// (Helpers/UpdateInstructionsPolicy; arquitetura em docs/arquitetura/tela-instrucoes-atualizacao.html):
+    /// - Store + update obrigatório → tela bloqueante (fechar encerra o app)
+    /// - Store + update opcional → tela com "Mais tarde"
+    /// - Instalador web antigo (Azure) → tela "reinstale pelo letspic.zip", a cada abertura
+    /// Para ver a tela sem update real: variável LETSPIC_UPDATE_SCREEN_DEMO = store-required | store-optional | zip.
     /// </summary>
     private static void ScheduleStartupUpdateCheck(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        if (ForceShowUpdateAvailableForDemo)
-        {
-            _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await Task.Delay(500);
-                ShowUpdateAvailableNotice();
-            });
-        }
+        bool checkedByLanding = UpdateInstructionsPolicy.WasCheckedByLanding(desktop.Args);
 
         _ = Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            AppUpdateCheckOutcome? updateOutcome = null;
+            UpdateInstructionsDecision decision;
             try
             {
-                // Off UI thread: evita deadlock com SyncContext do Avalonia e não trava a janela.
-                updateOutcome = await Task.Run(async () =>
-                    await AppUpdateOrchestrator.CheckOnStartupAsync(
-                        MsixStoreProductId,
-                        "LesserDashboard",
-                        openStoreIfNeeded: true).ConfigureAwait(false)).ConfigureAwait(true);
-
-                SharedClientSide.Helpers.AppInstaller.MsixLog(
-                    $"Startup update: channel={updateOutcome.Channel}, status={updateOutcome.Status}, detail={updateOutcome.Detail}");
+                // Fora da thread de UI: a consulta à Store usa rede.
+                decision = await Task.Run(() => ResolveStartupUpdateDecisionAsync(checkedByLanding)).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
@@ -234,227 +206,72 @@ public partial class App : Application
                 return;
             }
 
-            if (updateOutcome == null)
+            if (!decision.ShouldShow)
                 return;
 
-            if (updateOutcome.Status == AppUpdateCheckStatus.Required)
-            {
-                if (!updateOutcome.OpenedMicrosoftStore
-                    && MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
-                {
-                    MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
-                }
-
-                var oldWindow = desktop.MainWindow;
-                ShowUpdateRequiredWindowAndShutdown(desktop);
-                try
-                {
-                    oldWindow?.Close();
-                }
-                catch { /* janela já pode ter sido fechada */ }
-                return;
-            }
-
-            if (updateOutcome.Status == AppUpdateCheckStatus.Available)
-            {
-                await Task.Delay(500);
-                ShowUpdateAvailableNotice();
-            }
+            await Task.Delay(500);
+            await ShowUpdateInstructionsAsync(desktop, decision);
         });
     }
 
-    private static IBrush GetAccentBrush()
+    private static async Task<UpdateInstructionsDecision> ResolveStartupUpdateDecisionAsync(bool checkedByLanding)
     {
-        if (Current?.TryGetResource("SystemControlBackgroundAccentBrush", Current.ActualThemeVariant, out var res) == true
-            && res is IBrush brush)
-            return brush;
-        return new SolidColorBrush(Color.Parse("#E67E22"));
+        UpdateInstructionsDecision? demo = UpdateInstructionsPolicy.TryParseDemo(
+            Environment.GetEnvironmentVariable(UpdateInstructionsPolicy.DemoEnvironmentVariable));
+        if (demo != null)
+            return demo;
+
+        StoreUpdateService store = StoreUpdateService.Instance;
+        InstallSource source = store.GetInstallSource();
+        StoreUpdateState state = source == InstallSource.MicrosoftStore
+            ? await store.CheckStoreUpdatesAsync().ConfigureAwait(false)
+            : StoreUpdateState.None;
+
+        UpdateInstructionsDecision decision = UpdateInstructionsPolicy.Decide(source, state, checkedByLanding);
+        SharedClientSide.Helpers.AppInstaller.MsixLog(
+            $"Startup update: source={source}, store={state}, checkedByLanding={checkedByLanding}, mode={decision.Mode}, blocking={decision.IsBlocking}");
+        return decision;
     }
 
-    private static Button CreatePrimaryDialogButton(string text, double minWidth = 132)
+    private static async Task ShowUpdateInstructionsAsync(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        UpdateInstructionsDecision decision)
     {
-        return new Button
-        {
-            Content = text,
-            MinWidth = minWidth,
-            MinHeight = 40,
-            Padding = new Thickness(18, 8),
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Background = GetAccentBrush(),
-            Foreground = Brushes.White,
-            BorderThickness = new Thickness(0),
-            CornerRadius = new CornerRadius(6),
-            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
-        };
-    }
+        var vm = new UpdateInstructionsViewModel(
+            decision,
+            StoreUpdateService.Instance.GetInstalledVersionLabel(),
+            StoreUpdateService.Instance);
+        var window = new UpdateInstructionsWindow { DataContext = vm };
 
-    private static Button CreateSecondaryDialogButton(string text, double minWidth = 132)
-    {
-        return new Button
+        if (decision.IsBlocking)
         {
-            Content = text,
-            MinWidth = minWidth,
-            MinHeight = 40,
-            Padding = new Thickness(18, 8),
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Background = new SolidColorBrush(Color.Parse("#3A3A3E")),
-            Foreground = Brushes.White,
-            BorderBrush = new SolidColorBrush(Color.Parse("#55555A")),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(6),
-            Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Hand)
-        };
-    }
-
-    private static Window BuildUpdateDialogWindow(
-        string title,
-        string subtitle,
-        string message,
-        Control buttons,
-        bool topmost = false)
-    {
-        var header = new Border
-        {
-            Background = GetAccentBrush(),
-            Padding = new Thickness(22, 16),
-            Child = new StackPanel
+            // Versão incompatível: a tela vira a janela principal e fechá-la encerra o app.
+            var oldWindow = desktop.MainWindow;
+            window.Topmost = true;
+            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            window.Closed += (_, _) => desktop.Shutdown(0);
+            desktop.MainWindow = window;
+            window.Show();
+            try
             {
-                Spacing = 6,
-                Children =
-                {
-                    new TextBlock
-                    {
-                        Text = title,
-                        FontSize = 18,
-                        FontWeight = FontWeight.SemiBold,
-                        Foreground = Brushes.White,
-                        TextWrapping = TextWrapping.Wrap
-                    },
-                    new TextBlock
-                    {
-                        Text = subtitle,
-                        FontSize = 13,
-                        Foreground = Brushes.White,
-                        Opacity = 0.92,
-                        TextWrapping = TextWrapping.Wrap
-                    }
-                }
+                (oldWindow?.DataContext as IDisposable)?.Dispose();
+                oldWindow?.Close();
             }
-        };
+            catch { /* janela já pode ter sido fechada */ }
+            return;
+        }
 
-        var body = new StackPanel
+        // Modal sobre a janela aberta (login ou dashboard), para ser lida antes de seguir.
+        Window? owner = desktop.MainWindow;
+        if (owner != null && owner.IsVisible)
         {
-            Margin = new Thickness(22, 18, 22, 20),
-            Spacing = 18,
-            Children =
-            {
-                new TextBlock
-                {
-                    Text = message,
-                    FontSize = 14,
-                    LineHeight = 22,
-                    Foreground = new SolidColorBrush(Color.Parse("#E8E8EA")),
-                    TextWrapping = TextWrapping.Wrap
-                },
-                buttons
-            }
-        };
-
-        return new Window
+            await window.ShowDialog(owner);
+        }
+        else
         {
-            Title = title,
-            Width = 460,
-            SizeToContent = SizeToContent.Height,
-            MinHeight = 220,
-            CanResize = false,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen,
-            Topmost = topmost,
-            Background = new SolidColorBrush(Color.Parse("#2B2B2F")),
-            Content = new Grid
-            {
-                RowDefinitions = new RowDefinitions("Auto,*"),
-                Children =
-                {
-                    header,
-                    new Border
-                    {
-                        [Grid.RowProperty] = 1,
-                        Child = body
-                    }
-                }
-            }
-        };
-    }
-
-    /// <summary>
-    /// Fase 1 — Só avisar (MSIX): update disponível, utilizador decide.
-    /// "Atualizar agora" abre a Store; "Mais tarde" continua a usar a app.
-    /// </summary>
-    private static void ShowUpdateAvailableNotice()
-    {
-        var btnUpdate = CreatePrimaryDialogButton("Atualizar agora");
-        var btnLater = CreateSecondaryDialogButton("Mais tarde");
-
-        var buttons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 10,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Children = { btnLater, btnUpdate }
-        };
-
-        var window = BuildUpdateDialogWindow(
-            title: "Atualização disponível",
-            subtitle: "Atualização na Microsoft Store",
-            message: "Há uma atualização disponível na Microsoft Store. Pode continuar a usar a aplicação agora e atualizar quando quiser.",
-            buttons: buttons,
-            topmost: true);
-
-        btnUpdate.Click += (_, _) =>
-        {
-            if (MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
-                MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
-            window.Close();
-        };
-        btnLater.Click += (_, _) => window.Close();
-        window.Show();
-    }
-
-    /// <summary>
-    /// Fase 2 — Bloquear (MSIX Mandatory / Required).
-    /// Não abre o dashboard; ao fechar encerra o processo.
-    /// </summary>
-    private static void ShowUpdateRequiredWindowAndShutdown(
-        IClassicDesktopStyleApplicationLifetime desktop)
-    {
-        var btnClose = CreateSecondaryDialogButton("Fechar aplicação", 148);
-        var btnStore = CreatePrimaryDialogButton("Abrir Microsoft Store", 168);
-
-        var buttons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 10,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Children = { btnClose, btnStore }
-        };
-
-        var window = BuildUpdateDialogWindow(
-            title: "Atualização obrigatória",
-            subtitle: "É necessário atualizar para continuar",
-            message: "Existe uma atualização obrigatória. A Microsoft Store foi aberta. Instale a atualização e volte a abrir a aplicação — esta versão não pode continuar.",
-            buttons: buttons);
-
-        window.Closed += (_, _) => desktop.Shutdown(0);
-        btnClose.Click += (_, _) => window.Close();
-        btnStore.Click += (_, _) =>
-        {
-            if (MsixStoreUpdateChecker.IsValidStoreProductId(MsixStoreProductId))
-                MsixStoreUpdateChecker.OpenMicrosoftStore(MsixStoreProductId);
-        };
-        desktop.MainWindow = window;
-        window.Show();
+            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            window.Show();
+        }
     }
 
     private void HandleInvalidToken(IClassicDesktopStyleApplicationLifetime desktop)

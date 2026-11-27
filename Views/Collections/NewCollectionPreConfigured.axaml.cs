@@ -1,4 +1,4 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -128,7 +128,7 @@ public partial class NewCollectionPreConfigured : UserControl
     }
     private void Border_OnDragOver(object? sender, DragEventArgs e)
     {
-        // S� permite arquivos
+        // Só permite arquivos
         if (e.Data.Contains(DataFormats.Files))
         {
             e.DragEffects = DragDropEffects.Copy;
@@ -151,7 +151,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if (files == null || files.Count == 0)
                 {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "N�o foi poss�vel carregar o arquivo.");
+                        .GetMessageBoxStandard("", "Não foi possível carregar o arquivo.");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }
@@ -161,7 +161,7 @@ public partial class NewCollectionPreConfigured : UserControl
                 if (!string.Equals(Path.GetExtension(firstFile), ".xlsx", StringComparison.OrdinalIgnoreCase))
                 {
                     var bbox = MessageBoxManager
-                        .GetMessageBoxStandard("", "Por favor, selecione um arquivo Excel v�lido (.xlsx).");
+                        .GetMessageBoxStandard("", "Por favor, selecione um arquivo Excel válido (.xlsx).");
                     await bbox.ShowWindowDialogAsync(MainWindow.instance);
                     return;
                 }
